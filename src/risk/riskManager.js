@@ -1,35 +1,5 @@
 // src/risk/riskManager.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Risk Management Engine
-//
-// CORE PRINCIPLES
-// ───────────────
-// 1. Never risk more than 1–2 % of capital on any single trade.
-// 2. Never lose more than 5 % of capital in a single day.
-// 3. Position size must account for both capital at risk and volatility.
-//
-// POSITION SIZING METHODS
-// ───────────────────────
-// A. Fixed Fractional (recommended default)
-//    quantity = floor( (capital × riskPct) / (entryPrice × stopLossPct) )
-//    → Risks exactly riskPct of capital, no matter the instrument.
-//
-// B. Kelly Criterion (aggressive, use with caution)
-//    f* = (W × B - L) / B
-//      W = win rate (e.g. 0.55)
-//      B = average win / average loss ratio
-//      L = 1 - W (loss rate)
-//    quantity = floor( (capital × f* × safetyFactor) / entryPrice )
-//
-//    We apply a "half-Kelly" (safetyFactor=0.5) to reduce variance.
-//    Full Kelly maximises long-run geometric growth but produces large drawdowns.
-//
-// STOP LOSS / TAKE PROFIT
-// ───────────────────────
-//    stopLoss   = entryPrice × (1 − stopLossPct)   for longs
-//    takeProfit = entryPrice × (1 + takeProfitPct)  for longs
-//    (reversed for shorts)
-// ─────────────────────────────────────────────────────────────────────────────
+// Risk Management Engine — position sizing, stop-loss, daily limits.
 
 'use strict';
 
@@ -38,223 +8,209 @@ const logger = require('../config/logger');
 
 const R = C.RISK;
 
-// ─── Daily Loss Tracker ───────────────────────────────────────────────────────
-// In production this should be persisted to DB and reset at market open.
-const dailyLossTracker = new Map();   // portfolioId → { date: string, loss: number }
+// ── Daily Loss Tracker ────────────────────────────────────────────────────────
+// Map: portfolioId → { date: 'YYYY-MM-DD', loss: number }
+// IMPORTANT: in a multi-process deployment, replace with a Redis-backed store
+// so the limit is enforced across all workers.
+const _dailyLoss = new Map();
+
+function _today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function _getEntry(portfolioId) {
+  const today = _today();
+  let entry   = _dailyLoss.get(portfolioId);
+  if (!entry || entry.date !== today) {
+    entry = { date: today, loss: 0 };
+    _dailyLoss.set(portfolioId, entry);   // FIX: always write back
+  }
+  return entry;
+}
 
 /**
- * Record a realised loss for a portfolio. Called by the execution engine.
+ * Record a realised loss.
  * @param {string} portfolioId
  * @param {number} amount - Positive number = loss amount (₹)
  */
 function recordDailyLoss(portfolioId, amount) {
-  const today = new Date().toISOString().slice(0, 10);
-  const entry = dailyLossTracker.get(portfolioId) || { date: today, loss: 0 };
-  if (entry.date !== today) {
-    // New trading day — reset
-    entry.date = today;
-    entry.loss = 0;
-  }
+  if (typeof amount !== 'number' || amount < 0)
+    throw new TypeError('recordDailyLoss: amount must be a non-negative number');
+  const entry = _getEntry(portfolioId);
   entry.loss += amount;
-  dailyLossTracker.set(portfolioId, entry);
-  logger.info(`[Risk] Daily loss for ${portfolioId}: ₹${entry.loss.toFixed(2)}`);
+  logger.info(`[Risk] Daily P&L for "${portfolioId}": −₹${entry.loss.toFixed(2)}`);
 }
 
 /**
- * Check whether today's loss has breached the daily loss limit.
+ * Check whether today's cumulative loss has breached the daily limit.
  * @param {string} portfolioId
- * @param {number} capital     - Current portfolio capital
- * @returns {{ blocked: boolean, reason: string, lossSoFar: number }}
+ * @param {number} capital - Current total portfolio value
+ * @returns {{ blocked: boolean, reason: string, lossSoFar: number, remainingBudget: number }}
  */
 function checkDailyLossLimit(portfolioId, capital) {
-  const today = new Date().toISOString().slice(0, 10);
-  const entry = dailyLossTracker.get(portfolioId) || { date: today, loss: 0 };
-  if (entry.date !== today) { entry.loss = 0; }
-
-  const maxAllowedLoss = capital * R.MAX_DAILY_LOSS_PCT;
-  const blocked = entry.loss >= maxAllowedLoss;
-
+  if (!capital || capital <= 0) throw new RangeError('checkDailyLossLimit: capital must be > 0');
+  const entry      = _getEntry(portfolioId);
+  const limit      = capital * R.MAX_DAILY_LOSS_PCT;
+  const blocked    = entry.loss >= limit;
   return {
     blocked,
     reason: blocked
-      ? `Daily loss ₹${entry.loss.toFixed(2)} has reached limit ₹${maxAllowedLoss.toFixed(2)} (${(R.MAX_DAILY_LOSS_PCT * 100).toFixed(1)}% of ₹${capital.toFixed(2)})`
+      ? `Daily loss ₹${entry.loss.toFixed(2)} ≥ limit ₹${limit.toFixed(2)} (${(R.MAX_DAILY_LOSS_PCT * 100).toFixed(1)}% of ₹${capital.toFixed(2)})`
       : 'Within daily loss limit',
-    lossSoFar:      entry.loss,
-    limitAmount:    maxAllowedLoss,
-    remainingBudget: Math.max(0, maxAllowedLoss - entry.loss),
+    lossSoFar:       parseFloat(entry.loss.toFixed(2)),
+    limitAmount:     parseFloat(limit.toFixed(2)),
+    remainingBudget: parseFloat(Math.max(0, limit - entry.loss).toFixed(2)),
   };
 }
 
-// ─── Position Sizing ─────────────────────────────────────────────────────────
+// ── Position Sizing ───────────────────────────────────────────────────────────
 
 /**
- * Fixed Fractional position sizing.
+ * Fixed Fractional sizing.
  *
- * Risk formula:
- *   riskAmount = capital × riskPct
+ *   riskAmount   = capital × riskPct
  *   riskPerShare = entryPrice × stopLossPct
- *   quantity = floor(riskAmount / riskPerShare)
+ *   quantity     = ⌊riskAmount / riskPerShare⌋
  *
- * @param {{
- *   capital:     number,   // Available capital in ₹
- *   entryPrice:  number,   // Entry price per share
- *   stopLossPct: number,   // Fractional stop-loss, e.g. 0.02 = 2%
- *   riskPct:     number,   // Fraction of capital to risk, e.g. 0.01 = 1%
- * }} params
- * @returns {{ quantity: number, riskAmount: number, riskPerShare: number, positionValue: number }}
+ * Capped so positionValue ≤ capital.
+ *
+ * @throws {TypeError}  on missing / invalid params
+ * @throws {RangeError} on zero or negative prices
  */
 function fixedFractionalSize({ capital, entryPrice, stopLossPct, riskPct }) {
-  if (!capital || !entryPrice || !stopLossPct || !riskPct) {
-    throw new Error('[Risk] fixedFractionalSize: missing required parameters');
-  }
+  if (capital     == null || entryPrice == null ||
+      stopLossPct == null || riskPct    == null)
+    throw new TypeError('[Risk] fixedFractionalSize: capital, entryPrice, stopLossPct, riskPct all required');
+  if (capital     <= 0) throw new RangeError('[Risk] capital must be > 0');
+  if (entryPrice  <= 0) throw new RangeError('[Risk] entryPrice must be > 0');
+  if (stopLossPct <= 0 || stopLossPct >= 1) throw new RangeError('[Risk] stopLossPct must be in (0, 1)');
+  if (riskPct     <= 0 || riskPct     >= 1) throw new RangeError('[Risk] riskPct must be in (0, 1)');
 
   const riskAmount   = capital * riskPct;
   const riskPerShare = entryPrice * stopLossPct;
+  const rawQty       = riskAmount / riskPerShare;
+  const maxQty       = Math.floor(capital / entryPrice);
+  const quantity     = Math.min(Math.floor(rawQty), maxQty);
 
-  if (riskPerShare <= 0) {
-    throw new Error('[Risk] riskPerShare must be > 0 — check entryPrice and stopLossPct');
+  if (quantity < 1) {
+    logger.warn(
+      `[Risk] FixedFractional: qty=0 — capital=₹${capital} is insufficient ` +
+      `to take even 1 share at ₹${entryPrice} with ${(riskPct * 100).toFixed(1)}% risk`
+    );
+    return { quantity: 0, riskAmount: 0, riskPerShare, positionValue: 0, capitalUsedPct: 0 };
   }
 
-  const rawQty      = riskAmount / riskPerShare;
-  const quantity    = Math.floor(rawQty);
-  const positionValue = quantity * entryPrice;
-
-  // Guard: position should not exceed total capital
-  const maxQty   = Math.floor(capital / entryPrice);
-  const finalQty = Math.min(quantity, maxQty);
-
   logger.debug(
-    `[Risk] FixedFractional: capital=${capital} | entry=${entryPrice} | ` +
-    `risk=${(riskPct * 100).toFixed(1)}% | sl=${(stopLossPct * 100).toFixed(1)}% | qty=${finalQty}`
+    `[Risk] FixedFractional | entry=₹${entryPrice} | risk=${(riskPct*100).toFixed(1)}% | ` +
+    `sl=${(stopLossPct*100).toFixed(1)}% | qty=${quantity}`
   );
 
   return {
-    quantity:      finalQty,
-    riskAmount:    finalQty * riskPerShare,
-    riskPerShare:  parseFloat(riskPerShare.toFixed(4)),
-    positionValue: parseFloat((finalQty * entryPrice).toFixed(2)),
-    capitalUsedPct: parseFloat(((finalQty * entryPrice) / capital * 100).toFixed(2)),
+    quantity,
+    riskAmount:     parseFloat((quantity * riskPerShare).toFixed(2)),
+    riskPerShare:   parseFloat(riskPerShare.toFixed(4)),
+    positionValue:  parseFloat((quantity * entryPrice).toFixed(2)),
+    capitalUsedPct: parseFloat(((quantity * entryPrice) / capital * 100).toFixed(2)),
   };
 }
 
 /**
- * Kelly Criterion position sizing (half-Kelly for safety).
+ * Kelly Criterion sizing (half-Kelly by default for safety).
  *
- * f* = (p × B − q) / B   where q = 1 − p
+ *   f* = (p × B − q) / B   where B = avgWin/avgLoss, q = 1−p
+ *   allocate capital × f* × kellyFraction
  *
- * @param {{
- *   capital:       number,
- *   entryPrice:    number,
- *   winRate:       number,   // Historical win rate, e.g. 0.55
- *   avgWinPct:     number,   // Average win as fraction, e.g. 0.04
- *   avgLossPct:    number,   // Average loss as fraction (positive), e.g. 0.02
- *   kellyFraction: number,   // Safety fraction, default 0.5 (half-Kelly)
- * }}
+ * Returns { quantity: 0 } when edge is negative (no bet recommended).
  */
-function kellyCriterionSize({ capital, entryPrice, winRate, avgWinPct, avgLossPct, kellyFraction = 0.5 }) {
-  if (winRate <= 0 || winRate >= 1)    throw new Error('[Risk] winRate must be in (0, 1)');
-  if (avgWinPct <= 0 || avgLossPct <= 0) throw new Error('[Risk] avgWinPct / avgLossPct must be > 0');
+function kellyCriterionSize({
+  capital, entryPrice, winRate, avgWinPct, avgLossPct, kellyFraction = 0.5,
+}) {
+  if (capital    <= 0) throw new RangeError('[Risk] capital must be > 0');
+  if (entryPrice <= 0) throw new RangeError('[Risk] entryPrice must be > 0');
+  if (winRate    <= 0 || winRate    >= 1) throw new RangeError('[Risk] winRate must be in (0, 1)');
+  if (avgWinPct  <= 0) throw new RangeError('[Risk] avgWinPct must be > 0');
+  if (avgLossPct <= 0) throw new RangeError('[Risk] avgLossPct must be > 0');
 
-  const B = avgWinPct / avgLossPct;   // Win/loss ratio
-  const p = winRate;
-  const q = 1 - winRate;
-
+  const B     = avgWinPct / avgLossPct;
+  const p     = winRate;
+  const q     = 1 - p;
   const kelly = (p * B - q) / B;
 
   if (kelly <= 0) {
-    logger.warn(`[Risk] Kelly fraction is ${kelly.toFixed(4)} — negative edge, no position recommended`);
-    return { quantity: 0, kellyFraction: 0, positionValue: 0, edge: kelly };
+    logger.warn(`[Risk] Kelly=${kelly.toFixed(4)} — negative edge, no position`);
+    return { quantity: 0, kellyFull: kelly, kellySafe: 0, positionValue: 0, edge: kelly };
   }
 
-  const safeKelly   = kelly * kellyFraction;
-  const allocAmount = capital * safeKelly;
-  const quantity    = Math.floor(allocAmount / entryPrice);
+  const safe     = kelly * kellyFraction;
+  const quantity = Math.max(0, Math.floor((capital * safe) / entryPrice));
 
   logger.debug(
-    `[Risk] Kelly: p=${p} | B=${B.toFixed(3)} | rawKelly=${kelly.toFixed(4)} | ` +
-    `safeKelly=${safeKelly.toFixed(4)} | qty=${quantity}`
+    `[Risk] Kelly | B=${B.toFixed(3)} | rawKelly=${kelly.toFixed(4)} | ` +
+    `safeKelly=${safe.toFixed(4)} | qty=${quantity}`
   );
 
   return {
     quantity,
     kellyFull:     parseFloat(kelly.toFixed(6)),
-    kellySafe:     parseFloat(safeKelly.toFixed(6)),
+    kellySafe:     parseFloat(safe.toFixed(6)),
     positionValue: parseFloat((quantity * entryPrice).toFixed(2)),
-    edge:          parseFloat(((p * B - q) / B * 100).toFixed(4)),
+    edge:          parseFloat((kelly * 100).toFixed(4)),
   };
 }
 
-// ─── Stop Loss / Take Profit ──────────────────────────────────────────────────
+// ── Stop-Loss / Take-Profit ───────────────────────────────────────────────────
 
 /**
- * Compute stop-loss and take-profit levels.
+ * Compute stop-loss and take-profit price levels.
  *
- * @param {{
- *   entryPrice:     number,
- *   side:           'BUY' | 'SELL',
- *   stopLossPct:    number,   // e.g. 0.02
- *   takeProfitPct:  number,   // e.g. 0.04
- * }}
- * @returns {{ stopLoss: number, takeProfit: number, riskRewardRatio: number }}
+ *   BUY:  stopLoss = entry × (1 − sl),  takeProfit = entry × (1 + tp)
+ *   SELL: stopLoss = entry × (1 + sl),  takeProfit = entry × (1 − tp)
  */
 function computeLevels({ entryPrice, side, stopLossPct, takeProfitPct }) {
-  const sl  = stopLossPct   ?? R.DEFAULT_STOP_LOSS_PCT;
-  const tp  = takeProfitPct ?? R.DEFAULT_TAKE_PROFIT_PCT;
+  if (entryPrice <= 0) throw new RangeError('[Risk] entryPrice must be > 0');
+  const sl = stopLossPct   ?? R.DEFAULT_STOP_LOSS_PCT;
+  const tp = takeProfitPct ?? R.DEFAULT_TAKE_PROFIT_PCT;
+  if (sl <= 0 || tp <= 0) throw new RangeError('[Risk] stopLossPct and takeProfitPct must be > 0');
 
-  let stopLoss, takeProfit;
-
-  if (side === 'BUY') {
-    stopLoss   = entryPrice * (1 - sl);
-    takeProfit = entryPrice * (1 + tp);
-  } else {
-    stopLoss   = entryPrice * (1 + sl);
-    takeProfit = entryPrice * (1 - tp);
-  }
-
-  const riskRewardRatio = tp / sl;
+  const isBuy      = side !== 'SELL';
+  const stopLoss   = isBuy ? entryPrice * (1 - sl) : entryPrice * (1 + sl);
+  const takeProfit = isBuy ? entryPrice * (1 + tp) : entryPrice * (1 - tp);
 
   return {
     stopLoss:        parseFloat(stopLoss.toFixed(2)),
     takeProfit:      parseFloat(takeProfit.toFixed(2)),
-    riskRewardRatio: parseFloat(riskRewardRatio.toFixed(2)),
+    riskRewardRatio: parseFloat((tp / sl).toFixed(2)),
   };
 }
 
+// ── Trade validation ──────────────────────────────────────────────────────────
+
 /**
- * Full risk check before placing a new trade.
- * Returns { approved, reasons[] }.
+ * Run all pre-trade risk checks.
+ * @returns {{ approved: boolean, reasons: string[], tradeValue: number }}
  */
 function validateTrade({ capital, entryPrice, quantity, side, portfolioId, openPositions = 0 }) {
   const reasons = [];
-  let approved = true;
 
-  // 1. Max open positions
-  if (openPositions >= R.MAX_OPEN_POSITIONS) {
+  if (quantity < 1)
+    reasons.push('Quantity must be ≥ 1');
+
+  if (capital <= 0)
+    reasons.push('Capital must be > 0');
+
+  const tradeValue = (entryPrice || 0) * (quantity || 0);
+  if (tradeValue > capital)
+    reasons.push(`Trade value ₹${tradeValue.toFixed(2)} exceeds capital ₹${capital.toFixed(2)}`);
+
+  if (openPositions >= R.MAX_OPEN_POSITIONS)
     reasons.push(`Max open positions (${R.MAX_OPEN_POSITIONS}) reached`);
-    approved = false;
+
+  if (capital > 0) {
+    const daily = checkDailyLossLimit(portfolioId || 'default', capital);
+    if (daily.blocked) reasons.push(daily.reason);
   }
 
-  // 2. Daily loss limit
-  const dailyCheck = checkDailyLossLimit(portfolioId || 'default', capital);
-  if (dailyCheck.blocked) {
-    reasons.push(dailyCheck.reason);
-    approved = false;
-  }
-
-  // 3. Trade size vs capital
-  const tradeValue = entryPrice * quantity;
-  if (tradeValue > capital) {
-    reasons.push(`Trade value ₹${tradeValue.toFixed(2)} exceeds available capital ₹${capital.toFixed(2)}`);
-    approved = false;
-  }
-
-  // 4. Minimum trade size (avoid tiny positions)
-  if (quantity < 1) {
-    reasons.push('Quantity must be at least 1');
-    approved = false;
-  }
-
-  return { approved, reasons, tradeValue };
+  return { approved: reasons.length === 0, reasons, tradeValue };
 }
 
 module.exports = {

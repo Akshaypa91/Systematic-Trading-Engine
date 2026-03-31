@@ -83,9 +83,10 @@ async function getDailyPrices(symbol, { limit = 0, startDate = null, endDate = n
   if (endDate)   { sql += ' AND trade_date <= ?'; params.push(endDate);   }
 
   sql += ' ORDER BY trade_date ASC';
+  // Safe LIMIT via parameterised query — no string interpolation
   if (limit > 0) {
-    // Subquery trick: get last N rows while maintaining ASC order
-    sql = `SELECT * FROM (${sql} LIMIT ${limit}) t ORDER BY date ASC`;
+    sql += ' LIMIT ?';
+    params.push(limit);
   }
 
   const [rows] = await db.query(sql, params);
@@ -106,7 +107,9 @@ async function getClosePrices(symbol, limit = 0) {
   if (limit > 0) {
     sql = `SELECT * FROM (${sql} LIMIT ${limit}) t ORDER BY date ASC`;
   }
-  const [rows] = await db.query(sql, [symbol]);
+  const params = [symbol];
+  if (limit > 0) { sql += ' LIMIT ?'; params.push(limit); }
+  const [rows] = await db.query(sql, params);
   return rows.map(r => ({ date: r.date, close: parseFloat(r.close) }));
 }
 

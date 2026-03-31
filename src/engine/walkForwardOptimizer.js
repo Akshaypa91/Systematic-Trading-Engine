@@ -108,23 +108,33 @@ function runWalkForward(config) {
   let   allOosEquity  = [capital];
   let   runningCapital = capital;
 
-  const totalBars  = prices.length;
-  const windowSize = Math.floor(totalBars / (windows + isFraction));
+  const totalBars = prices.length;
+  // Anchored walk-forward: each window starts oosSize bars after the previous.
+  // IS period is fixed at isFraction of total bars (minimum 210 bars).
+  // OOS period is the remaining slice per window.
+  const minIsBars  = 210;
+  const isSize     = Math.max(minIsBars, Math.floor(totalBars * isFraction));
+  const oosSize    = Math.max(50, Math.floor((totalBars - isSize) / windows));
+  const windowSize = isSize + oosSize; // informational only — used in log
 
   logger.info(`[WFO] ${symbol} | strategy=${strategy} | windows=${windows} | bars=${totalBars} | windowSize=${windowSize}`);
 
   for (let w = 0; w < windows; w++) {
-    const startIdx = w * windowSize;
-    const splitIdx = startIdx + Math.floor(windowSize * isFraction);
-    const endIdx   = Math.min(startIdx + windowSize, totalBars);
+    const startIdx = 0;                              // IS always starts at bar 0
+    const splitIdx = isSize;                         // IS ends here
+    const oosStart = isSize + w * oosSize;           // OOS slides forward
+    const endIdx   = Math.min(oosStart + oosSize, totalBars);
+    // Redefine isPrices / oosPrices using correct anchored slices
+    const isPricesW  = prices.slice(startIdx, splitIdx);
+    const oosPricesW = prices.slice(oosStart, endIdx);
 
-    if (endIdx - splitIdx < 50 || splitIdx - startIdx < 201) {
+    if (oosPricesW.length < 50 || isPricesW.length < 201 || oosStart >= totalBars) {
       logger.warn(`[WFO] Window ${w + 1} skipped: insufficient bars`);
       continue;
     }
 
-    const isPrices  = prices.slice(startIdx, splitIdx);
-    const oosPrices = prices.slice(splitIdx, endIdx);
+    const isPrices  = isPricesW;
+    const oosPrices = oosPricesW;
 
     // ── In-sample: grid search ──────────────────────────────────────────
     let bestParams = null;
@@ -205,8 +215,9 @@ function runWalkForward(config) {
     ? mu.mean(windowResults.map(w => w.oos.totalReturn))
     : 0;
 
-  // Most frequently selected params
-  const bestParamsFreq = mostCommon(windowResults.map(w => JSON.stringify(w.bestParams)));
+  // Most frequently selected params (null-safe when all windows were skipped)
+  const paramStrings   = windowResults.map(w => JSON.stringify(w.bestParams)).filter(Boolean);
+  const bestParamsFreq = paramStrings.length > 0 ? mostCommon(paramStrings) : null;
 
   return {
     symbol,
@@ -222,7 +233,7 @@ function runWalkForward(config) {
       totalTrades:      allOosTrades.length,
       efficiencyRatio:  avgIsScore > 0 ? parseFloat((avgOosReturn / avgIsScore).toFixed(4)) : null,
     },
-    recommendedParams: JSON.parse(bestParamsFreq),
+    recommendedParams: bestParamsFreq ? JSON.parse(bestParamsFreq) : null,
     equityCurve: downsample(allOosEquity, 200),
   };
 }

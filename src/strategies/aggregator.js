@@ -32,6 +32,7 @@
 const meanReversion = require('./meanReversion');
 const maCrossover   = require('./maCrossover');
 const rsiStrategy   = require('./rsiStrategy');
+const mu            = require('../utils/mathUtils');
 const C             = require('../config/constants');
 const logger        = require('../config/logger');
 
@@ -114,7 +115,7 @@ function weightedScore(components) {
   else if (normScore < -SCORE_THRESHOLD) signal = 'SELL';
   else                                   signal = 'HOLD';
 
-  const confidence = mu_clamp(Math.abs(normScore), 0, 1);
+  const confidence = mu.clamp(Math.abs(normScore), 0, 1);
   return { signal, confidence, score: normScore };
 }
 
@@ -137,13 +138,10 @@ function majorityVote(components) {
   if (votes.SELL === maxVotes && votes.SELL > votes.BUY)   signal = 'SELL';
 
   const n = votes[signal] || 1;
-  const confidence = mu_clamp(confSum[signal] / n, 0, 1);
+  const confidence = mu.clamp(confSum[signal] / n, 0, 1);
   return { signal, confidence, score };
 }
 
-// ─── Convenience helpers ──────────────────────────────────────────────────────
-
-function mu_clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 
 /**
  * Describe all strategy weights.

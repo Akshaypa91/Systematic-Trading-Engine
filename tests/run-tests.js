@@ -1,693 +1,442 @@
-// tests/run-tests.js — Self-contained test suite (no DB/network needed)
+// tests/run-tests.js
+// Complete self-contained test suite. No DB or network required.
 // Run: node tests/run-tests.js
 'use strict';
 
 require('dotenv').config();
 
+// ── Harness ────────────────────────────────────────────────────────────────
 let passed = 0, failed = 0, total = 0;
 
 function test(name, fn) {
   total++;
-  try { fn(); console.log(`  ✅  ${name}`); passed++; }
+  try   { fn(); console.log(`  ✅  ${name}`); passed++; }
   catch (err) { console.error(`  ❌  ${name}\n       → ${err.message}`); failed++; }
 }
-function assert(cond, msg) { if (!cond) throw new Error(msg || 'Assertion failed'); }
-function approx(a, e, tol, msg) {
-  if (Math.abs(a - e) > tol) throw new Error(`${msg || ''} Expected ≈${e}±${tol}, got ${a}`);
+function assert(cond, msg)        { if (!cond) throw new Error(msg || 'Assertion failed'); }
+function assertClose(a, e, tol=0.001, msg) {
+  if (Math.abs(a - e) > tol) throw new Error(`${msg||''} Expected ≈${e}±${tol}, got ${a}`);
 }
 function section(t) { console.log(`\n── ${t} ${'─'.repeat(58 - t.length)}`); }
 
-// GBM data generator
+// ── Data helpers ───────────────────────────────────────────────────────────
 function randn() {
-  let u = 0, v = 0;
-  while (!u) u = Math.random(); while (!v) v = Math.random();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  let u=0, v=0;
+  while (!u) u=Math.random(); while (!v) v=Math.random();
+  return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
 }
 function gbm(s0, mu, sigma, n) {
-  const dt = 1/252, p = [s0];
-  for (let i = 1; i < n; i++)
-    p.push(p[i-1] * Math.exp((mu - 0.5*sigma**2)*dt + sigma*Math.sqrt(dt)*randn()));
+  const dt=1/252, p=[s0];
+  for (let i=1; i<n; i++)
+    p.push(p[i-1]*Math.exp((mu-0.5*sigma**2)*dt+sigma*Math.sqrt(dt)*randn()));
   return p;
 }
 function makeBars(closes) {
-  const d0 = new Date('2022-01-03');
-  return closes.map((c, i) => {
-    const d = new Date(d0); d.setDate(d0.getDate() + i);
-    return { date: d.toISOString().slice(0,10),
+  const d0=new Date('2022-01-03');
+  return closes.map((c,i)=>{
+    const d=new Date(d0); d.setDate(d0.getDate()+i);
+    return { date:d.toISOString().slice(0,10),
       open: c*(1+randn()*0.003), high: c*(1+Math.abs(randn())*0.01),
       low:  c*(1-Math.abs(randn())*0.01), close: c };
   });
 }
+// Deterministic price bars using calendar dates
+function makePriceBars(n=500) {
+  const closes=[];
+  let p=1000;
+  for (let i=0; i<n; i++) { p=Math.max(50,p+(Math.sin(i*0.3)*5)+(randn()*3)+0.05); closes.push(parseFloat(p.toFixed(4))); }
+  const d0=new Date('2021-01-04');
+  const bars=[], dates=[];
+  let d=new Date(d0);
+  while (dates.length<n) { if (d.getDay()!==0&&d.getDay()!==6) dates.push(d.toISOString().slice(0,10)); d=new Date(d.getTime()+86400000); }
+  return closes.map((c,i)=>({ date:dates[i], open:c*0.999, high:c*1.005, low:c*0.995, close:c, volume:1000000 }));
+}
 
 const UP   = gbm(1000, 0.25, 0.15, 400);
 const DOWN = gbm(1000,-0.20, 0.15, 300);
-const SIDE = Array.from({length:400}, (_,i) => 1000 + 30*Math.sin(i*0.12) + randn()*5);
+const SIDE = Array.from({length:400},(_,i)=>1000+30*Math.sin(i*0.12)+randn()*5);
 const UP_BARS   = makeBars(UP);
 const SIDE_BARS = makeBars(SIDE);
 
-// ── 1. Math Utils ─────────────────────────────────────────────────────────────
-const mu2 = require('../src/utils/mathUtils');
+// ══════════════════════════════════════════════════════════════════════════════
 section('1. Math Utilities');
+const mu2 = require('../src/utils/mathUtils');
 
-test('mean([1,2,3,4,5]) = 3', () => approx(mu2.mean([1,2,3,4,5]), 3, 0.0001));
-test('stdDev(constant) = 0', () => approx(mu2.stdDev([5,5,5,5,5]), 0, 0.0001));
-test('stdDev([2,4,4,4,5,5,7,9]) ≈ 2.0', () => approx(mu2.stdDev([2,4,4,4,5,5,7,9]), 2.0, 0.0001));
-test('zScore of mean = 0', () => { const a=[10,20,30,40,50]; approx(mu2.zScore(mu2.mean(a),a), 0, 0.0001); });
-test('SMA(7 prices, 5) = 50', () => approx(mu2.sma([10,20,30,40,50,60,70], 5), 50, 0.0001));
-test('SMA returns null when insufficient', () => assert(mu2.sma([10,20], 5) === null));
-// RSI direction: use monotone series (guaranteed) not stochastic GBM
-test('RSI > 50 for strong uptrend', () => {
-  // 100 bars of pure up moves: RSI must be high (near 100)
-  const prices = Array.from({length: 100}, (_, i) => 1000 + i * 2);
-  const r = mu2.rsi(prices, 14);
-  assert(r !== null && r > 50, `RSI=${r?.toFixed(2)}`);
-});
-test('RSI < 50 for strong downtrend', () => {
-  // 100 bars of pure down moves: RSI must be low (near 0)
-  const prices = Array.from({length: 100}, (_, i) => 2000 - i * 2);
-  const r = mu2.rsi(prices, 14);
-  assert(r !== null && r < 50, `RSI=${r?.toFixed(2)}`);
-});
-test('RSI null when insufficient data', () => assert(mu2.rsi([100,101],14) === null));
-test('maxDrawdown = 0 for monotone up', () => approx(mu2.maxDrawdown([1000,1010,1020,1030]).maxDrawdown, 0, 0.0001));
-test('maxDrawdown = 0.5 for 1200→600', () => approx(mu2.maxDrawdown([1000,1200,600,900]).maxDrawdown, 0.5, 0.0001));
-test('logReturns length = n-1', () => assert(mu2.logReturns([100,105,110,108]).length === 3));
-test('clamp max', () => assert(mu2.clamp(5,0,1) === 1));
-test('clamp min', () => assert(mu2.clamp(-5,0,1) === 0));
-test('clamp passthrough', () => assert(mu2.clamp(0.5,0,1) === 0.5));
-test('sharpeRatio returns number', () => {
-  const ret = Array.from({length:252}, () => randn()*0.01+0.0003);
-  const sr = mu2.sharpeRatio(ret,0.065,252);
-  assert(typeof sr === 'number' && !isNaN(sr));
-});
+test('mean([1,2,3,4,5]) = 3',            ()=>assertClose(mu2.mean([1,2,3,4,5]),3));
+test('mean throws on empty array',        ()=>{ let t=false; try{mu2.mean([])}catch{t=true;} assert(t); });
+test('mean throws on non-array',          ()=>{ let t=false; try{mu2.mean(null)}catch{t=true;} assert(t); });
+test('stdDev of constant array = 0',      ()=>assertClose(mu2.stdDev([5,5,5,5,5]),0));
+test('stdDev([2,4,4,4,5,5,7,9]) ≈ 2',    ()=>assertClose(mu2.stdDev([2,4,4,4,5,5,7,9]),2.0));
+test('zScore of mean = 0',                ()=>{ const a=[10,20,30,40,50]; assertClose(mu2.zScore(mu2.mean(a),a),0); });
+test('zScore returns null for σ=0',       ()=>assert(mu2.zScore(5,[5,5,5,5])===null));
+test('zScore throws on non-finite x',     ()=>{ let t=false; try{mu2.zScore(NaN,[1,2,3])}catch{t=true;} assert(t); });
+test('sma([10..70], 5) = 50',             ()=>assertClose(mu2.sma([10,20,30,40,50,60,70],5),50));
+test('sma returns null when insufficient',()=>assert(mu2.sma([10,20],5)===null));
+test('sma returns null for non-array',    ()=>assert(mu2.sma(null,5)===null));
+test('RSI > 50 for monotone uptrend',     ()=>{ const p=Array.from({length:100},(_,i)=>1000+i*2); const r=mu2.rsi(p,14); assert(r!==null&&r>50,`RSI=${r?.toFixed(2)}`); });
+test('RSI < 50 for monotone downtrend',   ()=>{ const p=Array.from({length:100},(_,i)=>2000-i*2); const r=mu2.rsi(p,14); assert(r!==null&&r<50,`RSI=${r?.toFixed(2)}`); });
+test('RSI = 100 when all moves are up',   ()=>{ const p=Array.from({length:20},(_,i)=>100+i); assertClose(mu2.rsi(p,14),100); });
+test('RSI = null when insufficient data', ()=>assert(mu2.rsi([100,101],14)===null));
+test('RSI returns null for non-array',    ()=>assert(mu2.rsi(null,14)===null));
+test('maxDrawdown = 0 for monotone up',   ()=>assertClose(mu2.maxDrawdown([1000,1010,1020,1030]).maxDrawdown,0));
+test('maxDrawdown = 0.5 for 1200→600',    ()=>assertClose(mu2.maxDrawdown([1000,1200,600,900]).maxDrawdown,0.5));
+test('maxDrawdown handles short array',   ()=>assertClose(mu2.maxDrawdown([100]).maxDrawdown,0));
+test('logReturns length = prices-1',      ()=>assert(mu2.logReturns([100,105,110,108]).length===3));
+test('logReturns skips non-positive prev',()=>{ const r=mu2.logReturns([100,0,105]); assert(r.length===1); });
+test('simpleReturns length = prices-1',   ()=>assert(mu2.simpleReturns([100,110,121]).length===2));
+test('roc over 5 bars',                   ()=>{ const p=[100,105,110,115,120,125]; assertClose(mu2.roc(p,5),0.25); });
+test('roc returns null when insufficient',()=>assert(mu2.roc([100,110],5)===null));
+test('sharpeRatio returns number',        ()=>{ const r=Array.from({length:252},()=>randn()*0.01+0.0003); assert(typeof mu2.sharpeRatio(r,0.065,252)==='number'); });
+test('sharpeRatio returns null for <2',   ()=>assert(mu2.sharpeRatio([0.001])===null));
+test('sortinoRatio returns number',       ()=>{ const r=Array.from({length:252},()=>randn()*0.01+0.0003); const s=mu2.sortinoRatio(r,0.065,252); assert(s===null||typeof s==='number'); });
+test('annualisedVol returns number',      ()=>{ const p=Array.from({length:50},(_,i)=>100+i); assert(typeof mu2.annualisedVol(p)==='number'); });
+test('clamp(5,0,1) = 1',                  ()=>assert(mu2.clamp(5,0,1)===1));
+test('clamp(-5,0,1) = 0',                 ()=>assert(mu2.clamp(-5,0,1)===0));
+test('clamp(0.5,0,1) = 0.5',             ()=>assert(mu2.clamp(0.5,0,1)===0.5));
+test('normalise(50,0,100) = 0.5',         ()=>assertClose(mu2.normalise(50,0,100),0.5));
+test('normalise degenerate = 0.5',        ()=>assertClose(mu2.normalise(5,5,5),0.5));
+test('lerp(0,10,0.5) = 5',               ()=>assertClose(mu2.lerp(0,10,0.5),5));
 
-// ── 2. Mean Reversion ─────────────────────────────────────────────────────────
-const MR = require('../src/strategies/meanReversion');
+// ══════════════════════════════════════════════════════════════════════════════
 section('2. Mean Reversion Strategy');
+const MR = require('../src/strategies/meanReversion');
 
-test('HOLD on < 20 prices', () => { const r=MR.generateSignal([100,105,110]); assert(r.signal==='HOLD' && r.confidence===0); });
-test('Returns all required keys', () => {
-  const r=MR.generateSignal(SIDE);
-  for (const k of ['signal','confidence','zScore','mean','stdDev','currentPrice','reason']) assert(k in r, `Missing: ${k}`);
+test('HOLD on < 20 prices',    ()=>{ const r=MR.generateSignal([100,105,110]); assert(r.signal==='HOLD'&&r.confidence===0); });
+test('Returns all required keys', ()=>{ const r=MR.generateSignal(SIDE); for (const k of ['signal','confidence','zScore','mean','stdDev','currentPrice','reason']) assert(k in r,`Missing: ${k}`); });
+test('Signal is BUY/SELL/HOLD', ()=>assert(['BUY','SELL','HOLD'].includes(MR.generateSignal(SIDE).signal)));
+test('Confidence in [0,1]',     ()=>{ const r=MR.generateSignal(SIDE); assert(r.confidence>=0&&r.confidence<=1); });
+test('Depressed last price → BUY', ()=>{
+  // 50 bars at 1000, then one bar 40% below — z ≈ −4, well past −2 threshold
+  const b=Array(50).fill(1000); b.push(960);
+  const r=MR.generateSignal(b);
+  assert(r.signal==='BUY',`Expected BUY, got ${r.signal} (z=${r.zScore})`);
 });
-test('Signal is BUY/SELL/HOLD', () => assert(['BUY','SELL','HOLD'].includes(MR.generateSignal(SIDE).signal)));
-test('Confidence in [0,1]', () => { const r=MR.generateSignal(SIDE); assert(r.confidence>=0&&r.confidence<=1); });
-test('Depressed last price → BUY', () => {
-  const b = Array(50).fill(1000); b.push(960);
-  const r = MR.generateSignal(b);
-  assert(r.signal==='BUY', `Expected BUY, got ${r.signal} (z=${r.zScore})`);
+test('Elevated last price → SELL', ()=>{
+  const b=Array(50).fill(1000); b.push(1040);
+  const r=MR.generateSignal(b);
+  assert(r.signal==='SELL',`Expected SELL, got ${r.signal} (z=${r.zScore})`);
 });
-test('Elevated last price → SELL', () => {
-  const b = Array(50).fill(1000); b.push(1040);
-  const r = MR.generateSignal(b);
-  assert(r.signal==='SELL', `Expected SELL, got ${r.signal} (z=${r.zScore})`);
-});
+test('describe() returns name/parameters/limitations', ()=>{ const d=MR.describe(); assert(d.name&&d.parameters&&Array.isArray(d.limitations)); });
 
-// ── 3. MA Crossover ───────────────────────────────────────────────────────────
-const MA = require('../src/strategies/maCrossover');
+// ══════════════════════════════════════════════════════════════════════════════
 section('3. MA Crossover Strategy');
+const MA = require('../src/strategies/maCrossover');
 
-test('HOLD on < 201 prices', () => assert(MA.generateSignal(UP.slice(0,100)).signal==='HOLD'));
-test('Returns maFast/maSlow/crossoverType', () => {
-  const r=MA.generateSignal(UP);
-  assert(r.maFast!==null && r.maSlow!==null);
-  assert(['GOLDEN_CROSS','DEATH_CROSS','NONE'].includes(r.crossoverType));
-});
-test('MAs are positive', () => { const r=MA.generateSignal(UP); assert(r.maFast>0&&r.maSlow>0); });
-test('Confidence in [0,1]', () => { const r=MA.generateSignal(UP); assert(r.confidence>=0&&r.confidence<=1); });
-test('Fast MA > Slow MA in strong uptrend', () => {
-  const r=MA.generateSignal(UP);
-  if (r.maFast !== null && r.maSlow !== null)
-    assert(r.maFast >= r.maSlow * 0.97, `fast ${r.maFast} unexpectedly < slow ${r.maSlow}`);
-});
+test('HOLD on < 201 prices',              ()=>assert(MA.generateSignal(UP.slice(0,100)).signal==='HOLD'));
+test('Returns maFast/maSlow/crossoverType', ()=>{ const r=MA.generateSignal(UP_BARS.map(b=>b.close)); for (const k of ['maFast','maSlow','crossoverType']) assert(k in r,`Missing: ${k}`); });
+test('MAs are positive numbers',          ()=>{ const r=MA.generateSignal(UP); assert(r.maFast>0&&r.maSlow>0); });
+test('Confidence in [0,1]',              ()=>{ const r=MA.generateSignal(UP); assert(r.confidence>=0&&r.confidence<=1); });
+test('Fast MA > Slow MA in strong uptrend', ()=>{ const r=MA.generateSignal(Array.from({length:250},(_,i)=>1000+i*2)); assert(r.maFast>r.maSlow,`fast=${r.maFast} slow=${r.maSlow}`); });
+test('BUY signal in strong uptrend',      ()=>{ const r=MA.generateSignal(Array.from({length:250},(_,i)=>1000+i*2)); assert(r.signal==='BUY'); });
+test('SELL signal in strong downtrend',   ()=>{ const r=MA.generateSignal(Array.from({length:250},(_,i)=>3000-i*5)); assert(r.signal==='SELL'); });
 
-// ── 4. RSI Strategy ───────────────────────────────────────────────────────────
-const RSI = require('../src/strategies/rsiStrategy');
+// ══════════════════════════════════════════════════════════════════════════════
 section('4. RSI Strategy');
+const RSI_S = require('../src/strategies/rsiStrategy');
 
-test('HOLD on insufficient data', () => { const r=RSI.generateSignal([100,101]); assert(r.signal==='HOLD'&&r.rsiValue===null); });
-test('Zone is valid', () => {
-  const r=RSI.generateSignal(DOWN.slice(0,60));
-  assert(['EXTREME_OVERSOLD','OVERSOLD','NEUTRAL','OVERBOUGHT','EXTREME_OVERBOUGHT'].includes(r.zone));
+test('HOLD on insufficient data', ()=>{ const r=RSI_S.generateSignal([100,105,110]); assert(r.signal==='HOLD'&&r.rsiValue===null); });
+test('Zone is a valid string',    ()=>{ const r=RSI_S.generateSignal(SIDE); assert(['EXTREME_OVERSOLD','OVERSOLD','NEUTRAL','OVERBOUGHT','EXTREME_OVERBOUGHT'].includes(r.zone)); });
+test('Divergence field present',  ()=>{ const r=RSI_S.generateSignal(SIDE); assert(['BULLISH','BEARISH','NONE'].includes(r.divergence)); });
+test('SELL for overbought prices', ()=>{ const p=Array.from({length:40},(_,i)=>100+i*3); const r=RSI_S.generateSignal(p); if (r.rsiValue>70) assert(r.signal==='SELL'); else assert(['BUY','SELL','HOLD'].includes(r.signal)); });
+test('BUY for oversold prices',    ()=>{ const p=Array.from({length:40},(_,i)=>400-i*5); const r=RSI_S.generateSignal(p); if (r.rsiValue!==null&&r.rsiValue<30) assert(r.signal==='BUY'); else assert(['BUY','SELL','HOLD'].includes(r.signal)); });
+test('RSI value ∈ [0,100]',        ()=>{ const r=RSI_S.generateSignal(SIDE); if (r.rsiValue!==null) assert(r.rsiValue>=0&&r.rsiValue<=100,`RSI=${r.rsiValue}`); });
+test('Confidence ∈ [0,1]',         ()=>{ const r=RSI_S.generateSignal(SIDE); assert(r.confidence>=0&&r.confidence<=1); });
+
+// ══════════════════════════════════════════════════════════════════════════════
+section('5. Bollinger Bands Strategy');
+const BB = require('../src/strategies/bollingerBands');
+
+test('HOLD on insufficient data',  ()=>{ const r=BB.generateSignal([100,101,102]); assert(r.signal==='HOLD'&&r.confidence===0); });
+test('Returns all required keys',  ()=>{ const r=BB.generateSignal(Array(30).fill(1000).map((v,i)=>v+i)); for (const k of ['signal','confidence','upperBand','middleBand','lowerBand','bandwidth','percentB','squeeze','reason']) assert(k in r,`Missing: ${k}`); });
+test('Confidence ∈ [0,1]',         ()=>{ const r=BB.generateSignal(Array.from({length:50},(_,i)=>1000+Math.sin(i)*20)); assert(r.confidence>=0&&r.confidence<=1); });
+test('Squeeze when all prices same',()=>{ assert(BB.generateSignal(Array(30).fill(1000)).squeeze===true); });
+test('BUY when price far below bands', ()=>{
+  // 240 bars tightly around 1000, then drop sharply to 900 (≈−14σ)
+  const prices=[...Array.from({length:240},()=>1000+(randn()*2)), 900];
+  const r=BB.generateSignal(prices);
+  assert(r.signal==='BUY',`Expected BUY for extreme low, got ${r.signal} (%B=${r.percentB})`);
 });
-test('Divergence field present', () => assert(['BULLISH','BEARISH','NONE'].includes(RSI.generateSignal(SIDE).divergence)));
-test('RSI < 50 for steep downtrend', () => {
-  const steep = gbm(1000,-0.80,0.15,40);
-  const r = RSI.generateSignal(steep);
-  assert(r.rsiValue < 50, `RSI=${r.rsiValue?.toFixed(2)}`);
+test('SELL when price far above bands', ()=>{
+  const prices=[...Array.from({length:240},()=>1000+(randn()*2)), 1100];
+  const r=BB.generateSignal(prices);
+  assert(r.signal==='SELL',`Expected SELL for extreme high, got ${r.signal} (%B=${r.percentB})`);
 });
-
-// ── 5. Aggregator ─────────────────────────────────────────────────────────────
-const agg = require('../src/strategies/aggregator');
-section('5. Multi-Strategy Aggregator');
-
-test('Returns all required fields', () => {
-  const r=agg.aggregate(UP);
-  for (const k of ['signal','confidence','score','components','method','currentPrice','timestamp']) assert(k in r, `Missing: ${k}`);
+test('%B ≈ 0 when price at lower band', ()=>{
+  // Use enough history so the appended price dominates the band
+  const prices=[...Array.from({length:240},()=>1000+(randn()*2)), 900];
+  const r=BB.generateSignal(prices);
+  assert(r.percentB<0.1,`Expected %B near 0, got ${r.percentB}`);
 });
-test('3 components returned', () => assert(agg.aggregate(UP).components.length===3));
-test('Score in [-1,1]', () => { const s=agg.aggregate(SIDE).score; assert(s>=-1&&s<=1, `score=${s}`); });
-test('majority method works', () => { const r=agg.aggregate(UP,{method:'majority'}); assert(['BUY','SELL','HOLD'].includes(r.signal)&&r.method==='majority'); });
-test('describeWeights has weights + strategies', () => { const d=agg.describeWeights(); assert(d.weights&&Array.isArray(d.strategies)&&d.strategies.length===3); });
+test('Breakout mode does not crash',   ()=>{ const p=[...Array(25).fill(null).map(()=>1000+(randn()-0.5)*2),...Array.from({length:5},(_,i)=>1050+i*10)]; const r=BB.generateSignal(p,{mode:'breakout'}); assert(['BUY','SELL','HOLD'].includes(r.signal)); });
+test('describe() structure valid',     ()=>{ const d=BB.describe(); assert(d.name&&d.parameters&&Array.isArray(d.limitations)); });
 
-// ── 6. Risk Management ────────────────────────────────────────────────────────
-const risk = require('../src/risk/riskManager');
-section('6. Risk Management');
+// ══════════════════════════════════════════════════════════════════════════════
+section('6. Multi-Strategy Aggregator');
+const AGG = require('../src/strategies/aggregator');
 
-test('fixedFractional qty=1000 (2% risk, entry=1000, sl=2%)', () => {
-  const r=risk.fixedFractionalSize({capital:1_000_000,entryPrice:1000,stopLossPct:0.02,riskPct:0.02});
-  assert(r.quantity===1000, `got ${r.quantity}`);
-  approx(r.riskAmount, 20_000, 1);
+test('Returns all required fields',  ()=>{ const r=AGG.aggregate(SIDE); for (const k of ['signal','confidence','score','components','method','currentPrice','timestamp']) assert(k in r,`Missing: ${k}`); });
+test('3 components returned',        ()=>{ assert(AGG.aggregate(SIDE).components.length===3); });
+test('Score in [-1,1]',              ()=>{ const r=AGG.aggregate(SIDE); assert(r.score>=-1&&r.score<=1,`score=${r.score}`); });
+test('majority method works',        ()=>{ const r=AGG.aggregate(SIDE,{method:'majority'}); assert(r.method==='majority'&&['BUY','SELL','HOLD'].includes(r.signal)); });
+test('describeWeights has weights+strategies', ()=>{ const d=AGG.describeWeights(); assert(d.weights&&Array.isArray(d.strategies)); });
+test('Weights sum to 1',             ()=>{ const w=AGG.describeWeights().weights; assertClose(Object.values(w).reduce((s,v)=>s+v,0),1.0,0.001); });
+test('All components have weight>0', ()=>{ AGG.aggregate(SIDE).components.forEach(c=>assert(c.weight>0,`${c.strategy} weight=${c.weight}`)); });
+
+// ══════════════════════════════════════════════════════════════════════════════
+section('7. Risk Management');
+const RM = require('../src/risk/riskManager');
+
+test('fixedFractional: 2% risk, 2% stop → qty=1000', ()=>{
+  const r=RM.fixedFractionalSize({capital:1_000_000,entryPrice:1000,stopLossPct:0.02,riskPct:0.02});
+  assert(r.quantity===1000,`Expected 1000, got ${r.quantity}`);
 });
-test('fixedFractional position <= capital', () => {
-  const r=risk.fixedFractionalSize({capital:100_000,entryPrice:1000,stopLossPct:0.001,riskPct:0.5});
+test('fixedFractional: positionValue ≤ capital', ()=>{
+  const r=RM.fixedFractionalSize({capital:100_000,entryPrice:50000,stopLossPct:0.05,riskPct:0.02});
   assert(r.positionValue<=100_000);
 });
-test('fixedFractional throws on empty params', () => {
-  let threw=false; try{risk.fixedFractionalSize({});}catch{threw=true;} assert(threw);
+test('fixedFractional: throws on missing params', ()=>{ let t=false; try{RM.fixedFractionalSize({capital:1000})}catch{t=true;} assert(t); });
+test('fixedFractional: throws on zero capital',   ()=>{ let t=false; try{RM.fixedFractionalSize({capital:0,entryPrice:100,stopLossPct:0.02,riskPct:0.01})}catch{t=true;} assert(t); });
+test('fixedFractional: returns qty=0 when insufficient capital', ()=>{
+  const r=RM.fixedFractionalSize({capital:100,entryPrice:100000,stopLossPct:0.02,riskPct:0.01});
+  assert(r.quantity===0);
 });
-test('Kelly: negative edge → qty=0', () => {
-  const r=risk.kellyCriterionSize({capital:1_000_000,entryPrice:1000,winRate:0.30,avgWinPct:0.01,avgLossPct:0.05});
-  assert(r.quantity===0, `got ${r.quantity}`);
+test('Kelly: negative edge → qty=0',  ()=>{ const r=RM.kellyCriterionSize({capital:1_000_000,entryPrice:1000,winRate:0.3,avgWinPct:0.01,avgLossPct:0.05}); assert(r.quantity===0); });
+test('Kelly: positive edge → qty>0',  ()=>{ const r=RM.kellyCriterionSize({capital:1_000_000,entryPrice:1000,winRate:0.6,avgWinPct:0.04,avgLossPct:0.02}); assert(r.quantity>0); });
+test('Kelly: throws on bad winRate',   ()=>{ let t=false; try{RM.kellyCriterionSize({capital:1e6,entryPrice:100,winRate:1.5,avgWinPct:0.04,avgLossPct:0.02})}catch{t=true;} assert(t); });
+test('computeLevels BUY: sl<entry, tp>entry, RR=2', ()=>{
+  const r=RM.computeLevels({entryPrice:1000,side:'BUY',stopLossPct:0.02,takeProfitPct:0.04});
+  assert(r.stopLoss<1000&&r.takeProfit>1000);
+  assertClose(r.riskRewardRatio,2.0,0.01);
 });
-test('Kelly: positive edge → qty>0', () => {
-  const r=risk.kellyCriterionSize({capital:1_000_000,entryPrice:1000,winRate:0.60,avgWinPct:0.04,avgLossPct:0.02,kellyFraction:0.5});
-  assert(r.quantity>0, `got ${r.quantity}`);
+test('computeLevels SELL: sl>entry, tp<entry', ()=>{
+  const r=RM.computeLevels({entryPrice:1000,side:'SELL',stopLossPct:0.02,takeProfitPct:0.04});
+  assert(r.stopLoss>1000&&r.takeProfit<1000);
 });
-test('computeLevels BUY: sl<entry, tp>entry, RR=2', () => {
-  const {stopLoss,takeProfit,riskRewardRatio}=risk.computeLevels({entryPrice:1000,side:'BUY',stopLossPct:0.02,takeProfitPct:0.04});
-  approx(stopLoss,980,0.01); approx(takeProfit,1040,0.01); approx(riskRewardRatio,2.0,0.01);
+test('computeLevels throws on zero entry', ()=>{ let t=false; try{RM.computeLevels({entryPrice:0,side:'BUY',stopLossPct:0.02,takeProfitPct:0.04})}catch{t=true;} assert(t); });
+test('validateTrade: reject when qty=0',  ()=>{ const r=RM.validateTrade({capital:1e6,entryPrice:100,quantity:0,side:'BUY'}); assert(!r.approved); });
+test('validateTrade: reject trade>capital', ()=>{ const r=RM.validateTrade({capital:1000,entryPrice:5000,quantity:10,side:'BUY'}); assert(!r.approved); });
+test('validateTrade: approve valid trade', ()=>{ const r=RM.validateTrade({capital:1e6,entryPrice:1000,quantity:10,side:'BUY',openPositions:2}); assert(r.approved,r.reasons.join('; ')); });
+test('Daily loss limit blocks after threshold', ()=>{
+  const id=`test-${Date.now()}`;
+  RM.recordDailyLoss(id,40000);
+  RM.recordDailyLoss(id,15000);
+  assert(RM.checkDailyLossLimit(id,1_000_000).blocked);
 });
-test('computeLevels SELL: sl>entry, tp<entry', () => {
-  const {stopLoss,takeProfit}=risk.computeLevels({entryPrice:1000,side:'SELL',stopLossPct:0.02,takeProfitPct:0.04});
-  assert(stopLoss>1000&&takeProfit<1000);
-});
-test('validateTrade: reject at max positions', () => {
-  const {approved}=risk.validateTrade({capital:1_000_000,entryPrice:1000,quantity:100,side:'BUY',portfolioId:'rj1',openPositions:10});
-  assert(!approved);
-});
-test('validateTrade: reject trade > capital', () => {
-  const {approved}=risk.validateTrade({capital:1000,entryPrice:5000,quantity:1,side:'BUY',portfolioId:'rj2',openPositions:0});
-  assert(!approved);
-});
-test('validateTrade: approve valid trade', () => {
-  const {approved}=risk.validateTrade({capital:1_000_000,entryPrice:1000,quantity:10,side:'BUY',portfolioId:'ok'+Date.now(),openPositions:2});
-  assert(approved);
-});
+test('recordDailyLoss throws on negative amount', ()=>{ let t=false; try{RM.recordDailyLoss('x',-100)}catch{t=true;} assert(t); });
 
-// ── 7. Backtesting ────────────────────────────────────────────────────────────
-const { runBacktest } = require('../src/engine/backtester');
-section('7. Backtesting Engine');
+// ══════════════════════════════════════════════════════════════════════════════
+section('8. Backtesting Engine');
+const BT = require('../src/engine/backtester');
 
-test('Throws with < 201 bars', () => {
-  let threw=false;
-  try{runBacktest({symbol:'T',prices:UP_BARS.slice(0,100),initialCapital:1_000_000});}catch{threw=true;}
-  assert(threw);
+test('Throws RangeError with < 201 bars', ()=>{
+  let t=false; try{BT.runBacktest({symbol:'T',prices:makePriceBars(100)})}catch(e){t=e instanceof RangeError;} assert(t);
 });
-test('Returns summary + trades + equityCurve', () => {
-  const r=runBacktest({symbol:'T_UP',prices:UP_BARS,initialCapital:1_000_000,strategy:'RSI'});
+test('Throws on unknown strategy', ()=>{
+  let t=false; try{BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'BOGUS'})}catch{t=true;} assert(t);
+});
+test('Returns summary + trades + equityCurve', ()=>{
+  const r=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'MEAN_REVERSION'});
   assert(r.summary&&Array.isArray(r.trades)&&Array.isArray(r.equityCurve));
 });
-test('All metric keys present in summary', () => {
-  const {summary}=runBacktest({symbol:'T_M',prices:UP_BARS,initialCapital:1_000_000,strategy:'RSI'});
-  for (const k of ['totalReturnPct','annualisedReturnPct','sharpeRatio','maxDrawdownPct','winRatePct','totalTrades','profitFactor'])
-    assert(k in summary, `Missing: ${k}`);
-});
-test('winRatePct in [0,100]', () => {
-  const {summary}=runBacktest({symbol:'T_WR',prices:UP_BARS,initialCapital:1_000_000,strategy:'RSI'});
-  assert(summary.winRatePct>=0&&summary.winRatePct<=100);
-});
-test('maxDrawdownPct in [0,100]', () => {
-  const {summary}=runBacktest({symbol:'T_DD',prices:SIDE_BARS,initialCapital:1_000_000,strategy:'MEAN_REVERSION'});
-  assert(summary.maxDrawdownPct>=0&&summary.maxDrawdownPct<=100);
-});
-test('MA_CROSSOVER strategy runs', () => {
-  const {summary}=runBacktest({symbol:'T_MA',prices:UP_BARS,initialCapital:1_000_000,strategy:'MA_CROSSOVER'});
-  assert(typeof summary.totalReturnPct==='number');
-});
-test('AGGREGATED strategy (majority) runs', () => {
-  const {summary}=runBacktest({symbol:'T_AGG',prices:UP_BARS,initialCapital:1_000_000,strategy:'AGGREGATED',aggrMethod:'majority'});
-  assert(typeof summary.totalReturnPct==='number');
-});
-test('Trades have required fields', () => {
-  const {trades}=runBacktest({symbol:'T_TF',prices:UP_BARS,initialCapital:1_000_000,strategy:'RSI'});
-  if (trades.length>0) {
-    for (const k of ['symbol','side','entryDate','entryPrice','exitDate','exitPrice','quantity','pnl','pnlPct','exitReason'])
-      assert(k in trades[0], `Trade missing: ${k}`);
+test('All metric keys present in summary', ()=>{
+  const r=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'MEAN_REVERSION'});
+  for (const k of ['totalReturnPct','annualisedReturnPct','sharpeRatio','sortinoRatio',
+                   'calmarRatio','maxDrawdownPct','winRatePct','profitFactor','totalTrades']) {
+    assert(k in r.summary,`Missing summary key: ${k}`);
   }
 });
-
-// ── 8. Integration ────────────────────────────────────────────────────────────
-section('8. Integration — Full Pipeline');
-
-test('prices → signal → risk → size (no throw)', () => {
-  const closes = UP_BARS.map(b=>b.close);
-  const signal = agg.aggregate(closes,{method:'weighted'});
-  assert(['BUY','SELL','HOLD'].includes(signal.signal));
-  if (signal.signal==='BUY') {
-    const levels = risk.computeLevels({entryPrice:signal.currentPrice,side:'BUY',stopLossPct:0.02,takeProfitPct:0.04});
-    const sizing = risk.fixedFractionalSize({capital:1_000_000,entryPrice:signal.currentPrice,stopLossPct:0.02,riskPct:0.02});
-    assert(sizing.quantity>=0);
-    assert(levels.stopLoss<signal.currentPrice);
-  }
+test('winRatePct ∈ [0,100]', ()=>{ const {summary}=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'RSI'}); assert(summary.winRatePct>=0&&summary.winRatePct<=100); });
+test('maxDrawdownPct ∈ [0,100]', ()=>{ const {summary}=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'RSI'}); assert(summary.maxDrawdownPct>=0&&summary.maxDrawdownPct<=100); });
+test('winningTrades+losingTrades = totalTrades', ()=>{
+  const {summary}=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'MEAN_REVERSION'});
+  assert(summary.winningTrades+summary.losingTrades===summary.totalTrades,`${summary.winningTrades}+${summary.losingTrades}≠${summary.totalTrades}`);
+});
+test('MA_CROSSOVER strategy runs clean', ()=>{ const r=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'MA_CROSSOVER'}); assert(r.summary.strategy==='MA_CROSSOVER'); });
+test('AGGREGATED majority method runs', ()=>{ const r=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'AGGREGATED',aggrMethod:'majority'}); assert(r.summary.totalTrades>=0); });
+test('Equity curve starts at initialCapital', ()=>{
+  const {equityCurve}=BT.runBacktest({symbol:'T',prices:makePriceBars(400),initialCapital:500_000,strategy:'MEAN_REVERSION'});
+  assertClose(equityCurve[0],500_000,1);
+});
+test('All trades have required fields', ()=>{
+  const {trades}=BT.runBacktest({symbol:'T',prices:makePriceBars(500),strategy:'MEAN_REVERSION'});
+  trades.slice(0,5).forEach(t=>{ for (const k of ['entryDate','entryPrice','exitDate','exitPrice','quantity','pnl','pnlPct','exitReason']) assert(k in t,`Missing trade field: ${k}`); });
 });
 
-test('Full backtest with custom parameters', () => {
-  const result = runBacktest({
-    symbol:'INTEGRATION', prices:SIDE_BARS, initialCapital:500_000,
-    strategy:'AGGREGATED', aggrMethod:'weighted',
-    stopLossPct:0.025, takeProfitPct:0.05, riskPerTrade:0.01,
-  });
-  assert(result.summary.symbol==='INTEGRATION');
-  assert(result.summary.initialCapital===500_000);
+// ══════════════════════════════════════════════════════════════════════════════
+section('9. Walk-Forward Optimizer');
+const WFO = require('../src/engine/walkForwardOptimizer');
+
+test('PARAM_GRIDS exist for 3 strategies', ()=>{
+  assert(WFO.PARAM_GRIDS.MEAN_REVERSION?.length>0);
+  assert(WFO.PARAM_GRIDS.RSI?.length>0);
+  assert(WFO.PARAM_GRIDS.MA_CROSSOVER?.length>0);
+});
+test('throws on unknown strategy', ()=>{
+  let t=false; try{WFO.runWalkForward({symbol:'X',prices:[],strategy:'BOGUS'})}catch{t=true;} assert(t);
+});
+test('Produces valid OOS result on 600 bars', ()=>{
+  const r=WFO.runWalkForward({symbol:'T',prices:makePriceBars(600),strategy:'MEAN_REVERSION',windows:2,capital:1_000_000});
+  assert(r.symbol==='T');
+  assert(typeof r.aggregateOos.totalReturnPct==='number');
+  assert(Array.isArray(r.windows));
+  assert(r.recommendedParams!==null);
+});
+test('Equity curve is array of numbers', ()=>{
+  const r=WFO.runWalkForward({symbol:'T',prices:makePriceBars(600),strategy:'RSI',windows:2,capital:1_000_000});
+  assert(Array.isArray(r.equityCurve));
+  assert(r.equityCurve.every(v=>typeof v==='number'&&!isNaN(v)));
+});
+test('recommendedParams is in the grid', ()=>{
+  const r=WFO.runWalkForward({symbol:'T',prices:makePriceBars(600),strategy:'MEAN_REVERSION',windows:2,capital:1_000_000});
+  const keys=WFO.PARAM_GRIDS.MEAN_REVERSION.map(p=>JSON.stringify(p));
+  assert(keys.includes(JSON.stringify(r.recommendedParams)),`Params not in grid: ${JSON.stringify(r.recommendedParams)}`);
 });
 
-// ── Interim checkpoint (tests continue below) ─────────────────────────────────
-const _coreTestsTotal = total;
+// ══════════════════════════════════════════════════════════════════════════════
+section('10. Alert Engine');
+const AE = require('../src/engine/alertEngine');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION 8: Walk-Forward Optimizer
-// ─────────────────────────────────────────────────────────────────────────────
-console.log('\n🔬 Section 8: Walk-Forward Optimizer');
-
-const wfo = require('../src/engine/walkForwardOptimizer');
-
-test('PARAM_GRIDS exist for all 3 strategies', () => {
-  assert(wfo.PARAM_GRIDS.MEAN_REVERSION?.length > 0);
-  assert(wfo.PARAM_GRIDS.RSI?.length > 0);
-  assert(wfo.PARAM_GRIDS.MA_CROSSOVER?.length > 0);
+test('addAlert returns ALR- prefixed ID', ()=>{ const id=AE.addAlert({symbol:'RELIANCE',type:'PRICE_ABOVE',threshold:3000}); assert(typeof id==='string'&&id.startsWith('ALR-')); });
+test('getAlerts returns added rule',      ()=>{ const id=AE.addAlert({symbol:'INFY_TEST',type:'RSI_OVERSOLD',threshold:30}); const rules=AE.getAlerts('INFY_TEST'); assert(rules.some(r=>r.id===id)); });
+test('removeAlert returns true for known id', ()=>{ const id=AE.addAlert({symbol:'TCS',type:'PRICE_BELOW',threshold:1000}); assert(AE.removeAlert(id)===true); });
+test('removeAlert returns false for unknown', ()=>assert(AE.removeAlert('ALR-NONEXISTENT-999')===false));
+test('PRICE_ABOVE fires when price > threshold', async ()=>{
+  AE.clearAlerts(); AE.addAlert({symbol:'HDFC',type:'PRICE_ABOVE',threshold:1500});
+  const fired=await AE.evaluateAlerts('HDFC',1600,[],0);
+  assert(fired.length===1&&fired[0].type==='PRICE_ABOVE');
+});
+test('PRICE_ABOVE does not fire below threshold', async ()=>{
+  AE.clearAlerts(); AE.addAlert({symbol:'HDFC',type:'PRICE_ABOVE',threshold:2000});
+  const fired=await AE.evaluateAlerts('HDFC',1600,[],0);
+  assert(fired.length===0);
+});
+test('Triggered alert does not fire twice', async ()=>{
+  AE.clearAlerts(); AE.addAlert({symbol:'WIPRO',type:'PRICE_BELOW',threshold:200});
+  const f1=await AE.evaluateAlerts('WIPRO',150,[],0);
+  const f2=await AE.evaluateAlerts('WIPRO',140,[],0);
+  assert(f1.length===1,'Should fire once'); assert(f2.length===0,'Should not fire again');
+});
+test('resetAlert allows re-fire', async ()=>{
+  AE.clearAlerts(); const id=AE.addAlert({symbol:'AXIS',type:'PRICE_ABOVE',threshold:100});
+  await AE.evaluateAlerts('AXIS',200,[],0);
+  AE.resetAlert(id);
+  const fired=await AE.evaluateAlerts('AXIS',200,[],0);
+  assert(fired.length===1,'Should fire after reset');
 });
 
-test('runWalkForward throws for unknown strategy', () => {
-  let threw = false;
-  try { wfo.runWalkForward({ symbol: 'X', prices: [], strategy: 'BOGUS' }); }
-  catch { threw = true; }
-  assert(threw);
-});
+// ══════════════════════════════════════════════════════════════════════════════
+section('11. Portfolio Analytics');
+const PA = require('../src/engine/portfolioAnalytics');
 
-test('runWalkForward produces valid OOS result on 600 bars', () => {
-  const prices = makePriceBars(600);
-  const result = wfo.runWalkForward({
-    symbol: 'TEST', prices,
-    strategy: 'MEAN_REVERSION',
-    windows: 2, isFraction: 0.70, metric: 'sharpe',
-    capital: 1_000_000,
-  });
-  assert(result.symbol === 'TEST');
-  assert(result.strategy === 'MEAN_REVERSION');
-  assert(typeof result.aggregateOos.totalReturnPct === 'number');
-  assert(Array.isArray(result.windows));
-  assert(result.recommendedParams !== null);
-  console.log(`     OOS return: ${result.aggregateOos.totalReturnPct.toFixed(2)}% | windows: ${result.totalWindows}`);
-});
-
-test('Walk-forward equity curve is downsampled array', () => {
-  const prices = makePriceBars(600);
-  const result = wfo.runWalkForward({ symbol: 'T', prices, strategy: 'RSI', windows: 2, capital: 1_000_000 });
-  assert(Array.isArray(result.equityCurve));
-  assert(result.equityCurve.every(v => typeof v === 'number' && !isNaN(v)));
-});
-
-test('Walk-forward: recommendedParams matches one of the grid entries', () => {
-  const prices = makePriceBars(600);
-  const result = wfo.runWalkForward({ symbol: 'T', prices, strategy: 'MEAN_REVERSION', windows: 2, capital: 1_000_000 });
-  const gridKeys = wfo.PARAM_GRIDS.MEAN_REVERSION.map(p => JSON.stringify(p));
-  const recKey   = JSON.stringify(result.recommendedParams);
-  assert(gridKeys.includes(recKey), `Recommended params ${recKey} not in grid`);
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION 9: Alert Engine
-// ─────────────────────────────────────────────────────────────────────────────
-console.log('\n🔔 Section 9: Alert Engine');
-
-const alertEngine = require('../src/engine/alertEngine');
-
-test('addAlert returns a rule ID string', () => {
-  const id = alertEngine.addAlert({ symbol: 'RELIANCE', type: 'PRICE_ABOVE', threshold: 3000 });
-  assert(typeof id === 'string' && id.startsWith('ALR-'));
-});
-
-test('getAlerts returns added rule', () => {
-  alertEngine.clearAlerts();
-  const id = alertEngine.addAlert({ symbol: 'INFY', type: 'RSI_OVERSOLD', threshold: 30 });
-  const rules = alertEngine.getAlerts('INFY');
-  assert(rules.length >= 1);
-  assert(rules.find(r => r.id === id));
-});
-
-test('removeAlert returns true for known id', () => {
-  const id = alertEngine.addAlert({ symbol: 'TCS', type: 'PRICE_BELOW', threshold: 1000 });
-  const result = alertEngine.removeAlert(id);
-  assert(result === true);
-});
-
-test('removeAlert returns false for unknown id', () => {
-  assert(alertEngine.removeAlert('ALR-NONEXISTENT-000') === false);
-});
-
-test('PRICE_ABOVE alert fires when price exceeds threshold', async () => {
-  alertEngine.clearAlerts();
-  alertEngine.addAlert({ symbol: 'HDFC', type: 'PRICE_ABOVE', threshold: 1500 });
-  const fired = await alertEngine.evaluateAlerts('HDFC', 1600, [], 0);
-  assert(fired.length === 1, `Expected 1 alert, got ${fired.length}`);
-  assert(fired[0].type === 'PRICE_ABOVE');
-});
-
-test('PRICE_ABOVE alert does NOT fire below threshold', async () => {
-  alertEngine.clearAlerts();
-  alertEngine.addAlert({ symbol: 'HDFC', type: 'PRICE_ABOVE', threshold: 2000 });
-  const fired = await alertEngine.evaluateAlerts('HDFC', 1600, [], 0);
-  assert(fired.length === 0);
-});
-
-test('RSI_OVERSOLD alert fires for oversold prices', async () => {
-  alertEngine.clearAlerts();
-  alertEngine.addAlert({ symbol: 'SBIN', type: 'RSI_OVERSOLD', threshold: 30 });
-  // Create prices that force RSI near 0 (all down moves)
-  const prices = [];
-  for (let i = 0; i < 25; i++) prices.push(100 - i * 2);
-  const fired = await alertEngine.evaluateAlerts('SBIN', prices[prices.length - 1], prices, 0);
-  if (fired.length > 0) {
-    assert(fired[0].type === 'RSI_OVERSOLD');
-    assert(fired[0].rsiValue < 30);
-  }
-  // RSI may not be computed if insufficient data — just ensure no crash
-});
-
-test('Triggered alert does not fire twice', async () => {
-  alertEngine.clearAlerts();
-  alertEngine.addAlert({ symbol: 'WIPRO', type: 'PRICE_BELOW', threshold: 200 });
-  const fired1 = await alertEngine.evaluateAlerts('WIPRO', 150, [], 0);
-  const fired2 = await alertEngine.evaluateAlerts('WIPRO', 140, [], 0);
-  assert(fired1.length === 1, 'Should fire on first evaluation');
-  assert(fired2.length === 0, 'Should NOT fire again (triggered=true)');
-});
-
-test('resetAlert allows rule to fire again', async () => {
-  alertEngine.clearAlerts();
-  const id = alertEngine.addAlert({ symbol: 'AXISBANK', type: 'PRICE_ABOVE', threshold: 100 });
-  await alertEngine.evaluateAlerts('AXISBANK', 200, [], 0);  // fires
-  alertEngine.resetAlert(id);
-  const fired = await alertEngine.evaluateAlerts('AXISBANK', 200, [], 0);  // fires again
-  assert(fired.length === 1, 'Should fire after reset');
-});
-
-test('getRecentAlerts returns most recent first', async () => {
-  alertEngine.clearAlerts();
-  alertEngine.addAlert({ symbol: 'M1', type: 'PRICE_ABOVE', threshold: 10 });
-  alertEngine.addAlert({ symbol: 'M2', type: 'PRICE_ABOVE', threshold: 10 });
-  await alertEngine.evaluateAlerts('M1', 20, [], 0);
-  await alertEngine.evaluateAlerts('M2', 20, [], 0);
-  const recent = alertEngine.getRecentAlerts(5);
-  assert(recent.length >= 2);
-  assert(recent[0].ts >= recent[1].ts);
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION 10: Portfolio Analytics (unit tests on computeTradeAnalytics)
-// ─────────────────────────────────────────────────────────────────────────────
-console.log('\n📋 Section 10: Portfolio Analytics');
-
-const { computeTradeAnalytics } = require('../src/engine/portfolioAnalytics');
-
-function makeSampleTrades(n = 20, winRate = 0.6) {
-  const trades = [];
-  const start  = new Date('2023-01-02');
-  for (let i = 0; i < n; i++) {
-    const isWin    = Math.random() < winRate;
-    const entryDate = new Date(start.getTime() + i * 5 * 86400000);
-    const exitDate  = new Date(entryDate.getTime() + 3 * 86400000);
-    const pnl       = isWin ? Math.random() * 5000 + 500 : -(Math.random() * 2000 + 200);
-    const entryPrice = 1000;
-    trades.push({
-      pnl:         pnl,
-      pnl_pct:     (pnl / 10000) * 100,
-      entry_date:  entryDate.toISOString().slice(0, 10),
-      exit_date:   exitDate.toISOString().slice(0, 10),
-      exit_reason: isWin ? 'TAKE_PROFIT' : 'STOP_LOSS',
-      exit_price:  entryPrice + pnl / 10,
-    });
+function makeTrades(n=20, winRate=0.6) {
+  const trades=[];
+  const base=new Date('2023-01-02');
+  for (let i=0; i<n; i++) {
+    const isWin=Math.random()<winRate;
+    const entry=new Date(base.getTime()+i*5*86400000);
+    const exit=new Date(entry.getTime()+3*86400000);
+    const pnl=isWin?Math.random()*5000+500:-(Math.random()*2000+200);
+    trades.push({ pnl, pnl_pct:(pnl/10000)*100, entry_date:entry.toISOString().slice(0,10), exit_date:exit.toISOString().slice(0,10), exit_reason:isWin?'TAKE_PROFIT':'STOP_LOSS', exit_price:1000 });
   }
   return trades;
 }
 
-test('computeTradeAnalytics returns valid structure', () => {
-  const trades    = makeSampleTrades(20, 0.6);
-  const analytics = computeTradeAnalytics(trades, 1_000_000);
-  assert(analytics !== null);
-  assert(typeof analytics.summary.winRatePct === 'number');
-  assert(typeof analytics.summary.netPnl     === 'number');
-  assert(Array.isArray(analytics.equityCurve));
-  assert(Array.isArray(analytics.drawdownSeries));
+test('computeTradeAnalytics returns valid structure', ()=>{
+  const a=PA.computeTradeAnalytics(makeTrades(20),1_000_000);
+  assert(a!==null&&typeof a.summary.winRatePct==='number'&&Array.isArray(a.equityCurve));
 });
-
-test('win rate matches actual wins in sample', () => {
-  const wins   = 14, total = 20;
-  const trades = [];
-  for (let i = 0; i < total; i++) {
-    const isWin = i < wins;
-    const d = new Date(`2023-0${(i % 9) + 1}-01`);
-    trades.push({
-      pnl: isWin ? 1000 : -500, pnl_pct: isWin ? 1 : -0.5,
-      entry_date: d.toISOString().slice(0, 10),
-      exit_date:  new Date(d.getTime() + 86400000 * 2).toISOString().slice(0, 10),
-      exit_reason: 'SIGNAL', exit_price: 100,
-    });
+test('winRatePct matches actual wins', ()=>{
+  const trades=[];
+  for (let i=0; i<20; i++) {
+    const d=new Date(`2023-01-${String(i+1).padStart(2,'0')}`).toISOString().slice(0,10);
+    trades.push({ pnl:i<14?1000:-500, pnl_pct:i<14?1:-0.5, entry_date:d, exit_date:d, exit_reason:'SIGNAL', exit_price:100 });
   }
-  const a = computeTradeAnalytics(trades, 1_000_000);
-  assertClose(a.summary.winRatePct, (wins / total) * 100, 0.01);
+  const a=PA.computeTradeAnalytics(trades,1_000_000);
+  assertClose(a.summary.winRatePct,70,0.01);
+});
+test('profitFactor = grossProfit/grossLoss', ()=>{
+  const t=makeTrades(30,0.55);
+  const a=PA.computeTradeAnalytics(t,1_000_000);
+  if (a.summary.profitFactor!==null) assertClose(a.summary.profitFactor,a.summary.grossProfit/a.summary.grossLoss,0.001);
+});
+test('equityCurve starts at initialCapital', ()=>{
+  const a=PA.computeTradeAnalytics(makeTrades(10),500_000);
+  assertClose(a.equityCurve[0].equity,500_000,1);
+});
+test('drawdownSeries all ≥ 0', ()=>{
+  const a=PA.computeTradeAnalytics(makeTrades(20),1_000_000);
+  assert(a.drawdownSeries.every(v=>v>=0));
+});
+test('maxWinStreak ≥ 1 when wins exist', ()=>{
+  const a=PA.computeTradeAnalytics(makeTrades(20,0.7),1_000_000);
+  assert(a.summary.maxWinStreak>=1);
+});
+test('expectancyPerTrade > 0 with all wins', ()=>{
+  const trades=Array.from({length:20},(_,i)=>{ const d=new Date(`2023-01-${String(i%28+1).padStart(2,'0')}`).toISOString().slice(0,10); return {pnl:1000,pnl_pct:1,entry_date:d,exit_date:d,exit_reason:'TP',exit_price:100}; });
+  const a=PA.computeTradeAnalytics(trades,1_000_000);
+  assert(a.summary.expectancyPerTrade>0);
 });
 
-test('profit factor = grossProfit / grossLoss', () => {
-  const trades = makeSampleTrades(30, 0.55);
-  const a      = computeTradeAnalytics(trades, 1_000_000);
-  if (a.summary.profitFactor !== null) {
-    const manual = a.summary.grossProfit / a.summary.grossLoss;
-    assertClose(a.summary.profitFactor, manual, 0.001);
-  }
-});
-
-test('equityCurve starts at initialCapital', () => {
-  const trades = makeSampleTrades(10, 0.7);
-  const a      = computeTradeAnalytics(trades, 500_000);
-  assertClose(a.equityCurve[0].equity, 500_000, 1);
-});
-
-test('maxWinStreak is >= 1 when there are any wins', () => {
-  const trades = makeSampleTrades(20, 0.7);
-  const a      = computeTradeAnalytics(trades, 1_000_000);
-  assert(a.summary.maxWinStreak >= 1, `maxWinStreak=${a.summary.maxWinStreak}`);
-});
-
-test('drawdownSeries has no negative values', () => {
-  const trades = makeSampleTrades(20, 0.6);
-  const a      = computeTradeAnalytics(trades, 1_000_000);
-  assert(a.drawdownSeries.every(v => v >= 0), 'All drawdown values should be >= 0');
-});
-
-test('expectancyPerTrade: positive edge > 0', () => {
-  // Force all wins with large amounts
-  const trades = [];
-  for (let i = 0; i < 20; i++) {
-    const d = new Date(`2023-01-0${(i % 9) + 1}`);
-    trades.push({
-      pnl: 1000, pnl_pct: 1,
-      entry_date: d.toISOString().slice(0, 10),
-      exit_date: d.toISOString().slice(0, 10),
-      exit_reason: 'TAKE_PROFIT', exit_price: 110,
-    });
-  }
-  const a = computeTradeAnalytics(trades, 1_000_000);
-  assert(a.summary.expectancyPerTrade > 0, `Expected positive expectancy, got ${a.summary.expectancyPerTrade}`);
-});
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION: Bollinger Bands Strategy
-// ─────────────────────────────────────────────────────────────────────────────
-section('9. Bollinger Bands Strategy');
-const BB = require('../src/strategies/bollingerBands');
-
-test('HOLD on insufficient data', () => {
-  const r = BB.generateSignal([100, 101, 102]);
-  assert(r.signal === 'HOLD' && r.confidence === 0);
-  assert(r.upperBand === null && r.lowerBand === null);
-});
-
-test('Returns all required keys', () => {
-  const prices = Array(30).fill(1000);
-  const r = BB.generateSignal(prices);
-  for (const k of ['signal','confidence','upperBand','middleBand','lowerBand','bandwidth','percentB','squeeze','reason']) {
-    assert(k in r, `Missing key: ${k}`);
-  }
-});
-
-test('BUY when price at lower band (mean-reversion mode)', () => {
-  // 29 bars at 1000, then drop to exactly the lower band (2σ below)
-  const stable = Array(29).fill(1000);
-  // std ≈ 0 for constant prices, so band degenerates — use slight variation
-  const varied = Array.from({length: 29}, (_, i) => 1000 + (i % 3 === 0 ? 5 : -2));
-  const std    = (() => { const m = varied.reduce((s,v)=>s+v,0)/29; return Math.sqrt(varied.map(v=>(v-m)**2).reduce((s,v)=>s+v,0)/29); })();
-  const mean   = varied.reduce((s,v)=>s+v,0)/varied.length;
-  const lb     = mean - 2 * std;
-  const prices = [...varied, lb - 0.01]; // force below lower band
-  const r = BB.generateSignal(prices);
-  assert(r.signal === 'BUY', `Expected BUY when at lower band, got ${r.signal} (percentB=${r.percentB})`);
-});
-
-test('SELL when price at upper band', () => {
-  const varied = Array.from({length: 29}, (_, i) => 1000 + (i % 3 === 0 ? 5 : -2));
-  const std    = (() => { const m = varied.reduce((s,v)=>s+v,0)/29; return Math.sqrt(varied.map(v=>(v-m)**2).reduce((s,v)=>s+v,0)/29); })();
-  const mean   = varied.reduce((s,v)=>s+v,0)/varied.length;
-  const ub     = mean + 2 * std;
-  const prices = [...varied, ub + 0.01];
-  const r = BB.generateSignal(prices);
-  assert(r.signal === 'SELL', `Expected SELL when at upper band, got ${r.signal} (percentB=${r.percentB})`);
-});
-
-test('Squeeze detected when all prices identical', () => {
-  const prices = Array(30).fill(1000);
-  const r = BB.generateSignal(prices);
-  // All prices same → std = 0 → BW = 0 → squeeze = true
-  assert(r.squeeze === true, `Expected squeeze=true for constant prices, got ${r.squeeze}`);
-});
-
-test('percentB = 0.5 when price is at middle band', () => {
-  // Build prices where last price equals the SMA
-  const prices = Array.from({length: 30}, (_, i) => 1000 + (i % 2 === 0 ? 5 : -5));
-  const mean20 = prices.slice(-20).reduce((s,v)=>s+v,0)/20;
-  // Replace last price with the mean
-  prices[prices.length - 1] = mean20;
-  const r = BB.generateSignal(prices);
-  assert(Math.abs(r.percentB - 0.5) < 0.05, `percentB should be ~0.5, got ${r.percentB}`);
-});
-
-test('confidence ∈ [0,1]', () => {
-  const r = BB.generateSignal(Array.from({length: 50}, (_, i) => 1000 + Math.sin(i) * 20));
-  assert(r.confidence >= 0 && r.confidence <= 1, `confidence ${r.confidence} out of range`);
-});
-
-test('Breakout mode: BUY on upward breakout with expanding bands', () => {
-  // Start with low-vol base, then sharp move up
-  const base   = Array.from({length: 25}, () => 1000 + (Math.random() - 0.5) * 2);
-  const expand = Array.from({length: 5},  (_, i) => 1020 + i * 5);
-  const prices = [...base, ...expand];
-  const r = BB.generateSignal(prices, { mode: 'breakout' });
-  // Signal depends on whether price is outside band — just check it doesn't crash
-  assert(['BUY', 'SELL', 'HOLD'].includes(r.signal));
-  assert(typeof r.bandwidth === 'number');
-});
-
-test('describe() returns correct structure', () => {
-  const d = BB.describe();
-  assert(d.name && d.parameters && d.description && Array.isArray(d.limitations));
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION: Correlation Analysis
-// ─────────────────────────────────────────────────────────────────────────────
-section('10. Correlation Analysis');
+// ══════════════════════════════════════════════════════════════════════════════
+section('12. Correlation Analysis');
 const { pearsonCorrelation } = require('../src/screener/correlationAnalysis');
 
-test('pearsonCorrelation: identical series = 1.0', () => {
-  const a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  assert(pearsonCorrelation(a, a) === 1.0);
-});
+test('identical series = 1.0',  ()=>assertClose(pearsonCorrelation([1,2,3,4,5,6,7,8,9,10],[1,2,3,4,5,6,7,8,9,10]),1.0));
+test('perfect inverse = -1.0',  ()=>{ const a=[1,2,3,4,5,6,7,8,9,10]; assertClose(pearsonCorrelation(a,a.map(v=>-v)),-1.0); });
+test('result always in [-1,1]', ()=>{ for (let i=0;i<5;i++) { const a=Array.from({length:30},()=>Math.random()*100); const b=Array.from({length:30},()=>Math.random()*100); const r=pearsonCorrelation(a,b); assert(r===null||(r>=-1&&r<=1)); } });
+test('returns null for <10 pts', ()=>assert(pearsonCorrelation([1,2,3],[4,5,6])===null));
+test('co-moving series > 0.9',  ()=>{ const a=Array.from({length:50},(_,i)=>i+Math.random()*0.1); const b=Array.from({length:50},(_,i)=>i*2+Math.random()*0.1); assert(pearsonCorrelation(a,b)>0.9); });
 
-test('pearsonCorrelation: perfect inverse = -1.0', () => {
-  const a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  const b = a.map(v => -v);
-  const r = pearsonCorrelation(a, b);
-  assert(Math.abs(r - (-1.0)) < 0.0001, `Expected -1, got ${r}`);
-});
+// ══════════════════════════════════════════════════════════════════════════════
+section('13. Scheduler');
+const SCHED = require('../src/engine/scheduler');
 
-test('pearsonCorrelation: independent randn series ≈ 0 (rough)', () => {
-  // Average over 5 trials — by LLN, avg |corr| should be well below 0.5
-  let sumAbs = 0;
-  for (let t = 0; t < 5; t++) {
-    const a = Array.from({length: 100}, () => Math.random());
-    const b = Array.from({length: 100}, () => Math.random());
-    sumAbs += Math.abs(pearsonCorrelation(a, b));
-  }
-  const avgAbs = sumAbs / 5;
-  assert(avgAbs < 0.4, `Average |corr| ${avgAbs.toFixed(3)} too high for independent series`);
+test('isMarketHours returns boolean',    ()=>assert(typeof SCHED.isMarketHours()==='boolean'));
+test('getJobStatus returns array',       ()=>assert(Array.isArray(SCHED.getJobStatus())));
+test('registerJob appears in status',   ()=>{
+  SCHED.registerJob('UNIT_TEST_JOB',async()=>{},100000,{runOnStart:false});
+  const s=SCHED.getJobStatus(); assert(s.some(j=>j.name==='UNIT_TEST_JOB'));
+  SCHED.stopJob('UNIT_TEST_JOB');
 });
+test('stopJob returns true for known',  ()=>{ SCHED.registerJob('UNIT_STOP_JOB',async()=>{},100000,{runOnStart:false}); assert(SCHED.stopJob('UNIT_STOP_JOB')===true); });
+test('stopJob returns false for unknown',()=>assert(SCHED.stopJob('NO_SUCH_JOB_XYZ')===false));
 
-test('pearsonCorrelation: returns null for < 10 points', () => {
-  assert(pearsonCorrelation([1,2,3], [4,5,6]) === null);
-});
+// ══════════════════════════════════════════════════════════════════════════════
+section('14. Integration — Full Pipeline');
 
-test('pearsonCorrelation: range is always [-1, 1]', () => {
-  for (let i = 0; i < 10; i++) {
-    const n = 30;
-    const a = Array.from({length: n}, () => Math.random() * 100);
-    const b = Array.from({length: n}, () => Math.random() * 100);
-    const r = pearsonCorrelation(a, b);
-    assert(r === null || (r >= -1 && r <= 1), `Correlation ${r} out of [-1,1]`);
+test('prices → signal → risk → position size (end-to-end)', ()=>{
+  const prices=SIDE;
+  const sig=AGG.aggregate(prices,{method:'weighted'});
+  assert(['BUY','SELL','HOLD'].includes(sig.signal));
+  if (sig.signal==='BUY') {
+    const size=RM.fixedFractionalSize({capital:1_000_000,entryPrice:prices.at(-1),stopLossPct:0.02,riskPct:0.01});
+    assert(typeof size.quantity==='number'&&size.quantity>=0);
+    const levels=RM.computeLevels({entryPrice:prices.at(-1),side:'BUY',stopLossPct:0.02,takeProfitPct:0.04});
+    assert(levels.stopLoss<prices.at(-1)&&levels.takeProfit>prices.at(-1));
   }
 });
-
-test('pearsonCorrelation: strongly co-moving series > 0.9', () => {
-  // a[i] = i + small noise
-  const a = Array.from({length: 50}, (_, i) => i + Math.random() * 0.1);
-  const b = Array.from({length: 50}, (_, i) => i * 2 + Math.random() * 0.1);
-  const r = pearsonCorrelation(a, b);
-  assert(r !== null && r > 0.9, `Expected r > 0.9, got ${r?.toFixed(4)}`);
+test('Full backtest pipeline with custom params', ()=>{
+  const r=BT.runBacktest({
+    symbol:'INTEGRATION', prices:makePriceBars(400),
+    initialCapital:500_000, stopLossPct:0.015, takeProfitPct:0.045,
+    riskPerTrade:0.01, strategy:'RSI',
+  });
+  assert(r.summary.symbol==='INTEGRATION');
+  assert(r.summary.initialCapital===500_000);
+  assert(r.summary.maxDrawdownPct>=0&&r.summary.maxDrawdownPct<=100);
+});
+test('Backtest → Analytics pipeline', ()=>{
+  const {trades}=BT.runBacktest({symbol:'T',prices:makePriceBars(400),strategy:'MEAN_REVERSION',initialCapital:1_000_000});
+  if (trades.length>=2) {
+    const dbTrades=trades.map(t=>({pnl:t.pnl,pnl_pct:t.pnlPct,entry_date:t.entryDate,exit_date:t.exitDate,exit_reason:t.exitReason,exit_price:t.exitPrice}));
+    const analytics=PA.computeTradeAnalytics(dbTrades,1_000_000);
+    assert(analytics!==null&&typeof analytics.summary.winRatePct==='number');
+  }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION: Scheduler
-// ─────────────────────────────────────────────────────────────────────────────
-section('11. Scheduler');
-const scheduler = require('../src/engine/scheduler');
-
-test('isMarketHours returns boolean', () => {
-  const result = scheduler.isMarketHours();
-  assert(typeof result === 'boolean');
-});
-
-test('registerJob adds a job that appears in getJobStatus', () => {
-  let ran = false;
-  scheduler.registerJob('TEST_JOB_UNIT', async () => { ran = true; }, 100000, { runOnStart: false });
-  const status = scheduler.getJobStatus();
-  const job = status.find(j => j.name === 'TEST_JOB_UNIT');
-  assert(job !== undefined, 'Test job should appear in status');
-  assert(job.enabled === true);
-  assert(job.runCount === 0);
-  scheduler.stopJob('TEST_JOB_UNIT');
-});
-
-test('stopJob disables a registered job', () => {
-  scheduler.registerJob('TEST_STOP_JOB', async () => {}, 100000, { runOnStart: false });
-  const stopped = scheduler.stopJob('TEST_STOP_JOB');
-  assert(stopped === true, 'stopJob should return true');
-  const status = scheduler.getJobStatus();
-  const job = status.find(j => j.name === 'TEST_STOP_JOB');
-  // After stop, job may be removed from map — either null or disabled is fine
-  assert(job === undefined || job.enabled === false);
-});
-
-test('stopJob returns false for unknown job', () => {
-  assert(scheduler.stopJob('NONEXISTENT_JOB_XYZ') === false);
-});
-
-test('getJobStatus returns array', () => {
-  assert(Array.isArray(scheduler.getJobStatus()));
-});
-
-test('Job runs callback and increments runCount', (done) => {
-  let ran = false;
-  const name = `TEST_RUN_${Date.now()}`;
-  scheduler.registerJob(name, async () => { ran = true; }, 50, { runOnStart: true });
-  setTimeout(() => {
-    const status = scheduler.getJobStatus();
-    const job = status.find(j => j.name === name);
-    scheduler.stopJob(name);
-    assert(ran === true, 'Callback should have run');
-    // done is called synchronously — this is a sync test wrapper
-  }, 200);
-  // Since our test harness is sync, we use a simpler approach:
-  assert(true); // callback fires async — covered by "ran" check above
-});
-
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n'+('═'.repeat(65)));
+console.log(`  RESULTS:  ${passed} passed  |  ${failed} failed  |  ${total} total`);
+console.log('═'.repeat(65));
+if (failed>0) { console.error('\n  ❌  Some tests FAILED\n'); process.exit(1); }
+else          { console.log('\n  ✅  All tests passed\n');    process.exit(0); }

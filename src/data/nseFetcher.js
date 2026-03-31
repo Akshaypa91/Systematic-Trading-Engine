@@ -5,7 +5,6 @@
 'use strict';
 
 const axios   = require('axios');
-const { CONSTANTS } = require('../config/constants');
 const logger  = require('../config/logger');
 const C       = require('../config/constants');
 
@@ -33,18 +32,18 @@ class TokenBucket {
     this.lastRefill = Date.now();
   }
   async consume() {
-    const now = Date.now();
-    const refilled = Math.floor((now - this.lastRefill) / this.interval);
-    if (refilled > 0) {
-      this.tokens = Math.min(this.capacity, this.tokens + refilled);
-      this.lastRefill = now;
-    }
-    if (this.tokens < 1) {
+    // Iterative wait — avoids potential stack overflow under sustained rate limiting
+    while (true) {
+      const now      = Date.now();
+      const refilled = Math.floor((now - this.lastRefill) / this.interval);
+      if (refilled > 0) {
+        this.tokens     = Math.min(this.capacity, this.tokens + refilled);
+        this.lastRefill = now;
+      }
+      if (this.tokens >= 1) { this.tokens--; return; }
       const wait = this.interval - (now - this.lastRefill);
-      await new Promise(r => setTimeout(r, wait + 50));   // +50ms buffer
-      return this.consume();
+      await new Promise(r => setTimeout(r, Math.max(wait, 0) + 50));
     }
-    this.tokens--;
   }
 }
 

@@ -33,6 +33,23 @@ const logger    = require('../config/logger');
 
 const SC = C.SCREENER;
 
+// Limit concurrent DB queries — prevents 50 simultaneous connections for NIFTY50
+async function _withConcurrency(tasks, limit = 8) {
+  const results = [];
+  let i = 0;
+  async function run() {
+    while (i < tasks.length) {
+      const idx = i++;
+      results[idx] = await tasks[idx]();
+    }
+  }
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, run);
+  await Promise.all(workers);
+  return results;
+}
+
+
+
 /**
  * Screen a universe of symbols and return ranked results.
  *
@@ -56,9 +73,8 @@ async function runScreener(symbols, opts = {}) {
   // ── Fetch data for all symbols in parallel ────────────────────────────
   const minBars = Math.max(SC.MOMENTUM_LOOKBACK_DAYS, SC.VOLATILITY_LOOKBACK_DAYS, SC.MR_LOOKBACK_DAYS) + 5;
 
-  const results = await Promise.allSettled(
-    symbols.map(symbol => scoreSymbol(symbol, minBars))
-  );
+  const tasks   = symbols.map(symbol => () => scoreSymbol(symbol, minBars).then(r => ({ status: 'fulfilled', value: r })).catch(e => ({ status: 'rejected', reason: e })));
+  const results = await _withConcurrency(tasks, 8);
 
   const scored = results
     .filter(r => r.status === 'fulfilled' && r.value !== null)

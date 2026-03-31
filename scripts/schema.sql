@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS trading_engine
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE trading_engine;
+
 
 -- ─── 1. Instruments ─────────────────────────────────────────────────────────
 -- Master list of traded instruments
