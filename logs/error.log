@@ -1,1 +1,0 @@
-{"level":"error","message":"[DB] Query error: This command is not supported in the prepared statement protocol yet | SQL: USE trading_engine","timestamp":"2026-04-02 12:42:31.392"}

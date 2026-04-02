@@ -1,0 +1,6 @@
+{"level":"error","message":"[DB] Query error: This command is not supported in the prepared statement protocol yet | SQL: USE trading_engine","timestamp":"2026-04-02 12:42:31.392"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-02 19:15:31.082"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-02 19:15:31.085"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-02 19:15:38.349"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-02 19:17:00.462"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-02 19:17:00.463"}

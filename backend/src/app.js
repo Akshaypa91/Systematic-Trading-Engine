@@ -20,6 +20,7 @@ const signalRoutes   = require('./routes/signal');
 const backtestRoutes = require('./routes/backtest');
 const tradeRoutes    = require('./routes/trade');
 const screenerRoutes = require('./routes/screener');
+const authRoutes     = require('./routes/auth');
 const allRoutes      = require('./routes/index');
 
 const liveDataFeed   = require('./data/liveDataFeed');
@@ -45,6 +46,7 @@ app.get('/health', (req, res) => res.json({
   wsFeed: liveDataFeed.getStats(),
 }));
 
+app.use('/api/auth',     authRoutes);
 app.use('/api/data',     dataRoutes);
 app.use('/api/signal',   signalRoutes);
 app.use('/api/backtest', backtestRoutes);
