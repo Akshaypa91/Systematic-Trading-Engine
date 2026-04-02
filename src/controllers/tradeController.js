@@ -93,4 +93,24 @@ function computeSize(req, res) {
   }
 }
 
-module.exports = { placeOrder, getPortfolio, getOrders, checkExits, computeSize };
+module.exports = { placeOrder, getPortfolio, getOrders, checkExits, computeSize,
+  // Alias: routes/index.js references checkPosition for GET /trade/check/:symbol
+  checkPosition: async (req, res) => {
+    try {
+      const { symbol }       = req.params;
+      const { currentPrice } = req.query;
+      if (!currentPrice) {
+        return res.status(400).json({ success: false, error: 'currentPrice query param required' });
+      }
+      const price  = parseFloat(currentPrice);
+      if (!isFinite(price) || price <= 0) {
+        return res.status(400).json({ success: false, error: 'currentPrice must be a positive number' });
+      }
+      const result = await exec.checkAndClosePosition(symbol.toUpperCase(), price);
+      res.json({ success: true, closed: !!result, data: result || null });
+    } catch (err) {
+      logger.error(`[TradeCtrl] checkPosition: ${err.message}`);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+};

@@ -1,34 +1,31 @@
 // src/app.js — Systematic Trading Engine — Production Entry Point
-console.log("STEP 1");
 'use strict';
 
 require('dotenv').config();
 
-const http = require('http');
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
+const http     = require('http');
+const express  = require('express');
+const cors     = require('cors');
+const morgan   = require('morgan');
 
-const logger = require('./config/logger');
-const db = require('./config/database');
-const C = require('./config/constants');
+const logger   = require('./config/logger');
+const db       = require('./config/database');
+const C        = require('./config/constants');
 
 const { apiLimiter, nseProxyLimiter } = require('./middleware/rateLimiter');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { errorHandler, notFound }      = require('./middleware/errorHandler');
 
-const dataRoutes = require('./routes/data');
-const signalRoutes = require('./routes/signal');
+const dataRoutes     = require('./routes/data');
+const signalRoutes   = require('./routes/signal');
 const backtestRoutes = require('./routes/backtest');
-const tradeRoutes = require('./routes/trade');
+const tradeRoutes    = require('./routes/trade');
 const screenerRoutes = require('./routes/screener');
-// const allRoutes      = require('./routes/index');
-const allRoutes = express.Router(); // TEMP FIX
+const allRoutes      = require('./routes/index');
 
-const liveDataFeed = require('./data/liveDataFeed');
-const scheduler = require('./engine/scheduler');
+const liveDataFeed   = require('./data/liveDataFeed');
+const scheduler      = require('./engine/scheduler');
 
-
-const app = express();
+const app    = express();
 const server = http.createServer(app);
 
 app.use(cors());
@@ -48,12 +45,12 @@ app.get('/health', (req, res) => res.json({
   wsFeed: liveDataFeed.getStats(),
 }));
 
-app.use('/api/data', dataRoutes);
-app.use('/api/signal', signalRoutes);
+app.use('/api/data',     dataRoutes);
+app.use('/api/signal',   signalRoutes);
 app.use('/api/backtest', backtestRoutes);
-app.use('/api/trade', tradeRoutes);
+app.use('/api/trade',    tradeRoutes);
 app.use('/api/screener', screenerRoutes);
-app.use('/api', allRoutes);
+app.use('/api',          allRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -82,7 +79,7 @@ async function start() {
     setTimeout(() => process.exit(1), 10_000);
   };
   process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGINT',  () => shutdown('SIGINT'));
 }
 
 start();

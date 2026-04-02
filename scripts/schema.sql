@@ -7,7 +7,6 @@ CREATE DATABASE IF NOT EXISTS trading_engine
   COLLATE utf8mb4_unicode_ci;
 
 
-
 -- ─── 1. Instruments ─────────────────────────────────────────────────────────
 -- Master list of traded instruments
 CREATE TABLE IF NOT EXISTS instruments (

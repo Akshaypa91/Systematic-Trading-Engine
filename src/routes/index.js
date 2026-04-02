@@ -106,7 +106,6 @@ router.get('/info', (req, res) => res.json({
 const scheduler = require('../engine/scheduler');
 router.get('/scheduler/status', (req, res) =>
   res.json({ success: true, data: scheduler.getJobStatus() }));
-
 router.post('/scheduler/job/:name/stop', (req, res) => {
   const ok = scheduler.stopJob(req.params.name);
   res.json({ success: ok, message: ok ? 'Job stopped' : 'Job not found' });

@@ -62,9 +62,9 @@ module.exports = Object.freeze({
   // ─── Strategy Parameters ──────────────────────────────────────────────────
   STRATEGIES: {
     MEAN_REVERSION: {
-      LOOKBACK:       20,          // Z-score rolling window
-      Z_BUY_THRESHOLD:  -2.0,     // Enter long when z-score < -2
-      Z_SELL_THRESHOLD:  2.0,     // Enter short when z-score > +2
+      LOOKBACK:          20,       // Z-score rolling window
+      Z_BUY_THRESHOLD:  -1.5,     // Enter long when z-score ≤ -1.5
+      Z_SELL_THRESHOLD:  1.5,     // Enter short when z-score ≥ +1.5
       Z_EXIT_THRESHOLD:  0.5,     // Exit when z-score reverts near mean
     },
     MA_CROSSOVER: {

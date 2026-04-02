@@ -6,31 +6,37 @@ const C        = require('../config/constants');
 const logger   = require('../config/logger');
 
 /**
- * GET /api/screener?topN=20&filter=BUY_CANDIDATES&symbols=RELIANCE,INFY,...
+ * GET  /api/screener?topN=20&filter=BUY_CANDIDATES&symbols=RELIANCE,INFY,...
+ * POST /api/screener  body: { symbols: [...], topN, filter, weights }
  */
 async function runScreener(req, res) {
   try {
-    const {
-      topN   = 20,
-      filter = 'ALL',
-      symbols,
-    } = req.query;
+    // Merge params from body (POST) or query string (GET)
+    const source = req.method === 'POST' ? req.body : req.query;
 
-    const universe = symbols
-      ? symbols.split(',').map(s => s.trim().toUpperCase())
-      : C.NIFTY50_SYMBOLS;
+    const topN   = parseInt(source.topN   || '20', 10);
+    const filter = (source.filter || 'ALL').toUpperCase();
 
-    const weights = {
-      momentum:      parseFloat(req.query.wMomentum  || '0.40'),
-      volatility:    parseFloat(req.query.wVolatility || '0.30'),
-      meanReversion: parseFloat(req.query.wMR         || '0.30'),
-    };
+    // Symbols: body array takes precedence, then comma-separated query string, then NIFTY50
+    let universe;
+    if (source.symbols && Array.isArray(source.symbols)) {
+      universe = source.symbols.map(s => String(s).trim().toUpperCase());
+    } else if (typeof source.symbols === 'string' && source.symbols.length > 0) {
+      universe = source.symbols.split(',').map(s => s.trim().toUpperCase());
+    } else {
+      universe = C.NIFTY50_SYMBOLS;
+    }
 
-    const results = await screener.runScreener(universe, {
-      topN:    parseInt(topN, 10),
-      filter:  filter.toUpperCase(),
-      weights,
-    });
+    // Weights: accept nested object (POST body) or individual query params (GET)
+    const weights = source.weights && typeof source.weights === 'object'
+      ? source.weights
+      : {
+          momentum:      parseFloat(source.wMomentum  || '0.40'),
+          volatility:    parseFloat(source.wVolatility || '0.30'),
+          meanReversion: parseFloat(source.wMR         || '0.30'),
+        };
+
+    const results = await screener.runScreener(universe, { topN, filter, weights });
 
     res.json({
       success:  true,

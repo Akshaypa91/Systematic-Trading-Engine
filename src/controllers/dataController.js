@@ -63,7 +63,9 @@ async function fetchAndStore(req, res) {
 async function getPrices(req, res) {
   try {
     const { symbol } = req.params;
-    const limit = parseInt(req.query.limit || '200', 10);
+    const rawLimit = parseInt(req.query.limit || '200', 10);
+    // Clamp: minimum 1, maximum 2000 (≈8 years of daily data)
+    const limit = Math.min(Math.max(rawLimit, 1), 2000);
     const data  = await dataStore.getRecentPrices(symbol.toUpperCase(), limit);
     res.json({ success: true, count: data.length, data });
   } catch (err) {

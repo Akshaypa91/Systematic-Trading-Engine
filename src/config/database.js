@@ -114,8 +114,7 @@ async function closePool() {
   }
 }
 
-// Drain pool on clean shutdown signals
-process.on('SIGINT',  () => closePool().then(() => process.exit(0)));
-process.on('SIGTERM', () => closePool().then(() => process.exit(0)));
+// NOTE: Shutdown signals are handled by app.js which calls closePool() before exit.
+// Do NOT register SIGINT/SIGTERM here — it causes duplicate handlers and double-exit.
 
 module.exports = { getPool, testConnection, query, transaction, closePool };

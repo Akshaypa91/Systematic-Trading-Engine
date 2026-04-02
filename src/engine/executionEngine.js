@@ -86,6 +86,17 @@ async function placeOrder(orderParams) {
     };
   }
 
+  // ── Guard: prevent duplicate long entry for same symbol ───────────────
+  if (side === 'BUY' && _state.openPositions.has(symbol)) {
+    const existing = _state.openPositions.get(symbol);
+    logger.warn(`[Exec] BUY REJECTED for ${symbol}: position already open (entry=₹${existing.entryPrice}, qty=${existing.qty})`);
+    return {
+      status:  'REJECTED',
+      symbol, side, quantity,
+      reasons: [`Position already open for ${symbol} — close existing position before re-entering`],
+    };
+  }
+
   // ── Determine fill price ───────────────────────────────────────────────
   const slippage    = C.BACKTEST.SLIPPAGE_PCT;
   const commission  = C.BACKTEST.COMMISSION_PCT;

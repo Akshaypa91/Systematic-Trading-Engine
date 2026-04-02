@@ -234,7 +234,7 @@ function runWalkForward(config) {
       efficiencyRatio:  avgIsScore > 0 ? parseFloat((avgOosReturn / avgIsScore).toFixed(4)) : null,
     },
     recommendedParams: bestParamsFreq ? JSON.parse(bestParamsFreq) : null,
-    equityCurve: downsample(allOosEquity, 200),
+    equityCurve: downsample(allOosEquity),   // step=5 by default
   };
 }
 
@@ -242,8 +242,22 @@ function runWalkForward(config) {
 // Lightweight inline backtester (avoids circular dep with main backtester)
 
 function runSingleBacktest({ prices, strategy, params, stopLossPct, takeProfitPct, riskPerTrade, capital }) {
-  if (prices.length < 202) {
-    return { totalReturnPct: 0, sharpeRatio: null, maxDrawdownPct: 0, winRatePct: 0, totalTrades: 0, finalCapital: capital, equityCurve: [capital], trades: [] };
+  // Minimum bars needed per strategy:
+  //   MEAN_REVERSION: lookback (max 30) + 1
+  //   RSI:            period   (max 21) + 1
+  //   MA_CROSSOVER:   slow MA  (max 200) + 1
+  const minBars = strategy === 'MA_CROSSOVER'
+    ? (params.slow || 200) + 1
+    : strategy === 'RSI'
+      ? (params.period || 14) + 1
+      : (params.lookback || 20) + 1;
+
+  if (prices.length < minBars) {
+    return {
+      totalReturnPct: 0, sharpeRatio: null, maxDrawdownPct: 0,
+      winRatePct: 0, totalTrades: 0, finalCapital: capital,
+      equityCurve: [capital], trades: [],
+    };
   }
 
   const closes      = prices.map(p => p.close || p);
@@ -253,7 +267,7 @@ function runSingleBacktest({ prices, strategy, params, stopLossPct, takeProfitPc
   const equityCurve = [capital];
   const dailyRets   = [];
 
-  for (let i = 201; i < closes.length; i++) {
+  for (let i = minBars - 1; i < closes.length; i++) {
     const window = closes.slice(0, i + 1);
     const bar    = prices[i];
     const close  = closes[i];
@@ -328,7 +342,13 @@ function checkPositionExit(bar, position) {
 }
 
 function getStrategySignal(closes, strategy, params) {
-  if (closes.length < 202) return 'HOLD';
+  // Need at least enough bars for the strategy's indicator to be defined
+  const need = strategy === 'MA_CROSSOVER'
+    ? (params.slow || 200) + 1
+    : strategy === 'RSI'
+      ? (params.period || 14) + 1
+      : (params.lookback || 20) + 1;
+  if (closes.length < need) return 'HOLD';
 
   if (strategy === 'MEAN_REVERSION') {
     const lb     = params.lookback || 20;
@@ -385,12 +405,16 @@ function mostCommon(arr) {
   return maxK;
 }
 
-function downsample(arr, n) {
-  if (arr.length <= n) return arr.map(v => parseFloat(v.toFixed(2)));
-  const step = Math.floor(arr.length / n);
-  const out  = [];
-  for (let i = 0; i < arr.length; i += step) out.push(parseFloat(arr[i].toFixed(2)));
-  return out;
+/**
+ * Downsample by taking every `step`-th element.
+ * Requirement: downsample(arr, step=5) { return arr.filter((_,i) => i % step === 0) }
+ * This is deterministic and preserves the starting point (index 0 always included).
+ */
+function downsample(arr, step = 5) {
+  if (!Array.isArray(arr) || arr.length === 0) return [];
+  return arr
+    .filter((_, i) => i % step === 0)
+    .map(v => parseFloat(v.toFixed(2)));
 }
 
 module.exports = { runWalkForward, PARAM_GRIDS };

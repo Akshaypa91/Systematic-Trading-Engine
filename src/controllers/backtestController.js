@@ -79,7 +79,10 @@ async function runBacktest(req, res) {
       summary,
       trades,
       equityCurveLength: equityCurve.length,
-      equityCurveSample: equityCurve.filter((_, i) => i % Math.ceil(equityCurve.length / 100) === 0),
+      // Step-5 downsample — consistent with walk-forward optimizer output
+      equityCurveSample: equityCurve
+        .filter((_, i) => i % 5 === 0)
+        .map(v => parseFloat(v.toFixed(2))),
     });
   } catch (err) {
     logger.error(`[BtCtrl] runBacktest error: ${err.message}`);

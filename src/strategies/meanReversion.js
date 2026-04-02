@@ -63,8 +63,13 @@ function generateSignal(prices) {
   const window      = prices.slice(-P.LOOKBACK);
   const currentPrice = prices[prices.length - 1];
   const rollingMean = mu.mean(window);
-  const rollingStd  = mu.stdDev(window);
-  const z           = rollingStd === 0 ? 0 : (currentPrice - rollingMean) / rollingStd;
+  // Guard: if stdDev is 0 (all prices identical) use a tiny epsilon so
+  // z-score is defined. In practice, (currentPrice - mean) will also be 0,
+  // so z will still be 0 — but a future price outside the flat window will
+  // produce a finite z rather than a division-by-zero NaN.
+  const rawStd     = mu.stdDev(window);
+  const rollingStd  = rawStd === 0 ? 1e-6 : rawStd;
+  const z           = (currentPrice - rollingMean) / rollingStd;
 
   // Confidence scales linearly with Z-score magnitude, capped at 1.0
   const Z_EXTREME   = 3.0;
@@ -91,7 +96,7 @@ function generateSignal(prices) {
     confidence: parseFloat(confidence.toFixed(4)),
     zScore:     parseFloat(z.toFixed(6)),
     mean:       parseFloat(rollingMean.toFixed(4)),
-    stdDev:     parseFloat(rollingStd.toFixed(4)),
+    stdDev:     parseFloat(rawStd.toFixed(4)),   // report actual stdDev, not epsilon
     currentPrice,
     reason,
   };

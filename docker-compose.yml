@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: trading-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-trading_root}
+      MYSQL_DATABASE:      ${DB_NAME:-trading_engine}
+      MYSQL_USER:          ${DB_USER:-trader}
+      MYSQL_PASSWORD:      ${DB_PASSWORD:-trading_root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+05:30
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${DB_PASSWORD:-trading_root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api:
+    build: .
+    container_name: trading-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV:                ${NODE_ENV:-production}
+      PORT:                    3000
+      DB_HOST:                 db
+      DB_PORT:                 3306
+      DB_USER:                 ${DB_USER:-trader}
+      DB_PASSWORD:             ${DB_PASSWORD:-trading_root}
+      DB_NAME:                 ${DB_NAME:-trading_engine}
+      DEFAULT_CAPITAL:         ${DEFAULT_CAPITAL:-1000000}
+      MAX_RISK_PER_TRADE_PCT:  ${MAX_RISK_PER_TRADE_PCT:-0.02}
+      MAX_DAILY_LOSS_PCT:      ${MAX_DAILY_LOSS_PCT:-0.05}
+      WEIGHT_MEAN_REVERSION:   ${WEIGHT_MEAN_REVERSION:-0.35}
+      WEIGHT_MA_CROSSOVER:     ${WEIGHT_MA_CROSSOVER:-0.35}
+      WEIGHT_RSI:              ${WEIGHT_RSI:-0.30}
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  seed:
+    build: .
+    container_name: trading-seed
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST:     db
+      DB_PORT:     3306
+      DB_USER:     ${DB_USER:-trader}
+      DB_PASSWORD: ${DB_PASSWORD:-trading_root}
+      DB_NAME:     ${DB_NAME:-trading_engine}
+    command: node scripts/seed-sample-data.js
+    restart: "no"    # run once then exit
+
+volumes:
+  db_data:
+    driver: local
