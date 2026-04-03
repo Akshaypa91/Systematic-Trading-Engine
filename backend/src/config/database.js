@@ -71,7 +71,7 @@ async function testConnection() {
 async function query(sql, params = []) {
   const start = Date.now();
   try {
-    const [rows, fields] = await getPool().execute(sql, params);
+    const [rows, fields] = await getPool().query(sql, params); 
     const ms = Date.now() - start;
     if (ms > 1000) logger.warn(`[DB] Slow query (${ms}ms): ${sql.slice(0, 120)}`);
     return [rows, fields];

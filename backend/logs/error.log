@@ -432,3 +432,25 @@
 {"level":"error","message":"[SignalCtrl] Incorrect arguments to mysqld_stmt_execute","timestamp":"2026-04-02 19:24:20.616"}
 {"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-04-02 19:24:22.949"}
 {"level":"error","message":"[SignalCtrl] Incorrect arguments to mysqld_stmt_execute","timestamp":"2026-04-02 19:24:22.949"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:25:20.414"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:25:20.416"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:25:28.067"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:25:28.067"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:25:40.048"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:25:40.050"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:25:41.799"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:25:41.800"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:25:48.232"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:25:48.233"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:26:15.362"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:26:15.363"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:26:44.171"}
+{"level":"error","message":"[DB] Query error: Incorrect arguments to mysqld_stmt_execute | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-03 14:26:44.173"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:26:57.551"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:26:57.551"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:31:47.811"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:31:47.812"}
+{"level":"error","message":"[DB] Query error: Table 'trading_engine.daily_prices' doesn't exist | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-03 14:32:18.908"}
+{"level":"error","message":"[BtCtrl] runBacktest error: Table 'trading_engine.daily_prices' doesn't exist","timestamp":"2026-04-03 14:32:18.909"}
+{"level":"error","message":"[DB] Query error: Unknown column 'symbol' in 'field list' | SQL: \n        INSERT INTO backtest_runs\n          (symbol, strategy, start_date, end_date, initial_capital, final_capital,\n  ","timestamp":"2026-04-03 14:36:32.661"}
+{"level":"error","message":"[DB] Query error: Unknown column 'symbol' in 'field list' | SQL: \n        INSERT INTO backtest_runs\n          (symbol, strategy, start_date, end_date, initial_capital, final_capital,\n  ","timestamp":"2026-04-03 14:42:34.246"}

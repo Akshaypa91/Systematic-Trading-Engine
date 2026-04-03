@@ -333,3 +333,13 @@ trading-engine/
 ## Disclaimer
 
 This system is for **educational and research purposes only**. Paper trading simulation only — no real-money execution capability. Past backtest performance does not guarantee future results. All trading involves substantial risk of loss.
+
+
+
+
+
+kill -9 $(lsof -ti :3000) 2>/dev/null; echo "killed"
+pkill -f "node src/app.js" 2>/dev/null; echo "pkilled"
+sleep 2
+lsof -i :3000
+node src/app.js

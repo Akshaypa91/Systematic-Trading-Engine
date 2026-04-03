@@ -33,15 +33,19 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const authAPI = {
-  login:  (email, password) => api.post('/auth/login',  { email, password }),
+  login: (email, password) => api.post('/auth/login', { email, password }),
   signup: (email, password) => api.post('/auth/signup', { email, password }),
 };
 
 // ── Backtest ──────────────────────────────────────────────────────────────────
 export const backtestAPI = {
   run: (params) => api.post('/backtest', params),
-  getRuns: (symbol, limit = 10) =>
-    api.get('/backtest/runs', { params: { symbol, limit } }),
+  // FIXED — filter out undefined params
+  getRuns: (symbol, limit = 10) => {
+    const params = { limit };
+    if (symbol) params.symbol = symbol;
+    return api.get('/backtest/runs', { params });
+  },
   getTrades: (runId) => api.get(`/backtest/runs/${runId}/trades`),
 };
 
@@ -56,15 +60,15 @@ export const signalAPI = {
 
 // ── Trades ────────────────────────────────────────────────────────────────────
 export const tradeAPI = {
-  getOrders:    (limit = 50) => api.get('/trade/orders', { params: { limit } }),
-  getPortfolio: ()           => api.get('/trade/portfolio'),
-  placeOrder:   (body)       => api.post('/trade/order', body),
+  getOrders: (limit = 50) => api.get('/trade/orders', { params: { limit } }),
+  getPortfolio: () => api.get('/trade/portfolio'),
+  placeOrder: (body) => api.post('/trade/order', body),
 };
 
 // ── Screener ──────────────────────────────────────────────────────────────────
 export const screenerAPI = {
   run: (params = {}) => api.get('/screener', { params }),
-  score: (symbol)    => api.get(`/screener/score/${symbol}`),
+  score: (symbol) => api.get(`/screener/score/${symbol}`),
 };
 
 export default api;

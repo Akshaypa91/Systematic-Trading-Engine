@@ -131,6 +131,22 @@ export default function Dashboard() {
                     <input type="number" step="0.01" value={btForm.takeProfitPct} onChange={e => setBtForm(p => ({ ...p, takeProfitPct: +e.target.value }))} className="input-field" />
                   </FormField>
                 </div>
+                {/* Quick symbol chips */}
+                <div className="flex flex-wrap gap-1.5 mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                  <span className="text-xs font-mono self-center" style={{ color: 'var(--text-muted)' }}>Available:</span>
+                  {['RELIANCE','TCS','INFY','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK'].map(s => (
+                    <button key={s} type="button"
+                      onClick={() => setBtForm(p => ({ ...p, symbol: s }))}
+                      className="px-2 py-0.5 rounded text-xs font-mono transition-all"
+                      style={{
+                        background: btForm.symbol === s ? 'rgba(0,212,255,0.15)' : 'var(--bg-elevated)',
+                        border: btForm.symbol === s ? '1px solid rgba(0,212,255,0.4)' : '1px solid var(--border)',
+                        color: btForm.symbol === s ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                      }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
                 <div className="mt-3 flex items-center gap-3">
                   <button type="submit" disabled={btLoading}
                     className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
@@ -179,9 +195,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </SectionHeader>
-              <div style={{ height: 280 }}>
-                <EquityChart data={btResult?.equityCurve || []} initialCapital={btForm.initialCapital} />
-              </div>
+              <EquityChart data={btResult?.equityCurve || []} initialCapital={btForm.initialCapital} height={260} />
             </div>
 
             {/* Signals panel */}

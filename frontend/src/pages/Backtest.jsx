@@ -156,9 +156,7 @@ export default function Backtest() {
                     {form.symbol} · {form.strategy}
                   </span>}
                 </div>
-                <div style={{ height: 240 }}>
-                  <EquityChart data={result?.equityCurve || []} initialCapital={form.initialCapital} />
-                </div>
+                <EquityChart data={result?.equityCurve || []} initialCapital={form.initialCapital} height={240} />
               </div>
 
               {/* Summary stats */}
