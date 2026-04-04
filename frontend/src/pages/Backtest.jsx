@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { backtestAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -20,8 +21,10 @@ function StatRow({ label, value, color }) {
 }
 
 export default function Backtest() {
+  const [searchParams] = useSearchParams();
+  const initSymbol = searchParams.get('symbol') || 'RELIANCE';
   const [form, setForm] = useState({
-    symbol: 'RELIANCE', strategy: 'AGGREGATED',
+    symbol: initSymbol, strategy: 'AGGREGATED',
     startDate: '2022-01-01', endDate: '2024-01-01',
     initialCapital: 1000000, stopLossPct: 0.02, takeProfitPct: 0.04, riskPerTrade: 0.02,
   });

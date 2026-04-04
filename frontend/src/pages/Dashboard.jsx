@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { backtestAPI, tradeAPI } from '../services/api';
+import { backtestAPI, tradeAPI, signalAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import MetricsCard from '../components/MetricsCard';
@@ -9,10 +9,11 @@ import SignalsPanel from '../components/SignalsPanel';
 import Toast from '../components/Toast';
 import {
   TrendingUp, Activity, Shield, BarChart2,
-  Play, ChevronDown, RefreshCw, Clock
+  Play, ChevronDown, RefreshCw, Clock, Zap
 } from 'lucide-react';
 
-const STRATEGIES = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
+const STRATEGIES    = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
+const VALID_SYMBOLS = ['RELIANCE','TCS','INFY','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK'];
 
 function SectionHeader({ title, sub, children }) {
   return (
@@ -246,6 +247,30 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Quick Signal Checker */}
+          <div className="rounded-xl p-5 mt-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <SectionHeader title="Quick Signal Check" sub="Get instant signal for any seeded symbol" />
+            <div className="flex flex-wrap gap-2">
+              {VALID_SYMBOLS.map(sym => (
+                <button key={sym}
+                  onClick={async () => {
+                    try {
+                      const res = await signalAPI.get(sym);
+                      const d = res.data;
+                      const sigColor = d.signal === 'BUY' ? 'var(--accent-green)' : d.signal === 'SELL' ? 'var(--accent-red)' : 'var(--accent-amber)';
+                      showToast(`${sym}: ${d.signal} · ${Math.round(d.confidence * 100)}% confidence`, d.signal === 'BUY' ? 'success' : d.signal === 'SELL' ? 'error' : 'info');
+                    } catch(e) { showToast(`${sym}: ${e.response?.data?.error || 'Error'}`, 'error'); }
+                  }}
+                  className="px-3 py-2 rounded-lg text-xs font-mono transition-all"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'; e.currentTarget.style.color = 'var(--accent-cyan)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                  <Zap size={10} style={{ display: 'inline', marginRight: 4 }} />{sym}
+                </button>
+              ))}
             </div>
           </div>
         </div>
