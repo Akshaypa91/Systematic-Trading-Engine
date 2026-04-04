@@ -57,16 +57,20 @@ const SCORE_THRESHOLD = 0.20;
  */
 function aggregate(prices, opts = {}) {
   const method = opts.method || 'weighted';
+  // NEW: Accept regime-adjusted weights from regimeDetector
+  const overrideWeights = opts.overrideWeights || null;
 
   // ── Run all three strategies ─────────────────────────────────────────────
   const mrResult  = meanReversion.generateSignal(prices);
   const maResult  = maCrossover.generateSignal(prices);
   const rsiResult = rsiStrategy.generateSignal(prices);
 
+  // Use regime-adjusted weights if provided (from regimeDetector)
+  const activeWeights = overrideWeights || WEIGHTS;
   const components = [
-    { strategy: 'MEAN_REVERSION', weight: WEIGHTS.MEAN_REVERSION, ...mrResult  },
-    { strategy: 'MA_CROSSOVER',   weight: WEIGHTS.MA_CROSSOVER,   ...maResult  },
-    { strategy: 'RSI',            weight: WEIGHTS.RSI,            ...rsiResult },
+    { strategy: 'MEAN_REVERSION', weight: activeWeights.MEAN_REVERSION ?? WEIGHTS.MEAN_REVERSION, ...mrResult  },
+    { strategy: 'MA_CROSSOVER',   weight: activeWeights.MA_CROSSOVER   ?? WEIGHTS.MA_CROSSOVER,   ...maResult  },
+    { strategy: 'RSI',            weight: activeWeights.RSI            ?? WEIGHTS.RSI,            ...rsiResult },
   ];
 
   let finalSignal, finalConf, score;
