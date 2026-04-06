@@ -20,8 +20,9 @@ const signalRoutes   = require('./routes/signal');
 const backtestRoutes = require('./routes/backtest');
 const tradeRoutes    = require('./routes/trade');
 const screenerRoutes = require('./routes/screener');
-const portfolioRoutes = require('./routes/portfolio');
 const authRoutes     = require('./routes/auth');
+const portfolioRoutes = require('./routes/portfolio');
+const liveRoutes      = require('./routes/live');
 const allRoutes      = require('./routes/index');
 
 const liveDataFeed   = require('./data/liveDataFeed');
@@ -54,6 +55,7 @@ app.use('/api/backtest', backtestRoutes);
 app.use('/api/trade',    tradeRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/live',      liveRoutes);
 app.use('/api',          allRoutes);
 
 app.use(notFound);

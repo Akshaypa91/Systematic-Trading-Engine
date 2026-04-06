@@ -273,4 +273,20 @@ function getStats() {
   };
 }
 
-module.exports = { attach, broadcastAlert, getStats };
+
+/**
+ * Broadcast any structured message to ALL connected WebSocket clients.
+ * (Global broadcast — no symbol filtering.)
+ * Used by liveSignalEngine for LIVE_SIGNAL and PAPER_TRADE events.
+ */
+function broadcastAll(payload) {
+  if (clients.size === 0) return;
+  const msg = JSON.stringify(payload);
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) {
+      try { ws.send(msg); } catch (_) {}
+    }
+  }
+}
+
+module.exports = { attach, broadcast, broadcastAll, broadcastAlert, getStats };
