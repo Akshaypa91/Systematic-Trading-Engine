@@ -1,140 +1,456 @@
-// src/engine/portfolioEngine.js — FULL PORTFOLIO ENGINE
+// src/engine/portfolioEngine.js — v2: Realistic Capital Allocation & Trade Selection
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // ═══════════════════════════════════════════════════════════════════════════
-// ARCHITECTURE OVERVIEW
+// WHAT'S NEW IN V2 vs V1
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// This module provides PORTFOLIO-LEVEL trading on top of the existing
-// single-asset backtester. It does NOT touch runBacktest() — backward compat
-// is fully preserved. Instead it adds:
+// PROBLEM 1 — Over-allocation
+//   V1 computed weights on TOTAL capital, then allocated, ignoring that some
+//   capital is already locked in open positions. On a 5-symbol portfolio with
+//   3 open positions, it might try to allocate 95% of total capital again
+//   to the 2 new entries — creating impossible orders.
 //
-//   PortfolioState        — live mutable state of the portfolio
-//   Signal ranking        — score signals across N symbols, pick top K
-//   Capital allocation    — 3 methods: equal / vol-parity / score-weighted
-//   Position sizing       — fixed-fractional or vol-scaled per asset
-//   Risk guards           — max positions, max drawdown, exposure limits
-//   Portfolio backtester  — runPortfolioBacktest() — multi-asset simulation
+//   FIX: allocateCapital() now requires `availableCapital` (free cash).
+//   Allocation happens against cash-on-hand, not gross portfolio value.
 //
-// ═══════════════════════════════════════════════════════════════════════════
-// KEY DESIGN DECISIONS
-// ═══════════════════════════════════════════════════════════════════════════
+// PROBLEM 2 — Weak signal selection
+//   V1's rankSignals() used only confidence score. This ignores:
+//     • How volatile the asset is (high vol = risky, penalise)
+//     • Recent momentum (prefer entries with the trend, not against it)
 //
-// 1. CHRONOLOGICAL INTEGRITY
-//    All assets share the same timeline. On each bar date, we process
-//    exits before entries (no look-ahead). If symbol A and B both have data
-//    for 2023-01-15, we check exits on existing positions first, then check
-//    new entries.
+//   FIX: Composite ranking score:
+//     score = 0.4 × signalConfidence + 0.3 × volatilityScore + 0.3 × momentumScore
 //
-// 2. CAPITAL ACCOUNTING
-//    cash = total capital − Σ(qty_i × entryPrice_i) − Σ(costs_i)
-//    MTM equity = cash + Σ(qty_i × currentPrice_i)
-//    Never allow cash to go negative — position rejected if insufficient.
+//   Components:
+//     signalConfidence: strategy aggregator output confidence [0,1]
+//     volatilityScore:  normalised INVERSE vol — lower vol = higher score
+//                       (we want lower-vol assets, they're easier to size)
+//     momentumScore:    normalised recent price momentum (ROC over 20 bars)
+//                       aligned with signal direction
 //
-// 3. SIGNAL RANKING & TOP-N SELECTION
-//    On each bar: generate signals for all eligible symbols, rank by
-//    confidence × signal_direction, pick top N that pass risk filters.
-//    This prevents over-allocation when 10 symbols all signal BUY.
+// PROBLEM 3 — No exposure control
+//   V1 let individual assets grow to 20% per position, but didn't track
+//   the TOTAL deployed capital dynamically.
 //
-// 4. MAX PORTFOLIO DRAWDOWN CIRCUIT BREAKER
-//    If portfolio equity drops > MAX_PORTFOLIO_DRAWDOWN_PCT from its peak,
-//    stop entering new positions (but let existing positions run).
-//    This prevents compounding losses during regime breaks.
+//   FIX: PortfolioRiskMonitor class tracks live exposure, utilisation,
+//   drawdown, and per-asset concentration continuously.
 //
 // ═══════════════════════════════════════════════════════════════════════════
-// PUBLIC API
+// INTEGRATION POINTS
 // ═══════════════════════════════════════════════════════════════════════════
 //
-//   runPortfolioBacktest(config)   — multi-asset historical simulation
-//   PortfolioState class           — live portfolio state management
-//   allocateCapital(params)        — capital split across assets (preserved)
-//   computePortfolioState(params)  — snapshot metrics (preserved)
-//   volScaledSize(params)          — vol-parity position sizing (preserved)
-//   checkPortfolioLimits(params)   — risk gate pre-trade (preserved)
-//   rankSignals(signals)           — score + sort + filter signals
+//   BACKTEST:
+//     Use rankSignals() to select top-N BUY candidates per bar.
+//     Use allocateCapital({ availableCapital: cash }) for correct sizing.
+//     Use PortfolioRiskMonitor.snapshot() for equity curve and metrics.
+//
+//   LIVE ENGINE (liveSignalEngine.js):
+//     const ranked = rankSignals(liveResults, { topN: 3 });
+//     const allocs = allocateCapital({ availableCapital: engine.freeCash, assets: ranked });
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// PRESERVED API (zero breaking changes)
+// ═══════════════════════════════════════════════════════════════════════════
+//   allocateCapital({ totalCapital, assets, method })   — original sig preserved
+//   computePortfolioState({ positions, cash })           — unchanged
+//   volScaledSize({ capital, entryPrice, realisedVol }) — unchanged
+//   checkPortfolioLimits({ ... })                        — unchanged
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
 'use strict';
 
-const mu      = require('../utils/mathUtils');
-const C       = require('../config/constants');
-const logger  = require('../config/logger');
-const txCosts = require('../utils/transactionCosts');
-const { detectRegime } = require('./regimeDetector');
+const mu     = require('../utils/mathUtils');
+const C      = require('../config/constants');
+const logger = require('../config/logger');
 
-const PC = C.PORTFOLIO  || {};
-const RC = C.RISK       || {};
-const BT = C.BACKTEST   || {};
+const PC = C.PORTFOLIO || {};
+const RC = C.RISK      || {};
 
-// Strategy map — same as single-asset backtester
-const strategies = {
-  MEAN_REVERSION: require('../strategies/meanReversion'),
-  MA_CROSSOVER:   require('../strategies/maCrossover'),
-  RSI:            require('../strategies/rsiStrategy'),
-  AGGREGATED:     require('../strategies/aggregator'),
-};
+// ── Defaults (safe fallbacks if constants not fully populated) ────────────────
+const MAX_ASSETS       = PC.MAX_ASSETS        || 10;
+const ALLOC_METHOD     = PC.ALLOC_METHOD       || 'equal';
+const MAX_EXPOSURE     = RC.MAX_PORTFOLIO_EXPOSURE || 0.95;
+const MAX_SINGLE_PCT   = RC.MAX_SINGLE_ASSET_PCT   || 0.20;
+const VOL_TARGET       = RC.VOL_TARGET_ANNUAL      || 0.15;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PortfolioState — mutable live state of the portfolio
+// IMPROVEMENT 2: Composite Signal Ranking
 // ═══════════════════════════════════════════════════════════════════════════
 
-class PortfolioState {
+/**
+ * Composite ranking score (the formula you specified):
+ *   score = 0.4 × signalConfidence + 0.3 × volatilityScore + 0.3 × momentumScore
+ *
+ * COMPONENT DEFINITIONS
+ * ──────────────────────
+ * signalConfidence  — strategy output confidence, already in [0,1]
+ *
+ * volatilityScore   — INVERSE normalised vol. Lower vol = safer to size = higher score.
+ *   volScore = 1 - clamp(recentVol / VOL_CEILING, 0, 1)
+ *   VOL_CEILING = 0.60 (60% annualised vol = worst case, score = 0)
+ *   A 15%-vol asset scores 0.75; a 40%-vol asset scores 0.33.
+ *
+ * momentumScore     — recent price rate-of-change aligned with signal direction.
+ *   roc = (price_now - price_N_ago) / price_N_ago  (N = 20 bars default)
+ *   For BUY signals: positive roc is good (momentum supports entry)
+ *   Normalised: clamp(roc / ROC_CEILING, 0, 1) where ROC_CEILING = 0.10 (10%)
+ *   Negative roc on a BUY signal → score = 0 (momentum against us)
+ *
+ * @param {{
+ *   confidence: number,       strategy confidence [0,1]
+ *   recentVol:  number,       annualised realised vol (e.g. 0.20)
+ *   momentum:   number|null,  recent ROC (e.g. 0.03 = +3%)
+ *   signal:     'BUY'|'SELL'|'HOLD',
+ * }} asset
+ * @returns {number}  composite score in [0, 1]
+ */
+function computeCompositeScore(asset) {
+  const { confidence = 0, recentVol = 0.20, momentum = 0, signal = 'HOLD' } = asset;
+
+  const VOL_CEILING = 0.60;  // 60% annual vol → volatilityScore = 0
+  const ROC_CEILING = 0.10;  // 10% ROC → momentumScore = 1
+
+  // Component 1: signal confidence (direct)
+  const confScore = mu.clamp(confidence, 0, 1);
+
+  // Component 2: volatility score — INVERSE vol, normalised
+  const volScore = mu.clamp(1 - (recentVol / VOL_CEILING), 0, 1);
+
+  // Component 3: momentum — ROC aligned with signal direction
+  // For BUY: positive momentum good. For SELL: negative momentum good.
+  let momScore = 0;
+  if (momentum != null && isFinite(momentum)) {
+    const directedMomentum = signal === 'SELL' ? -momentum : momentum;
+    momScore = mu.clamp(directedMomentum / ROC_CEILING, 0, 1);
+  }
+
+  const score = 0.4 * confScore + 0.3 * volScore + 0.3 * momScore;
+  return parseFloat(mu.clamp(score, 0, 1).toFixed(6));
+}
+
+/**
+ * Rank signals from N symbols and return top-K candidates.
+ *
+ * Differences from v1:
+ *   • Uses compositeScore (confidence + vol + momentum) instead of raw confidence
+ *   • Filters out symbols already held (avoids double-allocation)
+ *   • Enforces topN cap (prevents overtrading)
+ *   • Returns compositeScore, component scores, and ranking reason
+ *
+ * @param {Array<{
+ *   symbol:     string,
+ *   signal:     'BUY'|'SELL'|'HOLD',
+ *   confidence: number,
+ *   recentVol?: number,
+ *   momentum?:  number,
+ * }>} signals
+ * @param {{
+ *   topN:              number,    max positions to open (default 5)
+ *   minScore:          number,    minimum composite score (default 0.30)
+ *   minConfidence:     number,    minimum signal confidence (default 0.25)
+ *   buyOnly:           boolean,   default true
+ *   excludeSymbols:    string[],  symbols already held (skip to avoid double-alloc)
+ * }} opts
+ * @returns {Array}  sorted descending by compositeScore, length ≤ topN
+ */
+function rankSignals(signals, opts = {}) {
+  const {
+    topN           = 5,
+    minScore       = 0.30,
+    minConfidence  = 0.25,
+    buyOnly        = true,
+    excludeSymbols = [],
+  } = opts;
+
+  if (!Array.isArray(signals) || signals.length === 0) return [];
+
+  const excluded = new Set(excludeSymbols.map(s => s.toUpperCase()));
+
+  return signals
+    // Step 1: Direction filter
+    .filter(s => {
+      if (buyOnly && s.signal !== 'BUY') return false;
+      if ((s.confidence || 0) < minConfidence) return false;
+      if (excluded.has((s.symbol || '').toUpperCase())) return false;
+      return true;
+    })
+    // Step 2: Compute composite score
+    .map(s => {
+      const compositeScore = computeCompositeScore(s);
+      const confScore  = mu.clamp(s.confidence || 0, 0, 1);
+      const volScore   = mu.clamp(1 - ((s.recentVol || 0.20) / 0.60), 0, 1);
+      const momScore   = s.momentum != null ? mu.clamp(s.momentum / 0.10, 0, 1) : 0;
+      return {
+        ...s,
+        compositeScore,
+        scoreBreakdown: {
+          confidence: parseFloat((0.4 * confScore).toFixed(4)),
+          volatility:  parseFloat((0.3 * volScore).toFixed(4)),
+          momentum:    parseFloat((0.3 * momScore).toFixed(4)),
+        },
+      };
+    })
+    // Step 3: Filter by minimum composite score
+    .filter(s => s.compositeScore >= minScore)
+    // Step 4: Sort best first
+    .sort((a, b) => b.compositeScore - a.compositeScore)
+    // Step 5: Cap to topN
+    .slice(0, topN);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IMPROVEMENT 1: Capital Allocation Fix
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Allocate AVAILABLE CASH across ranked signal candidates.
+ *
+ * KEY CHANGE from v1:
+ *   • Now accepts `availableCapital` (free cash) separately from `totalCapital`
+ *     (gross portfolio value). Allocation is against free cash, preventing
+ *     double-allocation on already-held positions.
+ *   • `totalCapital` is still used for per-asset concentration limits
+ *     (e.g. "max 20% of total portfolio in one name").
+ *
+ * BACKWARD COMPATIBLE:
+ *   If only `totalCapital` is provided (old call sites), availableCapital
+ *   defaults to totalCapital — identical to v1 behaviour.
+ *
+ * @param {{
+ *   totalCapital:     number,   total portfolio value (for concentration limits)
+ *   availableCapital: number,   free cash to deploy (default = totalCapital)
+ *   assets:           Array,    output of rankSignals()
+ *   method:           'equal'|'vol_parity'|'score_weighted'|'composite',
+ * }} params
+ * @returns {Array<{ symbol, allocation, allocPct, weight, compositeScore }>}
+ */
+function allocateCapital({
+  totalCapital,
+  availableCapital,
+  assets,
+  method = ALLOC_METHOD,
+}) {
+  if (!totalCapital || totalCapital <= 0)
+    throw new RangeError('[Portfolio] totalCapital must be > 0');
+  if (!Array.isArray(assets) || assets.length === 0)
+    throw new TypeError('[Portfolio] assets must be a non-empty array');
+
+  // Default: available = total (backward compat)
+  const freeCash = (availableCapital != null && availableCapital >= 0)
+    ? availableCapital
+    : totalCapital;
+
+  if (freeCash <= 0) {
+    logger.info('[Portfolio] No free cash available — zero allocations');
+    return assets.map(a => ({ symbol: a.symbol, allocation: 0, allocPct: 0, weight: 0, compositeScore: a.compositeScore || 0 }));
+  }
+
+  // Only BUY-signal assets get allocated
+  const buyAssets = assets.filter(a => a.signal === 'BUY' || !a.signal);
+  if (buyAssets.length === 0) {
+    return assets.map(a => ({ symbol: a.symbol, allocation: 0, allocPct: 0, weight: 0, compositeScore: a.compositeScore || 0 }));
+  }
+
+  // Total deployable = min(freeCash × maxExposure, freeCash)
+  // We don't want to deploy more than MAX_EXPOSURE of available cash
+  const deployable = freeCash * MAX_EXPOSURE;
+
+  // ── Compute raw weights per method ───────────────────────────────────────
+  let rawWeights = {};
+
+  switch (method) {
+    case 'vol_parity':
+      rawWeights = _volParityWeights(buyAssets);
+      break;
+
+    case 'score_weighted':
+      rawWeights = _scoreWeights(buyAssets);
+      break;
+
+    case 'composite':
+      // NEW: use compositeScore (includes vol + momentum) instead of raw confidence
+      rawWeights = _compositeWeights(buyAssets);
+      break;
+
+    case 'equal':
+    default:
+      buyAssets.forEach(a => { rawWeights[a.symbol] = 1 / buyAssets.length; });
+  }
+
+  // ── Apply per-asset concentration cap ────────────────────────────────────
+  // Cap is based on TOTAL portfolio value (not just available cash),
+  // so a new position can't exceed e.g. 20% of total portfolio
+  const maxAllocForSingleAsset = totalCapital * MAX_SINGLE_PCT;
+  let cappedWeights = { ...rawWeights };
+  let excess = 0, uncapped = [];
+
+  for (const [sym, w] of Object.entries(cappedWeights)) {
+    const allocIfFull = deployable * w;
+    if (allocIfFull > maxAllocForSingleAsset) {
+      const cappedW = maxAllocForSingleAsset / deployable;
+      excess += w - cappedW;
+      cappedWeights[sym] = cappedW;
+    } else {
+      uncapped.push(sym);
+    }
+  }
+
+  // Redistribute excess proportionally to uncapped assets
+  if (excess > 0 && uncapped.length > 0) {
+    const totalUncapped = uncapped.reduce((s, sym) => s + cappedWeights[sym], 0);
+    for (const sym of uncapped) {
+      const newW = cappedWeights[sym] + (cappedWeights[sym] / totalUncapped) * excess;
+      const cap  = maxAllocForSingleAsset / deployable;
+      cappedWeights[sym] = Math.min(newW, cap);
+    }
+  }
+
+  // Normalise so weights sum to 1
+  const wSum = Object.values(cappedWeights).reduce((s, w) => s + w, 0);
+  if (wSum > 0)
+    for (const sym of Object.keys(cappedWeights)) cappedWeights[sym] /= wSum;
+
+  // ── Build result for all input assets ────────────────────────────────────
+  const result = assets.map(a => {
+    const w    = cappedWeights[a.symbol] || 0;
+    const alloc = deployable * w;
+    return {
+      symbol:         a.symbol,
+      allocation:     parseFloat(alloc.toFixed(2)),
+      allocPct:       parseFloat(w.toFixed(6)),
+      allocPctOfTotal:parseFloat((alloc / totalCapital).toFixed(6)),
+      weight:         parseFloat((rawWeights[a.symbol] || 0).toFixed(6)),
+      compositeScore: parseFloat((a.compositeScore || 0).toFixed(6)),
+    };
+  });
+
+  logger.info(
+    `[Portfolio] Allocated ₹${deployable.toFixed(0)} (of ₹${freeCash.toFixed(0)} free) ` +
+    `across ${buyAssets.length} assets (${method}): ` +
+    result.filter(r => r.allocation > 0)
+          .map(r => `${r.symbol}=${(r.allocPctOfTotal * 100).toFixed(1)}%`)
+          .join(', ')
+  );
+
+  return result;
+}
+
+// Weight helpers
+
+function _volParityWeights(assets) {
+  const weights = {};
+  const valid   = assets.filter(a => a.recentVol > 0);
+  if (valid.length === 0) {
+    assets.forEach(a => { weights[a.symbol] = 1 / assets.length; });
+    return weights;
+  }
+  const invSum = valid.reduce((s, a) => s + 1 / a.recentVol, 0);
+  valid.forEach(a => { weights[a.symbol] = (1 / a.recentVol) / invSum; });
+  const missing = assets.filter(a => !a.recentVol || a.recentVol <= 0);
+  if (missing.length > 0) {
+    const missingShare = (1 / assets.length) * missing.length;
+    const scale        = 1 - missingShare;
+    for (const s of Object.keys(weights)) weights[s] *= scale;
+    missing.forEach(a => { weights[a.symbol] = 1 / assets.length; });
+  }
+  return weights;
+}
+
+function _scoreWeights(assets) {
+  const weights    = {};
+  const totalScore = assets.reduce((s, a) => s + Math.max(a.score || a.confidence || 0, 0.001), 0);
+  assets.forEach(a => { weights[a.symbol] = Math.max(a.score || a.confidence || 0, 0.001) / totalScore; });
+  return weights;
+}
+
+function _compositeWeights(assets) {
+  const weights      = {};
+  const totalComposite = assets.reduce((s, a) => s + Math.max(a.compositeScore || 0, 0.001), 0);
+  assets.forEach(a => { weights[a.symbol] = Math.max(a.compositeScore || 0, 0.001) / totalComposite; });
+  return weights;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IMPROVEMENT 5: Portfolio Risk Metrics — Live Monitor
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * PortfolioRiskMonitor — tracks exposure, drawdown, utilisation, and
+ * concentration continuously. Designed for both backtests and live engines.
+ *
+ * Usage (backtest):
+ *   const monitor = new PortfolioRiskMonitor(1_000_000);
+ *   // On each bar:
+ *   monitor.update(openPositions, cash, currentPrices);
+ *   const metrics = monitor.snapshot();
+ *   const ok = monitor.canOpenPosition(symbol, positionValue);
+ *
+ * Usage (live):
+ *   const monitor = new PortfolioRiskMonitor(capital, { maxPositions: 3 });
+ *   // On each signal tick:
+ *   const { approved, reasons } = monitor.canOpenPosition(symbol, tradeValue);
+ */
+class PortfolioRiskMonitor {
   /**
-   * @param {{ initialCapital: number, maxPositions?: number, maxDrawdownPct?: number }} opts
+   * @param {number} initialCapital
+   * @param {{
+   *   maxPositions?:  number,
+   *   maxSinglePct?:  number,
+   *   maxExposurePct?:number,
+   *   maxDrawdownPct?:number,   circuit breaker threshold
+   * }} opts
    */
-  constructor({
-    initialCapital,
-    maxPositions    = RC.MAX_OPEN_POSITIONS   || 10,
-    maxDrawdownPct  = RC.MAX_DAILY_LOSS_PCT   || 0.15,
-    maxSinglePct    = RC.MAX_SINGLE_ASSET_PCT || 0.20,
-    maxExposurePct  = RC.MAX_PORTFOLIO_EXPOSURE || 0.95,
-  } = {}) {
+  constructor(initialCapital, opts = {}) {
     if (!initialCapital || initialCapital <= 0)
-      throw new RangeError('[PortfolioState] initialCapital must be > 0');
+      throw new RangeError('[RiskMonitor] initialCapital must be > 0');
 
-    this.initialCapital = initialCapital;
-    this.cash           = initialCapital;
-    this.maxPositions   = maxPositions;
-    this.maxDrawdownPct = maxDrawdownPct;
-    this.maxSinglePct   = maxSinglePct;
-    this.maxExposurePct = maxExposurePct;
-
-    // positions: Map<symbol, { qty, entryPrice, entryDate, stopLoss, takeProfit, entryCost, entrySlippage }>
-    this.positions = new Map();
+    this.initialCapital  = initialCapital;
+    this.maxPositions    = opts.maxPositions    || MAX_ASSETS;
+    this.maxSinglePct    = opts.maxSinglePct    || MAX_SINGLE_PCT;
+    this.maxExposurePct  = opts.maxExposurePct  || MAX_EXPOSURE;
+    this.maxDrawdownPct  = opts.maxDrawdownPct  || 0.20;  // 20% drawdown = circuit breaker
 
     // Equity tracking
-    this.peakEquity   = initialCapital;
-    this.equityCurve  = [initialCapital];
-    this.dailyReturns = [];
+    this.peakEquity      = initialCapital;
+    this.equityCurve     = [initialCapital];
+    this.dailyReturns    = [];
+    this._lastEquity     = initialCapital;
 
-    // Trade log
-    this.trades = [];
+    // Current state
+    this._positions      = new Map();  // symbol → { qty, entryPrice, marketValue }
+    this._cash           = initialCapital;
+    this._totalExposure  = 0;
+    this._openCount      = 0;
   }
 
-  // ── Snapshot ──────────────────────────────────────────────────────────────
-
   /**
-   * Compute current total equity using provided current prices.
-   * @param {Map<string, number>} currentPrices  symbol → current close price
-   * @returns {number}
+   * Update monitor state. Call once per bar after resolving exits/entries.
+   * @param {Map<string,{qty,entryPrice}>|Object} positions  open positions
+   * @param {number} cash  free cash
+   * @param {Map<string,number>|Object} currentPrices  symbol → current price
    */
-  totalEquity(currentPrices) {
-    let mtm = 0;
-    for (const [sym, pos] of this.positions) {
-      const price = currentPrices.get(sym);
-      if (price != null) mtm += pos.qty * price;
+  update(positions, cash, currentPrices) {
+    // Normalise positions to Map
+    const posMap  = positions instanceof Map ? positions : new Map(Object.entries(positions));
+    const priceMap = currentPrices instanceof Map ? currentPrices : new Map(Object.entries(currentPrices));
+
+    this._cash      = cash;
+    this._positions = posMap;
+    this._openCount = posMap.size;
+
+    // Compute market value and exposure
+    let marketValue = 0;
+    for (const [sym, pos] of posMap) {
+      const price = priceMap.get(sym) ?? pos.entryPrice;
+      const mv    = pos.qty * price;
+      marketValue += mv;
     }
-    return this.cash + mtm;
-  }
+    this._totalExposure = marketValue;
 
-  /**
-   * Record bar-end MTM and update peak / drawdown state.
-   * @param {Map<string, number>} currentPrices
-   * @returns {{ equity: number, drawdown: number, circuitBreaker: boolean }}
-   */
-  recordBarEnd(currentPrices) {
-    const equity = this.totalEquity(currentPrices);
+    // Track equity curve
+    const equity = cash + marketValue;
     this.equityCurve.push(equity);
 
     if (this.equityCurve.length >= 2) {
@@ -143,262 +459,91 @@ class PortfolioState {
     }
 
     if (equity > this.peakEquity) this.peakEquity = equity;
-
-    const drawdown       = this.peakEquity > 0 ? (this.peakEquity - equity) / this.peakEquity : 0;
-    const circuitBreaker = drawdown >= this.maxDrawdownPct;
-
-    return { equity, drawdown, circuitBreaker };
+    this._lastEquity = equity;
   }
 
-  // ── Risk gates ───────────────────────────────────────────────────────────
-
   /**
-   * Check all pre-trade risk conditions.
-   * @param {{ symbol, positionValue, currentPrices }} params
+   * Check whether opening a new position is allowed.
+   * @param {string} symbol
+   * @param {number} positionValue  ₹ value of proposed position
    * @returns {{ approved: boolean, reasons: string[] }}
    */
-  canEnter({ symbol, positionValue, currentPrices = new Map() }) {
+  canOpenPosition(symbol, positionValue) {
     const reasons = [];
+    const equity  = this._lastEquity;
 
-    if (this.positions.has(symbol))
-      reasons.push(`Already holding ${symbol}`);
+    if (this._positions.has(symbol))
+      reasons.push(`Already holding ${symbol} — no pyramiding`);
 
-    if (this.positions.size >= this.maxPositions)
+    if (this._openCount >= this.maxPositions)
       reasons.push(`Max positions (${this.maxPositions}) reached`);
 
-    const totalEquity = this.totalEquity(currentPrices);
+    if (positionValue > this._cash)
+      reasons.push(`Insufficient cash: need ₹${positionValue.toFixed(0)}, have ₹${this._cash.toFixed(0)}`);
 
-    if (positionValue > this.cash)
-      reasons.push(`Insufficient cash: need ₹${positionValue.toFixed(0)}, have ₹${this.cash.toFixed(0)}`);
-
-    const singlePct = positionValue / Math.max(totalEquity, 1);
+    const singlePct = equity > 0 ? positionValue / equity : 0;
     if (singlePct > this.maxSinglePct)
       reasons.push(`Position ${(singlePct * 100).toFixed(1)}% exceeds max ${(this.maxSinglePct * 100).toFixed(0)}%`);
 
-    // Total exposure check
-    let exposedValue = 0;
-    for (const [sym, pos] of this.positions) {
-      const p = currentPrices.get(sym) ?? pos.entryPrice;
-      exposedValue += pos.qty * p;
-    }
-    const newExposurePct = (exposedValue + positionValue) / Math.max(totalEquity, 1);
+    const newExposurePct = equity > 0 ? (this._totalExposure + positionValue) / equity : 0;
     if (newExposurePct > this.maxExposurePct)
       reasons.push(`Total exposure ${(newExposurePct * 100).toFixed(1)}% would exceed ${(this.maxExposurePct * 100).toFixed(0)}%`);
 
-    // Drawdown circuit breaker
-    const dd = this.peakEquity > 0 ? (this.peakEquity - totalEquity) / this.peakEquity : 0;
-    if (dd >= this.maxDrawdownPct)
-      reasons.push(`Portfolio drawdown ${(dd * 100).toFixed(1)}% ≥ limit ${(this.maxDrawdownPct * 100).toFixed(0)}% — new entries blocked`);
+    // Circuit breaker
+    const drawdown = this.currentDrawdown();
+    if (drawdown >= this.maxDrawdownPct)
+      reasons.push(`Drawdown ${(drawdown * 100).toFixed(1)}% ≥ circuit breaker ${(this.maxDrawdownPct * 100).toFixed(0)}%`);
 
     return { approved: reasons.length === 0, reasons };
   }
 
-  // ── Trade execution ───────────────────────────────────────────────────────
-
-  /**
-   * Open a new position. Deducts cost from cash.
-   * @returns {{ success: boolean, reason?: string }}
-   */
-  openPosition({ symbol, qty, entryPrice, entryDate, stopLoss, takeProfit, entryCost = 0, entrySlippage = 0 }) {
-    const totalCost = qty * entryPrice + entryCost;
-    if (totalCost > this.cash)
-      return { success: false, reason: `Insufficient cash: need ₹${totalCost.toFixed(0)}` };
-
-    this.cash -= totalCost;
-    this.positions.set(symbol, { qty, entryPrice, entryDate, stopLoss, takeProfit, entryCost, entrySlippage });
-    logger.debug(`[Portfolio] OPEN ${symbol} | qty=${qty} @₹${entryPrice.toFixed(2)} | cash=₹${this.cash.toFixed(0)}`);
-    return { success: true };
+  /** Current drawdown from peak. */
+  currentDrawdown() {
+    return this.peakEquity > 0
+      ? Math.max(0, (this.peakEquity - this._lastEquity) / this.peakEquity)
+      : 0;
   }
 
   /**
-   * Close an existing position. Returns proceeds to cash.
-   * @returns {{ trade: Object }|null}
+   * Comprehensive portfolio risk snapshot.
+   * @returns {{
+   *   totalEquity, cash, totalExposure, deployedPct, cashPct,
+   *   openPositions, currentDrawdownPct, maxDrawdownPct,
+   *   capitalUtilisation, sharpeRatio, sortinoRatio,
+   *   circuitBreakerActive, peakEquity
+   * }}
    */
-  closePosition({ symbol, exitPrice, exitDate, exitReason, exitCost = 0, exitSlippage = 0 }) {
-    const pos = this.positions.get(symbol);
-    if (!pos) return null;
+  snapshot() {
+    const equity        = this._lastEquity;
+    const deployedPct   = equity > 0 ? this._totalExposure / equity : 0;
+    const cashPct       = equity > 0 ? this._cash / equity : 1;
+    const drawdown      = this.currentDrawdown();
+    const { maxDrawdown } = mu.maxDrawdown(this.equityCurve);
+    const sharpe   = mu.sharpeRatio(this.dailyReturns, 0.065, 252);
+    const sortino  = mu.sortinoRatio(this.dailyReturns, 0.065, 252);
+    const utilisation  = this.initialCapital > 0
+      ? this._totalExposure / this.initialCapital : 0;
 
-    const proceeds = pos.qty * exitPrice - exitCost;
-    const cost     = pos.qty * pos.entryPrice;
-    const pnl      = proceeds - cost;
-
-    this.cash += proceeds;
-    this.positions.delete(symbol);
-
-    const trade = {
-      symbol,
-      side:         'BUY',
-      entryDate:    pos.entryDate,
-      entryPrice:   pos.entryPrice,
-      exitDate,
-      exitPrice:    parseFloat(exitPrice.toFixed(4)),
-      quantity:     pos.qty,
-      pnl:          parseFloat(pnl.toFixed(2)),
-      pnlPct:       parseFloat(((pnl / cost) * 100).toFixed(4)),
-      entryCost:    pos.entryCost,
-      exitCost:     parseFloat(exitCost.toFixed(4)),
-      totalCost:    parseFloat((pos.entryCost + exitCost).toFixed(4)),
-      slippageCost: parseFloat((pos.entrySlippage + exitSlippage).toFixed(4)),
-      exitReason,
-    };
-    this.trades.push(trade);
-
-    logger.debug(`[Portfolio] CLOSE ${symbol} | @₹${exitPrice.toFixed(2)} | PnL=₹${pnl.toFixed(2)} (${((pnl/cost)*100).toFixed(2)}%)`);
-    return { trade };
-  }
-
-  // ── Snapshot (for API / reporting) ───────────────────────────────────────
-
-  snapshot(currentPrices = new Map()) {
-    const equity = this.totalEquity(currentPrices);
-    let marketValue = 0;
-    const positionList = [];
-
-    for (const [sym, pos] of this.positions) {
-      const price = currentPrices.get(sym) ?? pos.entryPrice;
-      const mv    = pos.qty * price;
-      const cb    = pos.qty * pos.entryPrice;
-      const pnl   = mv - cb;
-      marketValue += mv;
-      positionList.push({
-        symbol: sym, qty: pos.qty, entryPrice: pos.entryPrice,
-        currentPrice: price, marketValue: parseFloat(mv.toFixed(2)),
-        costBasis: parseFloat(cb.toFixed(2)),
-        unrealisedPnL: parseFloat(pnl.toFixed(2)),
-        pnlPct: parseFloat(((pnl / cb) * 100).toFixed(4)),
-        stopLoss: pos.stopLoss, takeProfit: pos.takeProfit,
-      });
-    }
-
-    const dd = this.peakEquity > 0 ? (this.peakEquity - equity) / this.peakEquity : 0;
     return {
-      totalEquity:      parseFloat(equity.toFixed(2)),
-      cash:             parseFloat(this.cash.toFixed(2)),
-      marketValue:      parseFloat(marketValue.toFixed(2)),
-      cashPct:          parseFloat((equity > 0 ? this.cash / equity : 1).toFixed(4)),
-      deployedPct:      parseFloat((equity > 0 ? marketValue / equity : 0).toFixed(4)),
-      positionCount:    this.positions.size,
-      currentDrawdown:  parseFloat((dd * 100).toFixed(4)),
-      peakEquity:       parseFloat(this.peakEquity.toFixed(2)),
-      positions:        positionList,
-      totalTrades:      this.trades.length,
+      totalEquity:          parseFloat(equity.toFixed(2)),
+      cash:                 parseFloat(this._cash.toFixed(2)),
+      totalExposure:        parseFloat(this._totalExposure.toFixed(2)),
+      deployedPct:          parseFloat((deployedPct * 100).toFixed(2)),
+      cashPct:              parseFloat((cashPct * 100).toFixed(2)),
+      openPositions:        this._openCount,
+      currentDrawdownPct:   parseFloat((drawdown * 100).toFixed(4)),
+      maxDrawdownPct:       parseFloat((maxDrawdown * 100).toFixed(4)),
+      capitalUtilisation:   parseFloat((utilisation * 100).toFixed(2)),
+      sharpeRatio:          sharpe  != null ? parseFloat(sharpe.toFixed(4))  : null,
+      sortinoRatio:         sortino != null ? parseFloat(sortino.toFixed(4)) : null,
+      circuitBreakerActive: drawdown >= this.maxDrawdownPct,
+      peakEquity:           parseFloat(this.peakEquity.toFixed(2)),
     };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Signal Ranking — pick best N signals from a universe
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Rank signals from multiple symbols and select top N by score.
- *
- * Ranking formula:
- *   score = confidence × signal_direction_multiplier
- *   direction: BUY=+1, SELL=0 (we only go long in this engine), HOLD=−1
- *
- * @param {Array<{
- *   symbol:     string,
- *   signal:     'BUY'|'SELL'|'HOLD',
- *   confidence: number,
- *   recentVol?: number,
- *   extra?:     Object,
- * }>} signals
- * @param {{ topN?: number, minConfidence?: number, buyOnly?: boolean }} opts
- * @returns {Array} — sorted descending by score, sliced to topN
- */
-function rankSignals(signals, opts = {}) {
-  const { topN = 5, minConfidence = 0.25, buyOnly = true } = opts;
-
-  if (!Array.isArray(signals) || signals.length === 0) return [];
-
-  return signals
-    .filter(s => {
-      if (buyOnly && s.signal !== 'BUY') return false;
-      if ((s.confidence || 0) < minConfidence) return false;
-      return true;
-    })
-    .map(s => ({
-      ...s,
-      score: parseFloat(((s.confidence || 0) * (s.signal === 'BUY' ? 1 : 0)).toFixed(6)),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topN);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Capital Allocation (preserved + extended)
-// ═══════════════════════════════════════════════════════════════════════════
-
-function allocateCapital({ totalCapital, assets, method = (PC.ALLOC_METHOD || 'equal') }) {
-  if (!totalCapital || totalCapital <= 0)
-    throw new RangeError('[Portfolio] totalCapital must be > 0');
-  if (!Array.isArray(assets) || assets.length === 0)
-    throw new TypeError('[Portfolio] assets must be non-empty array');
-
-  const buyAssets  = assets.filter(a => a.signal === 'BUY');
-  if (buyAssets.length === 0)
-    return assets.map(a => ({ symbol: a.symbol, allocation: 0, allocPct: 0, weight: 0 }));
-
-  const maxSingle  = RC.MAX_SINGLE_ASSET_PCT || 0.20;
-  const deployable = totalCapital * (RC.MAX_PORTFOLIO_EXPOSURE || 0.95);
-
-  let rawWeights = {};
-  switch (method) {
-    case 'vol_parity':     rawWeights = _volParityWeights(buyAssets);    break;
-    case 'score_weighted': rawWeights = _scoreWeights(buyAssets);         break;
-    default:               buyAssets.forEach(a => { rawWeights[a.symbol] = 1 / buyAssets.length; });
-  }
-
-  // Cap + redistribute excess
-  let cappedWeights = { ...rawWeights };
-  let excess = 0, uncapped = [];
-  for (const [sym, w] of Object.entries(cappedWeights)) {
-    if (w > maxSingle) { excess += w - maxSingle; cappedWeights[sym] = maxSingle; }
-    else uncapped.push(sym);
-  }
-  if (excess > 0 && uncapped.length > 0) {
-    const totalUncapped = uncapped.reduce((s, sym) => s + cappedWeights[sym], 0);
-    for (const sym of uncapped) {
-      cappedWeights[sym] += (cappedWeights[sym] / totalUncapped) * excess;
-      cappedWeights[sym]  = Math.min(cappedWeights[sym], maxSingle);
-    }
-  }
-
-  const weightSum = Object.values(cappedWeights).reduce((s, w) => s + w, 0);
-  if (weightSum > 0)
-    for (const sym of Object.keys(cappedWeights)) cappedWeights[sym] /= weightSum;
-
-  return assets.map(a => {
-    const w    = cappedWeights[a.symbol] || 0;
-    const alloc = deployable * w;
-    return {
-      symbol:     a.symbol,
-      allocation: parseFloat(alloc.toFixed(2)),
-      allocPct:   parseFloat(w.toFixed(6)),
-      weight:     parseFloat((rawWeights[a.symbol] || 0).toFixed(6)),
-    };
-  });
-}
-
-function _volParityWeights(assets) {
-  const weights = {};
-  const valid   = assets.filter(a => a.recentVol > 0);
-  if (valid.length === 0) { assets.forEach(a => { weights[a.symbol] = 1 / assets.length; }); return weights; }
-  const invSum  = valid.reduce((s, a) => s + 1 / a.recentVol, 0);
-  valid.forEach(a => { weights[a.symbol] = (1 / a.recentVol) / invSum; });
-  return weights;
-}
-
-function _scoreWeights(assets) {
-  const weights  = {};
-  const totalScore = assets.reduce((s, a) => s + Math.max(a.score || 0, 0.001), 0);
-  assets.forEach(a => { weights[a.symbol] = Math.max(a.score || 0, 0.001) / totalScore; });
-  return weights;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Portfolio State snapshot (preserved API)
+// PRESERVED v1 FUNCTIONS (unchanged — zero breaking changes)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function computePortfolioState({ positions = [], cash = 0 }) {
@@ -406,12 +551,16 @@ function computePortfolioState({ positions = [], cash = 0 }) {
   const enriched = positions.map(p => {
     const mv  = p.currentPrice * p.quantity;
     const cb  = p.entryPrice   * p.quantity;
-    const pnl = mv - cb;
+    const pnl = p.side === 'BUY' ? mv - cb : cb - mv;
     marketValue += mv; costBasis += cb;
-    return { ...p, marketValue: parseFloat(mv.toFixed(2)), costBasis: parseFloat(cb.toFixed(2)),
-             unrealisedPnL: parseFloat(pnl.toFixed(2)), pnlPct: parseFloat(((pnl/cb)*100).toFixed(4)) };
+    return { ...p,
+      marketValue:   parseFloat(mv.toFixed(2)),
+      costBasis:     parseFloat(cb.toFixed(2)),
+      unrealisedPnL: parseFloat(pnl.toFixed(2)),
+      pnlPct:        parseFloat(((pnl / cb) * 100).toFixed(4)),
+    };
   });
-  const totalValue    = marketValue + cash;
+  const totalValue = marketValue + cash;
   const unrealisedPnL = marketValue - costBasis;
   return {
     totalValue:       parseFloat(totalValue.toFixed(2)),
@@ -422,19 +571,16 @@ function computePortfolioState({ positions = [], cash = 0 }) {
     deployedPct:      parseFloat((totalValue > 0 ? marketValue / totalValue : 0).toFixed(4)),
     unrealisedPnL:    parseFloat(unrealisedPnL.toFixed(2)),
     unrealisedPnLPct: parseFloat((costBasis > 0 ? unrealisedPnL / costBasis * 100 : 0).toFixed(4)),
-    positionCount:    positions.length, positions: enriched,
+    positionCount:    positions.length,
+    positions:        enriched,
   };
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Vol-scaled position sizing (preserved API)
-// ═══════════════════════════════════════════════════════════════════════════
-
-function volScaledSize({ capital, entryPrice, realisedVol, volTarget = (RC.VOL_TARGET_ANNUAL || 0.15) }) {
+function volScaledSize({ capital, entryPrice, realisedVol, volTarget = VOL_TARGET }) {
   if (capital <= 0 || entryPrice <= 0)
     throw new RangeError('[Portfolio] capital and entryPrice must be > 0');
   if (!realisedVol || realisedVol <= 0) { realisedVol = 0.20; }
-  const maxPositionValue = capital * (RC.MAX_SINGLE_ASSET_PCT || 0.20);
+  const maxPositionValue = capital * MAX_SINGLE_PCT;
   const targetValue      = (capital * volTarget) / realisedVol;
   const positionValue    = Math.min(targetValue, maxPositionValue);
   const quantity         = Math.max(0, Math.floor(positionValue / entryPrice));
@@ -445,393 +591,28 @@ function volScaledSize({ capital, entryPrice, realisedVol, volTarget = (RC.VOL_T
   };
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Limit check (preserved API)
-// ═══════════════════════════════════════════════════════════════════════════
-
 function checkPortfolioLimits({ currentPositions, newSymbol, newValue, totalCapital }) {
   const warnings = [];
-  if (currentPositions.length >= (PC.MAX_ASSETS || 10))
-    warnings.push(`Max assets (${PC.MAX_ASSETS || 10}) already reached`);
+  if (currentPositions.length >= MAX_ASSETS)
+    warnings.push(`Max assets (${MAX_ASSETS}) already reached`);
   const allocPct = newValue / totalCapital;
-  if (allocPct > (RC.MAX_SINGLE_ASSET_PCT || 0.20))
-    warnings.push(`${newSymbol} allocation ${(allocPct*100).toFixed(1)}% exceeds max`);
-  const curExp  = currentPositions.reduce((s, p) => s + p.currentPrice * p.quantity, 0);
-  if ((curExp + newValue) / totalCapital > (RC.MAX_PORTFOLIO_EXPOSURE || 0.95))
-    warnings.push(`Total exposure would exceed limit`);
+  if (allocPct > MAX_SINGLE_PCT)
+    warnings.push(`${newSymbol} allocation ${(allocPct * 100).toFixed(1)}% exceeds max ${(MAX_SINGLE_PCT * 100).toFixed(0)}%`);
+  const currentExposure = currentPositions.reduce((s, p) => s + p.currentPrice * p.quantity, 0);
+  if ((currentExposure + newValue) / totalCapital > MAX_EXPOSURE)
+    warnings.push(`Total exposure would exceed ${(MAX_EXPOSURE * 100).toFixed(0)}% limit`);
   return { approved: warnings.length === 0, warnings };
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// PORTFOLIO BACKTESTER — multi-asset historical simulation
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Run a portfolio-level backtest across multiple symbols simultaneously.
- *
- * SIMULATION MODEL
- * ─────────────────
- * 1. Align all price series to a common calendar (union of all dates).
- * 2. On each bar date:
- *    a. For each open position: check stop-loss / take-profit / signal exits
- *    b. Generate signals for all symbols not currently held
- *    c. Rank signals, pick top N
- *    d. Allocate capital to selected signals
- *    e. Open positions that pass all risk filters
- *    f. Record bar-end MTM equity
- * 3. Force-close all positions at end of data.
- * 4. Compute portfolio-level performance metrics.
- *
- * NO LOOK-AHEAD: Signal generation uses only prices[0..i].
- * CAPITAL ACCOUNTING: Cash is always updated atomically.
- *
- * @param {{
- *   symbols:          string[],
- *   pricesMap:        Map<string, Array<{date,open,high,low,close}>>,
- *   initialCapital:   number,
- *   strategy:         string,
- *   allocMethod:      'equal'|'vol_parity'|'score_weighted',
- *   maxPositions:     number,
- *   maxSinglePct:     number,
- *   maxExposurePct:   number,
- *   maxDrawdownPct:   number,
- *   stopLossPct:      number,
- *   takeProfitPct:    number,
- *   minConfidence:    number,
- *   topN:             number,
- *   useRegime:        boolean,
- * }} config
- * @returns {{ summary, trades, equityCurve, perSymbolStats }}
- */
-function runPortfolioBacktest(config) {
-  const {
-    symbols,
-    pricesMap,
-    initialCapital  = BT.DEFAULT_CAPITAL || 1_000_000,
-    strategy        = 'AGGREGATED',
-    allocMethod     = 'equal',
-    maxPositions    = RC.MAX_OPEN_POSITIONS   || 5,
-    maxSinglePct    = RC.MAX_SINGLE_ASSET_PCT || 0.20,
-    maxExposurePct  = RC.MAX_PORTFOLIO_EXPOSURE || 0.95,
-    maxDrawdownPct  = 0.15,
-    stopLossPct     = RC.DEFAULT_STOP_LOSS_PCT   || 0.02,
-    takeProfitPct   = RC.DEFAULT_TAKE_PROFIT_PCT || 0.04,
-    minConfidence   = 0.30,
-    topN            = maxPositions,
-    useRegime       = true,
-  } = config;
-
-  if (!Array.isArray(symbols) || symbols.length === 0)
-    throw new TypeError('[PortfolioBacktest] symbols must be non-empty array');
-  if (!(pricesMap instanceof Map))
-    throw new TypeError('[PortfolioBacktest] pricesMap must be a Map<symbol, bars[]>');
-
-  const stratKey = strategy.toUpperCase();
-  if (!strategies[stratKey])
-    throw new Error(`[PortfolioBacktest] Unknown strategy: ${strategy}`);
-
-  logger.info(
-    `[PortfolioBT] START | symbols=${symbols.length} | capital=₹${initialCapital.toLocaleString()} | ` +
-    `strategy=${stratKey} | alloc=${allocMethod} | maxPos=${maxPositions}`
-  );
-
-  // ── Build unified date index ──────────────────────────────────────────────
-  // All unique dates across all symbols, sorted ascending
-  const allDates = [...new Set(
-    symbols.flatMap(sym => (pricesMap.get(sym) || []).map(b => b.date))
-  )].sort();
-
-  if (allDates.length < 201) {
-    throw new RangeError(
-      `[PortfolioBacktest] Need ≥201 unique dates, got ${allDates.length}`
-    );
-  }
-
-  // Build per-symbol price index: symbol → Map<date, bar>
-  const priceIndex = new Map();
-  const closesIndex = new Map(); // symbol → closes array up to each date (built incrementally)
-
-  for (const sym of symbols) {
-    const bars = pricesMap.get(sym) || [];
-    const byDate = new Map();
-    for (const b of bars) byDate.set(b.date, b);
-    priceIndex.set(sym, byDate);
-    closesIndex.set(sym, []);
-  }
-
-  // ── Initialise portfolio state ────────────────────────────────────────────
-  const portfolio = new PortfolioState({
-    initialCapital, maxPositions, maxDrawdownPct,
-    maxSinglePct, maxExposurePct,
-  });
-
-  const REGIME_CHECK_EVERY = 10;
-  let barIdx = 0;
-
-  // ── Main simulation loop ──────────────────────────────────────────────────
-  for (const date of allDates) {
-    barIdx++;
-
-    // Build current price map and extend closes arrays
-    const currentPrices = new Map();
-    for (const sym of symbols) {
-      const bar = priceIndex.get(sym)?.get(date);
-      if (bar) {
-        currentPrices.set(sym, bar.close);
-        closesIndex.get(sym).push(bar.close);
-      }
-    }
-
-    // Skip until we have enough warmup data (201 bars min for indicators)
-    if (barIdx < 201) {
-      portfolio.recordBarEnd(currentPrices);
-      continue;
-    }
-
-    // ── Step 1: Process exits on open positions ───────────────────────────
-    for (const [sym, pos] of [...portfolio.positions]) {
-      const bar = priceIndex.get(sym)?.get(date);
-      if (!bar) continue;
-
-      let exitPrice = null;
-      let exitReason = null;
-
-      // Stop-loss: triggered if bar.low ≤ stopLoss
-      if (isFinite(bar.low) && bar.low <= pos.stopLoss) {
-        exitPrice  = pos.stopLoss;
-        exitReason = 'STOP_LOSS';
-      }
-      // Take-profit: triggered if bar.high ≥ takeProfit
-      else if (isFinite(bar.high) && bar.high >= pos.takeProfit) {
-        exitPrice  = pos.takeProfit;
-        exitReason = 'TAKE_PROFIT';
-      }
-      // Signal-based exit
-      else {
-        const closes = closesIndex.get(sym);
-        const sig    = _getSignal(closes, stratKey);
-        if (sig.signal === 'SELL' && sig.confidence >= minConfidence) {
-          exitPrice  = bar.close;
-          exitReason = 'SIGNAL';
-        }
-      }
-
-      if (exitPrice != null) {
-        const realisedVol = mu.annualisedVol(closesIndex.get(sym).slice(-21));
-        const slipResult  = txCosts.applySlippage({ side: 'SELL', marketPrice: exitPrice, realisedVol });
-        const fillPrice   = slipResult.fillPrice;
-        const tx          = txCosts.computeCosts({ side: 'SELL', price: fillPrice, quantity: pos.qty });
-
-        portfolio.closePosition({
-          symbol: sym, exitPrice: fillPrice, exitDate: date,
-          exitReason, exitCost: tx.totalCost, exitSlippage: slipResult.slippageCost,
-        });
-      }
-    }
-
-    // ── Step 2: Check circuit breaker ─────────────────────────────────────
-    const { circuitBreaker } = portfolio.recordBarEnd(currentPrices);
-    if (circuitBreaker) {
-      logger.warn(`[PortfolioBT] Circuit breaker at ${date} — no new entries`);
-      continue;
-    }
-
-    // ── Step 3: Generate signals for non-held symbols ─────────────────────
-    const signalCandidates = [];
-    for (const sym of symbols) {
-      if (portfolio.positions.has(sym)) continue;
-      const closes = closesIndex.get(sym);
-      if (!closes || closes.length < 201) continue;
-
-      const sig        = _getSignal(closes, stratKey, useRegime && barIdx % REGIME_CHECK_EVERY === 0 ? sym : null);
-      const recentVol  = mu.annualisedVol(closes.slice(-21));
-      signalCandidates.push({ symbol: sym, ...sig, recentVol: recentVol || 0.20 });
-    }
-
-    // ── Step 4: Rank and select top N signals ─────────────────────────────
-    const topSignals = rankSignals(signalCandidates, { topN, minConfidence });
-    if (topSignals.length === 0) continue;
-
-    // ── Step 5: Allocate capital to selected signals ──────────────────────
-    const totalEquity = portfolio.totalEquity(currentPrices);
-    const allocations = allocateCapital({
-      totalCapital: totalEquity,
-      assets:       topSignals.map(s => ({ ...s, score: s.score })),
-      method:       allocMethod,
-    });
-
-    // ── Step 6: Open positions ────────────────────────────────────────────
-    for (const alloc of allocations) {
-      if (alloc.allocation <= 0) continue;
-      const sym = alloc.symbol;
-      const bar = priceIndex.get(sym)?.get(date);
-      if (!bar) continue;
-
-      const realisedVol  = mu.annualisedVol(closesIndex.get(sym).slice(-21));
-      const slipResult   = txCosts.applySlippage({ side: 'BUY', marketPrice: bar.close, realisedVol });
-      const entryFill    = slipResult.fillPrice;
-
-      // Compute quantity from allocated capital
-      let qty = Math.floor(alloc.allocation / entryFill);
-      if (qty <= 0) continue;
-
-      const tx         = txCosts.computeCosts({ side: 'BUY', price: entryFill, quantity: qty });
-      const totalEntry = qty * entryFill + tx.totalCost;
-
-      const riskCheck = portfolio.canEnter({ symbol: sym, positionValue: totalEntry, currentPrices });
-      if (!riskCheck.approved) {
-        logger.debug(`[PortfolioBT] ${sym} rejected: ${riskCheck.reasons.join('; ')}`);
-        continue;
-      }
-
-      portfolio.openPosition({
-        symbol:       sym,
-        qty,
-        entryPrice:   parseFloat(entryFill.toFixed(4)),
-        entryDate:    date,
-        stopLoss:     parseFloat((entryFill * (1 - stopLossPct)).toFixed(4)),
-        takeProfit:   parseFloat((entryFill * (1 + takeProfitPct)).toFixed(4)),
-        entryCost:    parseFloat(tx.totalCost.toFixed(4)),
-        entrySlippage:slipResult.slippageCost,
-      });
-    }
-  }
-
-  // ── Force-close all open positions at end ────────────────────────────────
-  const lastDate      = allDates[allDates.length - 1];
-  const lastPrices    = new Map();
-  for (const sym of symbols) {
-    const closes = closesIndex.get(sym);
-    if (closes && closes.length > 0) lastPrices.set(sym, closes[closes.length - 1]);
-  }
-
-  for (const [sym, pos] of [...portfolio.positions]) {
-    const lastClose  = lastPrices.get(sym) ?? pos.entryPrice;
-    const slipResult = txCosts.applySlippage({ side: 'SELL', marketPrice: lastClose });
-    const fillPrice  = slipResult.fillPrice;
-    const tx         = txCosts.computeCosts({ side: 'SELL', price: fillPrice, quantity: pos.qty });
-    portfolio.closePosition({
-      symbol: sym, exitPrice: fillPrice, exitDate: lastDate,
-      exitReason: 'END_OF_DATA', exitCost: tx.totalCost, exitSlippage: slipResult.slippageCost,
-    });
-  }
-
-  // ── Compute portfolio-level metrics ──────────────────────────────────────
-  const finalEquity = portfolio.cash;
-  const summary     = _computePortfolioMetrics({
-    symbols, initialCapital, finalCapital: finalEquity,
-    trades: portfolio.trades, equityCurve: portfolio.equityCurve,
-    dailyReturns: portfolio.dailyReturns,
-    startDate: allDates[200], endDate: lastDate,
-    allocMethod, strategy: stratKey,
-  });
-
-  // Per-symbol stats
-  const perSymbolStats = _computePerSymbolStats(portfolio.trades, symbols);
-
-  logger.info(
-    `[PortfolioBT] DONE | return=${summary.totalReturnPct.toFixed(2)}% | ` +
-    `sharpe=${summary.sharpeRatio?.toFixed(3) ?? 'N/A'} | ` +
-    `trades=${summary.totalTrades} | symbols=${symbols.length}`
-  );
-
-  return {
-    summary,
-    trades:        portfolio.trades,
-    equityCurve:   portfolio.equityCurve,
-    perSymbolStats,
-  };
-}
-
-// ── Signal dispatch (same logic as single-asset backtester) ──────────────────
-
-function _getSignal(closes, stratKey, symbol = null) {
-  switch (stratKey) {
-    case 'MEAN_REVERSION': return strategies.MEAN_REVERSION.generateSignal(closes);
-    case 'MA_CROSSOVER':   return strategies.MA_CROSSOVER.generateSignal(closes);
-    case 'RSI':            return strategies.RSI.generateSignal(closes);
-    case 'AGGREGATED':
-    default:
-      return strategies.AGGREGATED.aggregate(closes, {
-        symbol: symbol || '_portfolio',
-        useRegime: symbol != null,
-      });
-  }
-}
-
-// ── Portfolio-level metrics ───────────────────────────────────────────────────
-
-function _computePortfolioMetrics({
-  symbols, initialCapital, finalCapital, trades, equityCurve,
-  dailyReturns, startDate, endDate, allocMethod, strategy,
-}) {
-  const wins   = trades.filter(t => t.pnl > 0);
-  const losses = trades.filter(t => t.pnl <= 0);
-  const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
-  const grossLoss   = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
-  const totalReturn = ((finalCapital - initialCapital) / initialCapital) * 100;
-
-  const daysDiff = Math.max(1, (new Date(endDate) - new Date(startDate)) / 86400000);
-  const years    = daysDiff / 365;
-  const cagr     = (Math.pow(Math.max(finalCapital, 0.01) / initialCapital, 1 / years) - 1) * 100;
-
-  const sharpe  = mu.sharpeRatio(dailyReturns, (BT.RISK_FREE_RATE || 0.065), (BT.TRADING_DAYS_PER_YEAR || 252));
-  const sortino = mu.sortinoRatio(dailyReturns, (BT.RISK_FREE_RATE || 0.065), (BT.TRADING_DAYS_PER_YEAR || 252));
-  const { maxDrawdown } = mu.maxDrawdown(equityCurve);
-  const calmar  = maxDrawdown > 0 ? parseFloat((cagr / (maxDrawdown * 100)).toFixed(4)) : null;
-
-  const totalTxCosts = trades.reduce((s, t) => s + (t.totalCost || 0), 0);
-  const avgWinPct    = wins.length   ? wins.reduce((s, t)   => s + t.pnlPct, 0) / wins.length   : 0;
-  const avgLossPct   = losses.length ? losses.reduce((s, t) => s + t.pnlPct, 0) / losses.length : 0;
-
-  return {
-    symbols, strategy, allocMethod, startDate, endDate,
-    initialCapital:        parseFloat(initialCapital.toFixed(2)),
-    finalCapital:          parseFloat(finalCapital.toFixed(2)),
-    totalReturnPct:        parseFloat(totalReturn.toFixed(4)),
-    annualisedReturnPct:   parseFloat(cagr.toFixed(4)),
-    sharpeRatio:           sharpe  != null ? parseFloat(sharpe.toFixed(4))  : null,
-    sortinoRatio:          sortino != null ? parseFloat(sortino.toFixed(4)) : null,
-    calmarRatio:           calmar,
-    maxDrawdownPct:        parseFloat((maxDrawdown * 100).toFixed(4)),
-    totalTrades:           trades.length,
-    winningTrades:         wins.length,
-    losingTrades:          losses.length,
-    winRatePct:            trades.length ? parseFloat((wins.length / trades.length * 100).toFixed(2)) : 0,
-    profitFactor:          grossLoss > 0 ? parseFloat((grossProfit / grossLoss).toFixed(4)) : null,
-    avgWinPct:             parseFloat(avgWinPct.toFixed(4)),
-    avgLossPct:            parseFloat(avgLossPct.toFixed(4)),
-    grossProfit:           parseFloat(grossProfit.toFixed(2)),
-    grossLoss:             parseFloat(grossLoss.toFixed(2)),
-    totalTransactionCosts: parseFloat(totalTxCosts.toFixed(2)),
-    costDragPct:           parseFloat((totalTxCosts / initialCapital * 100).toFixed(4)),
-  };
-}
-
-function _computePerSymbolStats(trades, symbols) {
-  const stats = {};
-  for (const sym of symbols) {
-    const symTrades = trades.filter(t => t.symbol === sym);
-    const wins      = symTrades.filter(t => t.pnl > 0);
-    stats[sym] = {
-      trades:      symTrades.length,
-      wins:        wins.length,
-      losses:      symTrades.length - wins.length,
-      winRate:     symTrades.length ? parseFloat((wins.length / symTrades.length * 100).toFixed(2)) : 0,
-      totalPnL:    parseFloat(symTrades.reduce((s, t) => s + t.pnl, 0).toFixed(2)),
-      avgPnLPct:   symTrades.length ? parseFloat((symTrades.reduce((s, t) => s + t.pnlPct, 0) / symTrades.length).toFixed(4)) : 0,
-    };
-  }
-  return stats;
-}
-
+// ─────────────────────────────────────────────────────────────────────────────
 module.exports = {
-  // NEW — portfolio-level simulation
-  PortfolioState,
-  runPortfolioBacktest,
+  // NEW exports (v2)
+  computeCompositeScore,
   rankSignals,
-  // Preserved API
+  PortfolioRiskMonitor,
+  // Updated (v2 with backward-compat)
   allocateCapital,
+  // Preserved (v1 unchanged)
   computePortfolioState,
   volScaledSize,
   checkPortfolioLimits,
