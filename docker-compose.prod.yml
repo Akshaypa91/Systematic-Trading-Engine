@@ -1,0 +1,15 @@
+# docker-compose.prod.yml — Production overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+version: '3.9'
+
+services:
+  app:
+    image: trading-engine:${APP_VERSION:-latest}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info

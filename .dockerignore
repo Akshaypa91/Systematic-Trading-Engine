@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+.env
+.env.*
+!.env.example
+logs/
+*.log
+.git
+.gitignore
+README.md
+tests/
+scripts/seed-*.js
+scripts/reseed-*.js
+frontend/
+.DS_Store
+*.test.js
+coverage/

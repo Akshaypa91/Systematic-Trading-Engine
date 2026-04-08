@@ -8,8 +8,15 @@
     "dev": "nodemon src/app.js",
     "test": "node tests/run-tests.js",
     "backtest:sample": "node scripts/run-sample-backtest.js",
-    "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed-sample-data.js"
+    "db:migrate": "node backend/scripts/migrate.js",
+    "db:seed": "node scripts/setup-complete.js",
+    "health": "node scripts/health-check.js",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f app",
+    "docker:restart": "docker compose restart app",
+    "deploy": "bash scripts/deploy.sh --migrate"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -28,6 +35,6 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
