@@ -71,4 +71,19 @@ export const screenerAPI = {
   score: (symbol) => api.get(`/screener/score/${symbol}`),
 };
 
+// ── Simulation Live Trading ───────────────────────────────────────────────────
+export const simAPI = {
+  getSignals:    (symbols) => api.get('/sim/signals', {
+    params: symbols?.length ? { symbols: symbols.join(',') } : {},
+  }),
+  getPortfolio:  ()       => api.get('/sim/portfolio'),
+  getTrades:     (limit)  => api.get('/sim/trades', { params: { limit: limit || 50 } }),
+  getEquity:     ()       => api.get('/sim/equity'),
+  getStatus:     ()       => api.get('/sim/status'),
+  startEngine:   (opts)   => api.post('/sim/engine/start', opts || {}),
+  stopEngine:    ()       => api.post('/sim/engine/stop'),
+  addSymbol:     (symbol) => api.post('/sim/watchlist/add',    { symbol }),
+  removeSymbol:  (symbol) => api.post('/sim/watchlist/remove', { symbol }),
+};
+
 export default api;

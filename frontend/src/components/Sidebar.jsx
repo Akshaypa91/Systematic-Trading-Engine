@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, TrendingUp, Activity } from 'lucide-react';
+import { LayoutDashboard, Search, TrendingUp, Activity, Zap } from 'lucide-react';
 
 const NAV = [
-  { to: '/',          icon: LayoutDashboard, label: 'Dashboard',   end: true },
+  { to: '/',          icon: LayoutDashboard, label: 'Dashboard',     end: true },
+  { to: '/live',      icon: Zap,             label: 'Live Trading' },
   { to: '/screener',  icon: Search,          label: 'Screener' },
   { to: '/backtest',  icon: TrendingUp,      label: 'Backtest' },
   { to: '/signals',   icon: Activity,        label: 'Signals' },

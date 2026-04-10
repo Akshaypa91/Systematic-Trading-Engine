@@ -23,9 +23,11 @@ const tradeRoutes    = require('./routes/trade');
 const screenerRoutes = require('./routes/screener');
 const authRoutes     = require('./routes/auth');
 const allRoutes      = require('./routes/index');
+const simRoutes      = require('./routes/sim');
 
-const liveDataFeed = require('./data/liveDataFeed');
-const scheduler    = require('./engine/scheduler');
+const liveDataFeed    = require('./data/liveDataFeed');
+const scheduler       = require('./engine/scheduler');
+const simEngine       = require('./engine/simulationEngine');
 
 // ── Validate critical env vars at startup ─────────────────────────────────────
 function validateEnv() {
@@ -123,6 +125,7 @@ app.use('/api/signal',   signalRoutes);
 app.use('/api/backtest', backtestRoutes);
 app.use('/api/trade',    tradeRoutes);
 app.use('/api/screener', screenerRoutes);
+app.use('/api/sim',      simRoutes);
 app.use('/api',          allRoutes);
 
 // ── Error handling (must be last) ────────────────────────────────────────────
@@ -147,11 +150,19 @@ async function start() {
   liveDataFeed.attach(server);
   scheduler.start();
 
+  // ── Auto-start simulation engine (no DB/NSE required) ───────────────────
+  simEngine.start({
+    watchlist: ['RELIANCE','INFY','TCS','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK','BAJFINANCE','MARUTI'],
+    intervalMs: parseInt(process.env.SIM_INTERVAL_MS || '5000', 10),
+  });
+  logger.info('[App] 🤖 Simulation engine started (paper trading active)');
+
   server.listen(C.PORT, () => {
     logger.info(`[App] ✅ Running on port ${C.PORT} [${C.NODE_ENV}]`);
     logger.info(`[App] 🔗 Health:  http://localhost:${C.PORT}/health`);
     logger.info(`[App] 🔗 API:     http://localhost:${C.PORT}/api/info`);
     logger.info(`[App] 🔗 WS:      ws://localhost:${C.PORT}/ws`);
+    logger.info(`[App] 🔗 Live:    http://localhost:${C.PORT}/api/sim/signals`);
   });
 
   // ── Graceful shutdown ────────────────────────────────────────────────────
@@ -159,6 +170,7 @@ async function start() {
     logger.info(`[App] ${sig} — shutting down gracefully`);
     server.close(async () => {
       try {
+        simEngine.stop();
         scheduler.stop();
         await db.closePool();
         logger.info('[App] Clean shutdown complete');
