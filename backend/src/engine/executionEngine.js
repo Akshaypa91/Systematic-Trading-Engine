@@ -578,9 +578,10 @@ async function placeOrder(params) {
       realisedVol,
     });
 
-    // Set BUY cooldown (prevents same-day re-entry if position is opened + closed fast)
-    // Note: BUY cooldown is shorter — we want to allow legitimate re-entries
-    // Cooldown is only set on CLOSE, not on open. This prevents rapid cycling.
+    // FIX: persist stop/take-profit levels on the order record so _persistOrder
+    // can write them to the DB (previously always NULL in paper_trades table)
+    order.stopLossPrice   = levels.stopLoss;
+    order.takeProfitPrice = levels.takeProfit;
 
   } else {
     // SELL — close existing position

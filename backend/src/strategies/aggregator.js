@@ -102,6 +102,13 @@ function aggregate(prices, opts = {}) {
     `[MR:${mrResult.signal} MA:${maResult.signal} RSI:${rsiResult.signal}]`
   );
 
+  // FIX Bug 17: Extract per-strategy indicator values so callers (signalController,
+  // liveSignalEngine) can persist them to the signals DB table. Previously these
+  // were stripped when building the public components array, causing NULL writes.
+  const mrComp  = components.find(c => c.strategy === 'MEAN_REVERSION');
+  const rsiComp = components.find(c => c.strategy === 'RSI');
+  const maComp  = components.find(c => c.strategy === 'MA_CROSSOVER');
+
   return {
     signal:     finalSignal,
     confidence: parseFloat(finalConf.toFixed(4)),
@@ -113,6 +120,11 @@ function aggregate(prices, opts = {}) {
     currentPrice: prices[prices.length - 1],
     timestamp: new Date().toISOString(),
     regime: regimeResult ? { detected: regimeResult.regime, strength: regimeResult.strength, confidence: regimeResult.confidence, direction: regimeResult.direction } : null,
+    // Convenience fields for DB persistence (mirror individual strategy output shapes)
+    zScore:   mrComp?.zScore   ?? null,
+    rsiValue: rsiComp?.rsiValue ?? null,
+    maFast:   maComp?.maFast   ?? null,
+    maSlow:   maComp?.maSlow   ?? null,
   };
 }
 

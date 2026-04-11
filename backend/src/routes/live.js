@@ -2,26 +2,27 @@
 'use strict';
 const router = require('express').Router();
 const ctrl   = require('../controllers/liveController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 // Signal endpoints
-router.get('/signals',           ctrl.getLiveSignals);      // Latest cached signals
-router.get('/signals/history',   ctrl.getSignalHistory);    // DB-persisted history
+router.get('/signals',           requireAuth, ctrl.getLiveSignals);
+router.get('/signals/history',   requireAuth, ctrl.getSignalHistory);
 
 // Trade endpoints
-router.get('/trades',            ctrl.getLatestTrades);     // Recent paper trades
-router.get('/portfolio',         ctrl.getPaperPortfolio);   // Current paper portfolio
+router.get('/trades',            requireAuth, ctrl.getLatestTrades);
+router.get('/portfolio',         requireAuth, ctrl.getPaperPortfolio);
 
 // Engine management
-router.get('/status',            ctrl.getEngineStatus);     // Engine + scheduler status
-router.post('/engine/start',     ctrl.startEngine);         // Start engine
-router.post('/engine/stop',      ctrl.stopEngine);          // Stop engine
-router.post('/engine/run',       ctrl.triggerRun);          // Trigger immediate run
+router.get('/status',            requireAuth, ctrl.getEngineStatus);
+router.post('/engine/start',     requireAuth, ctrl.startEngine);
+router.post('/engine/stop',      requireAuth, ctrl.stopEngine);
+router.post('/engine/run',       requireAuth, ctrl.triggerRun);
 
 // Watchlist management
-router.post('/watchlist/add',    ctrl.addToWatchlist);
-router.post('/watchlist/remove', ctrl.removeFromWatchlist);
+router.post('/watchlist/add',    requireAuth, ctrl.addToWatchlist);
+router.post('/watchlist/remove', requireAuth, ctrl.removeFromWatchlist);
 
 // Safety
-router.post('/circuit-breaker/reset', ctrl.resetCircuitBreaker);
+router.post('/circuit-breaker/reset', requireAuth, ctrl.resetCircuitBreaker);
 
 module.exports = router;

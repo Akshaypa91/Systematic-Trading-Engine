@@ -19,11 +19,13 @@
 'use strict';
 
 const WebSocket   = require('ws');
+const url         = require('url');
 const nseFetcher  = require('./nseFetcher');
 const aggregator  = require('../strategies/aggregator');
 const dataStore   = require('./dataStore');
 const execEngine  = require('../engine/executionEngine');
 const logger      = require('../config/logger');
+const { verifyJWT } = require('../controllers/authController');
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const subscriptions = new Map();   // symbol → Set<WebSocket>
@@ -43,8 +45,27 @@ function attach(httpServer) {
   const wss = new WebSocket.Server({ server: httpServer, path: '/ws' });
 
   wss.on('connection', (ws, req) => {
+    // FIX Bug 19: Authenticate WebSocket connections via JWT in query string.
+    // Frontend connects as: ws://host/ws?token=<jwt>
+    const { query } = url.parse(req.url, true);
+    const token = query.token;
+    if (!token) {
+      send(ws, { type: 'ERROR', message: 'Authentication required' });
+      ws.close(4001, 'Authentication required');
+      logger.warn('[WS] Rejected unauthenticated connection from ' + req.socket.remoteAddress);
+      return;
+    }
+    try {
+      ws.user = verifyJWT(token);
+    } catch (err) {
+      send(ws, { type: 'ERROR', message: 'Invalid or expired token' });
+      ws.close(4001, 'Invalid token');
+      logger.warn('[WS] Rejected invalid token: ' + err.message);
+      return;
+    }
+
     clients.add(ws);
-    logger.info(`[WS] Client connected. Total: ${clients.size}`);
+    logger.info('[WS] Authenticated client connected (user: ' + ws.user.email + '). Total: ' + clients.size);
 
     ws.on('message', (raw) => handleMessage(ws, raw));
 
@@ -64,7 +85,7 @@ function attach(httpServer) {
     });
 
     // Send welcome handshake
-    send(ws, { type: 'CONNECTED', message: 'Systematic Trading Engine Live Feed', ts: new Date().toISOString() });
+    send(ws, { type: 'CONNECTED', message: 'Systematic Trading Engine Live Feed', user: ws.user.email, ts: new Date().toISOString() });
   });
 
   logger.info('[WS] WebSocket server attached at /ws');

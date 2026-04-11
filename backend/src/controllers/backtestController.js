@@ -69,6 +69,28 @@ async function runBacktest(req, res) {
         JSON.stringify({ stopLossPct, takeProfitPct, riskPerTrade }),
       ]);
       runId = result.insertId;
+
+      // FIX Bug 14: Persist individual trades — were NEVER inserted, causing
+      // GET /api/backtest/runs/:id/trades and analytics to always return empty.
+      if (runId && trades.length > 0) {
+        const tradeRows = trades.map(t => [
+          runId, t.symbol, t.side,
+          t.entryDate, t.entryPrice,
+          t.exitDate  ?? null, t.exitPrice ?? null,
+          t.quantity,
+          t.pnl       ?? null, t.pnlPct    ?? null,
+          t.commission ?? 0,   t.slippageCost ?? 0,
+          t.exitReason ?? 'SIGNAL',
+          t.regime    ?? null,
+        ]);
+        await db.query(`
+          INSERT INTO backtest_trades
+            (run_id, symbol, side, entry_date, entry_price,
+             exit_date, exit_price, quantity, pnl, pnl_pct,
+             commission, slippage, exit_reason, regime)
+          VALUES ?
+        `, [tradeRows]);
+      }
     } catch (dbErr) {
       logger.warn(`[BtCtrl] DB persist failed: ${dbErr.message}`);
     }

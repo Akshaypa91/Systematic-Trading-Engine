@@ -24,6 +24,7 @@ const screenerRoutes = require('./routes/screener');
 const authRoutes     = require('./routes/auth');
 const allRoutes      = require('./routes/index');
 const simRoutes      = require('./routes/sim');
+const liveRoutes     = require('./routes/live');  // FIX: was imported but never mounted
 
 const liveDataFeed    = require('./data/liveDataFeed');
 const scheduler       = require('./engine/scheduler');
@@ -38,7 +39,7 @@ function validateEnv() {
   if (!process.env.DB_PASSWORD || process.env.DB_PASSWORD === '') {
     warnings.push('DB_PASSWORD is not set');
   }
-  if (C.NODE_ENV === 'production' && !process.env.JWT_SECRET?.length >= 32) {
+  if (C.NODE_ENV === 'production' && !(process.env.JWT_SECRET?.length >= 32)) {
     warnings.push('JWT_SECRET should be at least 32 characters in production');
   }
   warnings.forEach(w => logger.warn(`[Config] ⚠️  ${w}`));
@@ -126,6 +127,7 @@ app.use('/api/backtest', backtestRoutes);
 app.use('/api/trade',    tradeRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
+app.use('/api/live',     liveRoutes);   // FIX Bug 10: was required but never mounted
 app.use('/api',          allRoutes);
 
 // ── Error handling (must be last) ────────────────────────────────────────────

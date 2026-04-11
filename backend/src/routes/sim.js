@@ -2,15 +2,16 @@
 'use strict';
 const router = require('express').Router();
 const ctrl   = require('../controllers/simController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
-router.get('/signals',          ctrl.getLiveSignals);
-router.get('/portfolio',        ctrl.getPortfolio);
-router.get('/trades',           ctrl.getTrades);
-router.get('/equity',           ctrl.getEquityCurve);
-router.get('/status',           ctrl.getStatus);
-router.post('/engine/start',    ctrl.startEngine);
-router.post('/engine/stop',     ctrl.stopEngine);
-router.post('/watchlist/add',   ctrl.addToWatchlist);
-router.post('/watchlist/remove',ctrl.removeFromWatchlist);
+router.get('/signals',           requireAuth, ctrl.getLiveSignals);
+router.get('/portfolio',         requireAuth, ctrl.getPortfolio);
+router.get('/trades',            requireAuth, ctrl.getTrades);
+router.get('/equity',            requireAuth, ctrl.getEquityCurve);
+router.get('/status',            requireAuth, ctrl.getStatus);
+router.post('/engine/start',     requireAuth, ctrl.startEngine);
+router.post('/engine/stop',      requireAuth, ctrl.stopEngine);
+router.post('/watchlist/add',    requireAuth, ctrl.addToWatchlist);
+router.post('/watchlist/remove', requireAuth, ctrl.removeFromWatchlist);
 
 module.exports = router;

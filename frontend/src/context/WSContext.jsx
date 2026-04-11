@@ -5,7 +5,12 @@ import { createContext, useContext, useEffect, useRef, useState, useCallback } f
 
 const WSContext = createContext(null);
 
-const WS_URL     = (import.meta.env.VITE_WS_URL  || 'ws://localhost:3000') + '/ws';
+const WS_BASE    = (import.meta.env.VITE_WS_URL  || 'ws://localhost:3000') + '/ws';
+// FIX Bug 19: Append JWT token to WS URL so the server can authenticate the connection.
+function getWsUrl() {
+  const token = localStorage.getItem('token');
+  return token ? WS_BASE + '?token=' + encodeURIComponent(token) : WS_BASE;
+}
 const RECONNECT_MS = 3000;
 const MAX_TRADE_HISTORY = 100;
 
@@ -26,7 +31,7 @@ export function WSProvider({ children }) {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     setStatus('connecting');
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket(getWsUrl());
     wsRef.current = ws;
 
     ws.onopen = () => {

@@ -17,7 +17,7 @@ export default function Signup() {
     e.preventDefault();
     if (!email || !password) { setError('All fields are required'); return; }
     if (password !== confirm)  { setError('Passwords do not match'); return; }
-    if (password.length < 6)   { setError('Password must be at least 6 characters'); return; }
+    if (password.length < 8)   { setError('Password must be at least 8 characters'); return; }
     setLoading(true); setError('');
     try {
       await authAPI.signup(email, password);
@@ -90,7 +90,7 @@ export default function Signup() {
               <label className="text-xs font-mono uppercase tracking-wider block mb-1.5" style={{ color: 'var(--text-muted)' }}>Password</label>
               <div className="relative">
                 <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters" autoComplete="new-password"
+                  placeholder="Min. 8 characters" autoComplete="new-password"
                   className="w-full px-4 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono, monospace' }}
                   onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}

@@ -229,8 +229,8 @@ async function _persistSignal({ symbol, result, currentPrice, date }) {
   try {
     await db.query(`
       INSERT INTO signals
-        (symbol, signal_type, strategy, confidence, price_at_signal, z_score, rsi_value, ma_fast, ma_slow)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (symbol, signal_type, strategy, confidence, price_at_signal, z_score, rsi_value, ma_fast, ma_slow, regime)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       symbol,
       result.signal,
@@ -241,6 +241,7 @@ async function _persistSignal({ symbol, result, currentPrice, date }) {
       result.rsiValue     != null ? parseFloat(result.rsiValue)      : null,
       result.maFast       != null ? parseFloat(result.maFast)        : null,
       result.maSlow       != null ? parseFloat(result.maSlow)        : null,
+      result.regime?.detected ?? null,
     ]);
   } catch (err) {
     // DB failures are non-fatal — signal still usable from cache
