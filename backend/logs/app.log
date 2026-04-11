@@ -2164,3 +2164,65 @@
 {"level":"warn","message":"[WS] Rejected unauthenticated connection from ::1","timestamp":"2026-04-11 21:34:58.851"}
 {"level":"warn","message":"[WS] Rejected unauthenticated connection from ::1","timestamp":"2026-04-11 21:34:59.442"}
 {"level":"warn","message":"[WS] Rejected unauthenticated connection from ::1","timestamp":"2026-04-11 21:34:59.454"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:33:22.068"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 13)","timestamp":"2026-04-11 22:33:22.087"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:33:22.090"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:33:47.479"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 14)","timestamp":"2026-04-11 22:33:47.485"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:33:47.486"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-11 22:33:47.486"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-11 22:33:47.486"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-11 22:33:47.487"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-11 22:33:47.488"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-11 22:33:47.491"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-11 22:33:47.491"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-11 22:33:47.491"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-11 22:33:47.491"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-11 22:33:47.491"}
+{"level":"warn","message":"[NSE] Cookie refresh failed: Request failed with status code 403","timestamp":"2026-04-11 22:33:47.646"}
+{"level":"info","message":"[Auth] New user: test@example.com","timestamp":"2026-04-11 22:33:55.753"}
+{"level":"http","message":"\u001b[0mPOST /api/auth/signup \u001b[32m201\u001b[0m 28.610 ms - 61\u001b[0m","timestamp":"2026-04-11 22:33:55.754"}
+{"level":"error","message":"[DB] Query error: Unknown column 'role' in 'field list' | SQL: SELECT id, email, password, role, is_active FROM users WHERE email = ?","timestamp":"2026-04-11 22:34:46.221"}
+{"context":"Auth.login","email":"test@example.com","error":"Unknown column 'role' in 'field list'","level":"error","message":"[Auth.login] Unknown column 'role' in 'field list'","stack":"Error: Unknown column 'role' in 'field list'\n    at PromisePool.query (/Users/akshaypagare/Project/Systematic Trading Engine/node_modules/mysql2/lib/promise/pool.js:36:22)\n    at Object.query (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/config/database.js:74:44)\n    at login (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/controllers/authController.js:146:29)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)","timestamp":"2026-04-11 22:34:46.222"}
+{"level":"http","message":"\u001b[0mPOST /api/auth/login \u001b[31m500\u001b[0m 2.270 ms - 59\u001b[0m","timestamp":"2026-04-11 22:34:46.222"}
+{"level":"info","message":"[Auth] Login: test@example.com","timestamp":"2026-04-11 22:36:23.849"}
+{"level":"http","message":"\u001b[0mPOST /api/auth/login \u001b[32m200\u001b[0m 27.150 ms - 300\u001b[0m","timestamp":"2026-04-11 22:36:23.849"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:51:22.334"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 23)","timestamp":"2026-04-11 22:51:22.549"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:51:22.614"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:54:58.353"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-04-11 22:54:59.539"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 28)","timestamp":"2026-04-11 22:54:59.610"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:54:59.709"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:55:13.199"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-04-11 22:55:13.342"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 29)","timestamp":"2026-04-11 22:55:13.399"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:55:13.465"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:55:25.129"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-04-11 22:55:25.301"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 30)","timestamp":"2026-04-11 22:55:25.334"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:55:25.402"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-11 22:55:51.730"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-04-11 22:55:51.821"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 31)","timestamp":"2026-04-11 22:55:51.937"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-11 22:55:52.018"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-11 22:55:52.018"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-11 22:55:52.019"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-11 22:55:52.019"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-11 22:55:52.019"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-11 22:55:52.020"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-11 22:55:52.020"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-11 22:55:52.020"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-11 22:55:52.020"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-11 22:55:52.023"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-11 22:55:52.029"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-11 22:55:52.029"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-11 22:55:52.030"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-11 22:55:52.030"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-11 22:55:52.030"}
+{"level":"info","message":"[App] SIGINT — shutting down gracefully","timestamp":"2026-04-11 22:57:25.903"}
