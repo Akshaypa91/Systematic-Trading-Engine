@@ -379,6 +379,17 @@ function start(opts = {}) {
     }
   }
 
+  // Wire tick/trade events → WebSocket broadcast
+  try {
+    const ldf = require('../data/liveDataFeed');
+    _emitter.on('tick', (signals) => {
+      try { ldf.broadcastAll({ type: 'SIM_TICK', data: { signals, portfolio: getPortfolioState() }, ts: Date.now() }); } catch(_) {}
+    });
+    _emitter.on('trade', (trade) => {
+      try { ldf.broadcastAll({ type: 'SIM_TRADE', data: trade, ts: Date.now() }); } catch(_) {}
+    });
+  } catch(_) { /* liveDataFeed unavailable — polling still works */ }
+
   // Run one tick immediately
   _tick().catch(console.error);
   _timer = setInterval(() => _tick().catch(console.error), interval);

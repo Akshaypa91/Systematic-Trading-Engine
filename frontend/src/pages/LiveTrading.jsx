@@ -1,652 +1,414 @@
-// src/pages/LiveTrading.jsx
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useWS } from '../context/WSContext';
 import { simAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import SignalCard from '../components/SignalCard';
+import LiveEquityChart from '../components/LiveEquityChart';
+import Toast from '../components/Toast';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
-} from 'recharts';
-import {
-  TrendingUp, TrendingDown, Minus, Activity,
-  DollarSign, BarChart2, RefreshCw, Zap,
-  Shield, Play, Square, AlertCircle, Clock,
+  DollarSign, TrendingUp, Activity, BarChart2,
+  Play, Square, RefreshCw, Shield, Zap,
+  Clock, AlertCircle, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Small reusable components
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SignalBadge({ signal }) {
-  const cfg = {
-    BUY:  { bg: 'rgba(0,230,118,0.14)', border: 'rgba(0,230,118,0.45)', color: '#00e676', Icon: TrendingUp   },
-    SELL: { bg: 'rgba(255,71,87,0.14)',  border: 'rgba(255,71,87,0.45)',  color: '#ff4757', Icon: TrendingDown },
-    HOLD: { bg: 'rgba(255,167,38,0.14)', border: 'rgba(255,167,38,0.45)', color: '#ffa726', Icon: Minus        },
-  };
-  const c = cfg[signal] || cfg.HOLD;
+// ── Portfolio stat card ────────────────────────────────────────────────────────
+function StatCard({ label, value, sub, color, Icon, delay = 0 }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-bold"
-      style={{ background: c.bg, border: `1px solid ${c.border}`, color: c.color }}>
-      <c.Icon size={9} /> {signal || 'HOLD'}
-    </span>
-  );
-}
-
-function ConfBar({ value = 0 }) {
-  const pct   = Math.round(value * 100);
-  const color = pct > 65 ? '#00e676' : pct > 40 ? '#ffa726' : '#ff4757';
-  return (
-    <div className="flex items-center gap-2 w-full">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.06)' }}>
-        <div className="h-full rounded-full"
-          style={{ width: `${pct}%`, background: color, transition: 'width 0.5s ease' }} />
+    <div className="card fade-up" style={{ padding:20, position:'relative', overflow:'hidden', animationDelay:`${delay}s` }}>
+      <div style={{ position:'absolute', top:-24, right:-24, width:80, height:80, borderRadius:'50%',
+        background:`radial-gradient(circle, ${color}18, transparent 70%)`, pointerEvents:'none' }} />
+      <div className="flex items-center justify-between" style={{ marginBottom:12 }}>
+        <span className="section-label">{label}</span>
+        {Icon && <div style={{ width:28, height:28, borderRadius:8, background:`${color}14`, border:`1px solid ${color}30`,
+          display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Icon size={13} style={{ color }} />
+        </div>}
       </div>
-      <span className="text-xs font-mono w-7 text-right" style={{ color: '#555' }}>{pct}%</span>
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub, color = '#00d4ff', Icon, blink = false }) {
-  return (
-    <div className="rounded-xl p-4"
-      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-mono uppercase tracking-widest" style={{ color: '#555' }}>
-          {label}
-        </span>
-        {Icon && <Icon size={14} style={{ color, opacity: 0.7 }} />}
-      </div>
-      <div className="text-xl font-bold leading-none" style={{ color }}>
+      <div className="num-flip" style={{ fontSize:22, fontWeight:700, color, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
         {value ?? '—'}
       </div>
-      {sub && (
-        <div className="text-xs font-mono mt-1.5" style={{ color: '#555' }}>{sub}</div>
-      )}
+      {sub && <div className="font-mono" style={{ fontSize:11, color:'var(--text-secondary)', marginTop:8 }}>{sub}</div>}
     </div>
   );
 }
 
-function PulsingDot({ active }) {
+// ── Signal mix bar ─────────────────────────────────────────────────────────────
+function SignalMixBar({ signals }) {
+  const buy  = signals.filter(s => s.signal === 'BUY').length;
+  const sell = signals.filter(s => s.signal === 'SELL').length;
+  const hold = signals.length - buy - sell;
+  const total = signals.length || 1;
   return (
-    <div className="relative w-2 h-2 flex-shrink-0">
-      <div className="absolute inset-0 rounded-full"
-        style={{ background: active ? '#00e676' : '#555' }} />
-      {active && (
-        <div className="absolute inset-0 rounded-full animate-ping"
-          style={{ background: '#00e676', opacity: 0.4 }} />
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Equity chart tooltip
-// ─────────────────────────────────────────────────────────────────────────────
-
-function ChartTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="px-3 py-2 rounded-lg text-xs font-mono"
-      style={{ background: '#111827', border: '1px solid #2a2a3a', color: '#ccc' }}>
-      <div style={{ color: '#00d4ff', fontWeight: 700 }}>
-        ₹{(payload[0].value * 1000).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+    <div className="card" style={{ padding:'12px 20px', display:'flex', alignItems:'center', gap:16, marginBottom:20 }}>
+      <span className="section-label" style={{ flexShrink:0 }}>Signal Mix</span>
+      <div style={{ flex:1, height:6, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden', display:'flex' }}>
+        <div style={{ width:`${(buy/total)*100}%`, background:'var(--green)', transition:'width 0.5s', height:'100%' }} />
+        <div style={{ width:`${(sell/total)*100}%`, background:'var(--red)',   transition:'width 0.5s', height:'100%' }} />
+        <div style={{ flex:1,                        background:'var(--amber)', height:'100%', opacity:0.6 }} />
       </div>
-      <div style={{ color: '#444', marginTop: 2 }}>{payload[0].payload.t}</div>
+      <div className="flex gap-4 font-mono" style={{ fontSize:11, flexShrink:0 }}>
+        <span style={{ color:'var(--green)' }}>▲ {buy}</span>
+        <span style={{ color:'var(--red)'   }}>▼ {sell}</span>
+        <span style={{ color:'var(--amber)' }}>— {hold}</span>
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Open position row ──────────────────────────────────────────────────────────
+function PositionRow({ sym, pos }) {
+  const pnl   = pos.unrealizedPnl ?? 0;
+  const pnlPct = pos.entryPrice ? ((pos.currentPrice - pos.entryPrice) / pos.entryPrice * 100).toFixed(2) : '—';
+  const green = pnl >= 0;
+  const Icon  = green ? ArrowUpRight : ArrowDownRight;
+  return (
+    <div className="card-elevated trade-row" style={{ padding:'12px 14px', borderRadius:10 }}>
+      <div className="flex items-center justify-between" style={{ marginBottom:6 }}>
+        <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', fontFamily:'var(--font-mono)' }}>{sym}</span>
+        <div className="flex items-center gap-1 font-mono" style={{ fontSize:12, fontWeight:600, color: green ? 'var(--green)' : 'var(--red)' }}>
+          <Icon size={12} />
+          {pnl >= 0 ? '+' : ''}₹{Math.abs(pnl).toLocaleString('en-IN', { maximumFractionDigits:0 })}
+          <span style={{ fontSize:10, opacity:0.7 }}>({pnlPct}%)</span>
+        </div>
+      </div>
+      <div className="font-mono" style={{ fontSize:10, color:'var(--text-muted)' }}>
+        {pos.qty} shares · Entry ₹{pos.entryPrice?.toLocaleString('en-IN')} → ₹{pos.currentPrice?.toLocaleString('en-IN') || '—'}
+      </div>
+      <div className="flex gap-3 font-mono" style={{ fontSize:10, marginTop:5 }}>
+        <span style={{ color:'rgba(255,77,106,0.7)' }}>SL ₹{pos.stopLoss}</span>
+        <span style={{ color:'rgba(0,229,160,0.7)' }}>TP ₹{pos.takeProfit}</span>
+      </div>
+    </div>
+  );
+}
 
-const POLL_INTERVAL = 4000; // ms
+// ── Paper trade row ────────────────────────────────────────────────────────────
+function PaperTradeRow({ t, isNew }) {
+  const pnl  = t.pnl ?? 0;
+  const green = pnl >= 0;
+  const reasonBg = t.reason === 'STOP_LOSS' ? 'rgba(255,77,106,0.10)' : t.reason === 'TAKE_PROFIT' ? 'rgba(0,229,160,0.10)' : 'rgba(255,255,255,0.04)';
+  return (
+    <tr className={`trade-row ${isNew ? 'trade-flash' : ''}`} style={{ borderBottom:'1px solid rgba(255,255,255,0.03)' }}>
+      <td style={{ padding:'9px 12px', fontSize:12, fontWeight:700, color:'var(--text-primary)', fontFamily:'var(--font-mono)' }}>{t.symbol}</td>
+      <td style={{ padding:'9px 12px' }}>
+        <span className={`badge ${t.side === 'BUY' ? 'badge-buy' : 'badge-sell'}`} style={{ fontSize:10 }}>{t.side}</span>
+      </td>
+      <td style={{ padding:'9px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-muted)' }}>{t.qty}</td>
+      <td style={{ padding:'9px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-secondary)' }}>₹{t.entryPrice?.toLocaleString('en-IN') || '—'}</td>
+      <td style={{ padding:'9px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-secondary)' }}>₹{t.price?.toLocaleString('en-IN')}</td>
+      <td style={{ padding:'9px 12px', fontSize:11, fontFamily:'var(--font-mono)', fontWeight:600, color: green ? 'var(--green)' : 'var(--red)' }}>
+        {t.pnl != null ? `${green?'+':''}₹${Math.abs(pnl).toFixed(0)}` : '—'}
+      </td>
+      <td style={{ padding:'9px 12px' }}>
+        <span className="font-mono" style={{ fontSize:10, padding:'2px 7px', borderRadius:5, background:reasonBg, color:'var(--text-secondary)' }}>
+          {t.reason || 'SIGNAL'}
+        </span>
+      </td>
+    </tr>
+  );
+}
 
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function LiveTrading() {
-  const [signals,    setSignals]    = useState([]);
-  const [portfolio,  setPortfolio]  = useState(null);
-  const [trades,     setTrades]     = useState([]);
-  const [equityRaw,  setEquityRaw]  = useState([]);
-  const [running,    setRunning]    = useState(false);
-  const [loading,    setLoading]    = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [filter,     setFilter]     = useState('ALL');
-  const [tickFlash,  setTickFlash]  = useState(false);
-  const intervalRef = useRef(null);
-  const prevEquity  = useRef(null);
+  const { signals: wsSigs, portfolio: wsPort, trades: wsTrades, lastTick, newTrade, status } = useWS();
 
-  // ── Fetch all panels in one parallel burst ──────────────────────────────
-  const fetchAll = useCallback(async () => {
+  const [equityData,   setEquityData]   = useState([]);
+  const [localTrades,  setLocalTrades]  = useState([]);
+  const [localPort,    setLocalPort]    = useState(null);
+  const [running,      setRunning]      = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [filter,       setFilter]       = useState('ALL');
+  const [toast,        setToast]        = useState(null);
+  const [newTradeId,   setNewTradeId]   = useState(null);
+  const equityRef = useRef([]);
+  const pollRef   = useRef(null);
+
+  const showToast = (msg, type='info') => setToast({ msg, type });
+
+  // Use WS data if available, fall back to REST poll
+  const portfolio = wsPort || localPort;
+  const trades    = wsTrades.length > 0 ? wsTrades : localTrades;
+  const signals   = wsSigs;
+
+  // Flash new trade
+  useEffect(() => {
+    if (!newTrade) return;
+    setNewTradeId(newTrade.id);
+    const t = setTimeout(() => setNewTradeId(null), 1200);
+    return () => clearTimeout(t);
+  }, [newTrade]);
+
+  // REST fallback poll (only when WS is disconnected)
+  const fetchREST = useCallback(async () => {
     try {
-      const [sigRes, portRes, tradesRes, equityRes] = await Promise.allSettled([
-        simAPI.getSignals(),
+      const [portRes, tradesRes, equityRes] = await Promise.allSettled([
         simAPI.getPortfolio(),
         simAPI.getTrades(50),
         simAPI.getEquity(),
       ]);
-
-      if (sigRes.status === 'fulfilled') {
-        const sigs = sigRes.value.data.signals || [];
-        setRunning(sigRes.value.data.status?.running || false);
-        setSignals(sigs);
-        // Flash tick indicator on new data
-        setTickFlash(true);
-        setTimeout(() => setTickFlash(false), 400);
-      }
-
-      if (portRes.status === 'fulfilled') {
-        setPortfolio(portRes.value.data.data);
-      }
-
-      if (tradesRes.status === 'fulfilled') {
-        setTrades(tradesRes.value.data.data || []);
-      }
-
+      if (portRes.status === 'fulfilled')   setLocalPort(portRes.value.data.data);
+      if (tradesRes.status === 'fulfilled') setLocalTrades(tradesRes.value.data.data || []);
       if (equityRes.status === 'fulfilled') {
         const raw = equityRes.value.data.data || [];
-        // Downsample: keep max 150 points for smooth chart perf
         const step = Math.max(1, Math.floor(raw.length / 150));
-        const sampled = raw
-          .filter((_, i) => i % step === 0 || i === raw.length - 1)
-          .map(p => ({
-            t: new Date(p.t).toLocaleTimeString('en-IN', { hour12: false }),
-            equity: parseFloat((p.equity / 1000).toFixed(2)),
-          }));
-        setEquityRaw(sampled);
+        const pts  = raw.filter((_,i) => i % step === 0 || i === raw.length - 1)
+          .map(p => ({ t: new Date(p.t).toLocaleTimeString('en-IN', { hour12:false }), equity: parseFloat((p.equity/1000).toFixed(2)) }));
+        equityRef.current = pts;
+        setEquityData([...pts]);
       }
-
-      setLastUpdate(new Date().toLocaleTimeString('en-IN', { hour12: false }));
     } catch (_) {}
   }, []);
 
-  // ── Start engine via API (in case it's not already running) ────────────
-  const handleStart = useCallback(async () => {
+  useEffect(() => {
+    // Always fetch equity from REST (WS doesn't stream full history)
+    fetchREST();
+    simAPI.getStatus().then(r => setRunning(r.data.engine?.running || false)).catch(()=>{});
+  }, [fetchREST]);
+
+  // Poll equity every 5s (lightweight — just the curve)
+  useEffect(() => {
+    pollRef.current = setInterval(() => {
+      simAPI.getEquity().then(r => {
+        const raw = r.data.data || [];
+        const step = Math.max(1, Math.floor(raw.length / 150));
+        const pts  = raw.filter((_,i) => i % step === 0 || i === raw.length - 1)
+          .map(p => ({ t: new Date(p.t).toLocaleTimeString('en-IN', { hour12:false }), equity: parseFloat((p.equity/1000).toFixed(2)) }));
+        setEquityData([...pts]);
+      }).catch(()=>{});
+    }, 5000);
+    return () => clearInterval(pollRef.current);
+  }, []);
+
+  // When WS reconnects, also pull fresh REST data
+  useEffect(() => {
+    if (status === 'connected') fetchREST();
+  }, [status, fetchREST]);
+
+  async function handleStart() {
     setLoading(true);
     try {
-      await simAPI.startEngine({
-        watchlist: [
-          'RELIANCE','INFY','TCS','HDFCBANK','ICICIBANK',
-          'WIPRO','SBIN','AXISBANK','BAJFINANCE','MARUTI',
-        ],
-        intervalMs: 4000,
-      });
+      await simAPI.startEngine({ intervalMs: 4000 });
       setRunning(true);
-      await fetchAll();
-    } catch (_) {}
+      showToast('Simulation engine started', 'success');
+      fetchREST();
+    } catch { showToast('Failed to start engine', 'error'); }
     setLoading(false);
-  }, [fetchAll]);
-
-  const handleStop = useCallback(async () => {
-    try { await simAPI.stopEngine(); } catch (_) {}
+  }
+  async function handleStop() {
+    await simAPI.stopEngine();
     setRunning(false);
-  }, []);
+    showToast('Engine stopped', 'info');
+  }
 
-  // ── Bootstrap: fetch immediately + start polling ────────────────────────
-  useEffect(() => {
-    fetchAll();
-    intervalRef.current = setInterval(fetchAll, POLL_INTERVAL);
-    return () => clearInterval(intervalRef.current);
-  }, [fetchAll]);
+  const p           = portfolio;
+  const retColor    = p && p.totalReturn >= 0 ? 'var(--green)' : 'var(--red)';
+  const winTrades   = trades.filter(t => (t.pnl ?? 0) > 0).length;
+  const winRate     = trades.length ? ((winTrades / trades.length) * 100).toFixed(0) : null;
+  const filteredSig = filter === 'ALL' ? signals : signals.filter(s => s.signal === filter);
+  const openPositions = p?.openPositions ? Object.entries(p.openPositions) : [];
 
-  // ── Derived values ────────────────────────────────────────────────────
-  const p             = portfolio;
-  const returnPct     = p?.totalReturn ?? 0;
-  const returnColor   = returnPct >= 0 ? '#00e676' : '#ff4757';
-  const initialK      = p ? (p.initialCapital / 1000).toFixed(0) : '1000';
-
-  const filteredSigs  = filter === 'ALL'
-    ? signals
-    : signals.filter(s => s.signal === filter);
-
-  const buyCount  = signals.filter(s => s.signal === 'BUY').length;
-  const sellCount = signals.filter(s => s.signal === 'SELL').length;
-  const winTrades = trades.filter(t => (t.pnl ?? 0) > 0).length;
-  const winRate   = trades.length > 0 ? ((winTrades / trades.length) * 100).toFixed(0) : null;
-
-  // Equity chart Y-axis domain with 0.5% padding
-  const equityValues = equityRaw.map(d => d.equity);
-  const eMin = equityValues.length ? Math.min(...equityValues) * 0.998 : 900;
-  const eMax = equityValues.length ? Math.max(...equityValues) * 1.002 : 1100;
-
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+    <div className="page-shell">
       <Navbar />
       <Sidebar />
 
-      <main className="ml-48 pt-14 min-h-screen">
-        <div className="p-6 max-w-screen-2xl">
-
-          {/* ── Header ───────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                Live Trading
-              </h1>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-xs font-mono" style={{ color: '#555' }}>
-                  Simulation mode · paper trading
-                </span>
-                {lastUpdate && (
-                  <span className="flex items-center gap-1 text-xs font-mono"
-                    style={{ color: tickFlash ? '#00d4ff' : '#444', transition: 'color 0.3s' }}>
-                    <Clock size={10} /> {lastUpdate}
-                  </span>
-                )}
-              </div>
-            </div>
-
+      <main className="page-content">
+        {/* ── Page header */}
+        <div className="flex items-center justify-between" style={{ marginBottom:24 }}>
+          <div>
+            <h1 style={{ fontSize:22, fontWeight:700, color:'var(--text-primary)', marginBottom:4 }}>Live Trading</h1>
             <div className="flex items-center gap-3">
-              {/* Live / Stopped badge */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                style={{
-                  background:  running ? 'rgba(0,230,118,0.07)' : 'rgba(255,71,87,0.07)',
-                  border: `1px solid ${running ? 'rgba(0,230,118,0.3)' : 'rgba(255,71,87,0.3)'}`,
-                }}>
-                <PulsingDot active={running} />
-                <span className="text-xs font-mono font-semibold"
-                  style={{ color: running ? '#00e676' : '#ff4757' }}>
-                  {running ? 'LIVE' : 'STOPPED'}
+              <span className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>Simulation mode · paper trading</span>
+              {lastTick && (
+                <span className="flex items-center gap-1 font-mono" style={{ fontSize:10, color:'var(--text-muted)' }}>
+                  <Clock size={9} /> {new Date(lastTick).toLocaleTimeString('en-IN', { hour12:false })}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Engine status */}
+            <div className="flex items-center gap-2" style={{ padding:'6px 12px', borderRadius:99,
+              background: running ? 'rgba(0,229,160,0.07)' : 'rgba(255,77,106,0.07)',
+              border: `1px solid ${running ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}` }}>
+              <span className={`live-dot ${running ? '' : 'stopped'}`} style={{ width:6, height:6 }} />
+              <span className="font-mono" style={{ fontSize:11, fontWeight:600, color: running ? 'var(--green)' : 'var(--red)' }}>
+                {running ? 'LIVE' : 'STOPPED'}
+              </span>
+            </div>
+
+            {!running ? (
+              <button onClick={handleStart} disabled={loading} className="btn btn-green">
+                {loading ? <RefreshCw size={12} className="animate-spin" /> : <Play size={12} />}
+                Start Engine
+              </button>
+            ) : (
+              <button onClick={handleStop} className="btn btn-red">
+                <Square size={12} />Stop
+              </button>
+            )}
+
+            <button onClick={fetchREST} className="btn btn-ghost" style={{ padding:'7px 10px' }} title="Refresh">
+              <RefreshCw size={12} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Signal mix bar */}
+        <SignalMixBar signals={signals} />
+
+        {/* ── Stats row */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:16, marginBottom:20 }}>
+          <StatCard label="Portfolio Equity" color="var(--cyan)"
+            value={p ? `₹${p.equity.toLocaleString('en-IN', { maximumFractionDigits:0 })}` : '—'}
+            sub={p ? `Initial ₹${(p.initialCapital/1e5).toFixed(0)}L` : ''}
+            Icon={DollarSign} delay={0} />
+          <StatCard label="Total Return" color={p ? retColor : 'var(--cyan)'}
+            value={p ? `${p.totalReturn >= 0 ? '+' : ''}${p.totalReturn}%` : '—'}
+            sub={p ? `P&L ₹${p.totalPnl.toLocaleString('en-IN', { maximumFractionDigits:0 })}` : ''}
+            Icon={TrendingUp} delay={0.05} />
+          <StatCard label="Open Positions" color="var(--amber)"
+            value={p ? p.openPositionCount : '—'}
+            sub={p ? `Open P&L ₹${p.openPnl.toLocaleString('en-IN', { maximumFractionDigits:0 })}` : ''}
+            Icon={Activity} delay={0.10} />
+          <StatCard label="Win Rate" color="var(--purple)"
+            value={winRate != null ? `${winRate}%` : '—'}
+            sub={`${winTrades}W / ${trades.length - winTrades}L of ${trades.length}`}
+            Icon={BarChart2} delay={0.15} />
+        </div>
+
+        {/* ── Equity + Positions */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:16, marginBottom:20 }}>
+
+          {/* Equity curve */}
+          <div className="card fade-up stagger-1" style={{ padding:20 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom:16 }}>
+              <div>
+                <div className="section-label" style={{ marginBottom:4 }}>Live Equity Curve</div>
+                <p className="font-mono" style={{ fontSize:10, color:'var(--text-muted)' }}>Portfolio value in ₹K · paper simulation</p>
+              </div>
+              {equityData.length > 0 && (
+                <span className="font-mono" style={{ fontSize:10, padding:'2px 8px', borderRadius:5, background:'var(--bg-elevated)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
+                  {equityData.length} pts
+                </span>
+              )}
+            </div>
+            <LiveEquityChart data={equityData} initialCapital={p?.initialCapital || 1000000} />
+          </div>
+
+          {/* Open positions */}
+          <div className="card fade-up stagger-2" style={{ padding:20 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom:16 }}>
+              <div className="flex items-center gap-2">
+                <Shield size={13} style={{ color:'var(--text-muted)' }} />
+                <span className="section-label">Open Positions</span>
+              </div>
+              <span className="font-mono" style={{ fontSize:10, padding:'2px 8px', borderRadius:5, background:'var(--bg-elevated)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
+                {openPositions.length}
+              </span>
+            </div>
+
+            {openPositions.length === 0 ? (
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:200, gap:8 }}>
+                <BarChart2 size={24} style={{ color:'var(--text-muted)', opacity:0.3 }} />
+                <p className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>No open positions</p>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:8, overflowY:'auto', maxHeight:280 }}>
+                {openPositions.map(([sym, pos]) => <PositionRow key={sym} sym={sym} pos={pos} />)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Signals + Trades */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+
+          {/* Signals panel */}
+          <div className="card fade-up stagger-3" style={{ padding:20 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom:16 }}>
+              <div className="flex items-center gap-2">
+                <span className="live-dot" style={{ width:6, height:6 }} />
+                <span className="section-label">Live Signals</span>
+                <span className="font-mono" style={{ fontSize:10, padding:'1px 6px', borderRadius:4, background:'var(--bg-elevated)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
+                  {filteredSig.length}
                 </span>
               </div>
-
-              {/* Start / Stop */}
-              {!running ? (
-                <button onClick={handleStart} disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold
-                             transition-all disabled:opacity-50 hover:brightness-125"
-                  style={{
-                    background: 'rgba(0,230,118,0.12)',
-                    border: '1px solid rgba(0,230,118,0.35)',
-                    color: '#00e676',
-                  }}>
-                  {loading
-                    ? <RefreshCw size={12} className="animate-spin" />
-                    : <Play size={12} />}
-                  Start Engine
-                </button>
-              ) : (
-                <button onClick={handleStop}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold
-                             hover:brightness-125 transition-all"
-                  style={{
-                    background: 'rgba(255,71,87,0.10)',
-                    border: '1px solid rgba(255,71,87,0.3)',
-                    color: '#ff4757',
-                  }}>
-                  <Square size={12} /> Stop
-                </button>
-              )}
-
-              {/* Manual refresh */}
-              <button onClick={fetchAll} title="Refresh now"
-                className="p-2 rounded-lg transition-colors hover:brightness-125"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: '#555' }}>
-                <RefreshCw size={13} />
-              </button>
-            </div>
-          </div>
-
-          {/* ── Signal Bar (BUY / SELL / HOLD summary) ───────────────────── */}
-          <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <span className="text-xs font-mono" style={{ color: '#555' }}>SIGNAL MIX</span>
-            <div className="flex-1 flex items-center gap-1 mx-3 h-2 rounded-full overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.06)' }}>
-              {signals.length > 0 && <>
-                <div style={{ width: `${(buyCount / signals.length) * 100}%`, background: '#00e676', height: '100%', transition: 'width 0.5s' }} />
-                <div style={{ width: `${(sellCount / signals.length) * 100}%`, background: '#ff4757', height: '100%', transition: 'width 0.5s' }} />
-                <div style={{ flex: 1, background: '#ffa726', height: '100%' }} />
-              </>}
-            </div>
-            <div className="flex gap-4 text-xs font-mono">
-              <span style={{ color: '#00e676' }}>▲ {buyCount} BUY</span>
-              <span style={{ color: '#ff4757' }}>▼ {sellCount} SELL</span>
-              <span style={{ color: '#ffa726' }}>— {signals.length - buyCount - sellCount} HOLD</span>
-            </div>
-          </div>
-
-          {/* ── Stats Row ─────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-            <StatCard
-              label="Portfolio Equity"
-              value={p
-                ? `₹${p.equity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                : '—'}
-              sub={p ? `Initial ₹${(p.initialCapital / 1e5).toFixed(0)}L` : ''}
-              color="#00d4ff"
-              Icon={DollarSign}
-            />
-            <StatCard
-              label="Total Return"
-              value={p ? `${returnPct >= 0 ? '+' : ''}${returnPct}%` : '—'}
-              sub={p
-                ? `P&L ₹${p.totalPnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                : ''}
-              color={p ? returnColor : '#00d4ff'}
-              Icon={TrendingUp}
-            />
-            <StatCard
-              label="Open Positions"
-              value={p ? p.openPositionCount : '—'}
-              sub={p
-                ? `Unrealized ₹${p.openPnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                : ''}
-              color="#ffa726"
-              Icon={Activity}
-            />
-            <StatCard
-              label="Win Rate"
-              value={winRate != null ? `${winRate}%` : '—'}
-              sub={`${winTrades}W / ${trades.length - winTrades}L of ${trades.length} trades`}
-              color="#a78bfa"
-              Icon={BarChart2}
-            />
-          </div>
-
-          {/* ── Main grid: Equity Curve + Open Positions ──────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-
-            {/* Equity curve */}
-            <div className="lg:col-span-2 rounded-xl p-5"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xs font-mono uppercase tracking-widest"
-                    style={{ color: '#555' }}>Equity Curve</h2>
-                  <p className="text-xs font-mono mt-0.5" style={{ color: '#444' }}>
-                    Portfolio value in ₹K · live paper simulation
-                  </p>
-                </div>
-                {equityRaw.length > 0 && (
-                  <span className="text-xs font-mono px-2 py-1 rounded"
-                    style={{ background: 'var(--bg-elevated)', color: '#555', border: '1px solid var(--border)' }}>
-                    {equityRaw.length} pts
-                  </span>
-                )}
+              <div className="flex gap-1">
+                {['ALL','BUY','SELL','HOLD'].map(f => {
+                  const fc = { ALL:'var(--cyan)', BUY:'var(--green)', SELL:'var(--red)', HOLD:'var(--amber)' }[f];
+                  return (
+                    <button key={f} onClick={() => setFilter(f)}
+                      className="font-mono" style={{ padding:'2px 8px', borderRadius:5, fontSize:9, fontWeight:600, cursor:'pointer',
+                        border:`1px solid ${filter===f ? fc+'55' : 'var(--border)'}`,
+                        background: filter===f ? `${fc}12` : 'transparent',
+                        color: filter===f ? fc : 'var(--text-muted)' }}>
+                      {f}
+                    </button>
+                  );
+                })}
               </div>
-
-              {equityRaw.length < 3 ? (
-                <div className="flex flex-col items-center justify-center h-52 gap-2">
-                  <div className="text-xs font-mono" style={{ color: '#444' }}>
-                    {running ? '⏳  Collecting equity data...' : 'Start the engine to see live equity curve'}
-                  </div>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height={230}>
-                  <LineChart data={equityRaw} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                    <XAxis
-                      dataKey="t"
-                      tick={{ fill: '#444', fontSize: 10, fontFamily: 'monospace' }}
-                      interval={Math.max(1, Math.floor(equityRaw.length / 7))}
-                      tickLine={false} axisLine={false}
-                    />
-                    <YAxis
-                      domain={[eMin, eMax]}
-                      tick={{ fill: '#444', fontSize: 10, fontFamily: 'monospace' }}
-                      tickLine={false} axisLine={false}
-                      tickFormatter={v => `₹${v}K`} width={62}
-                    />
-                    <Tooltip content={<ChartTooltip />} />
-                    <ReferenceLine
-                      y={p ? p.initialCapital / 1000 : parseFloat(initialK)}
-                      stroke="rgba(255,255,255,0.12)"
-                      strokeDasharray="4 4"
-                    />
-                    <Line
-                      type="monotone" dataKey="equity"
-                      stroke="#00d4ff" strokeWidth={2}
-                      dot={false} isAnimationActive={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
             </div>
 
-            {/* Open positions */}
-            <div className="rounded-xl p-5"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Shield size={13} style={{ color: '#555' }} />
-                  <h2 className="text-xs font-mono uppercase tracking-widest"
-                    style={{ color: '#555' }}>Open Positions</h2>
-                </div>
-                {p && (
-                  <span className="text-xs font-mono px-2 py-0.5 rounded"
-                    style={{
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)',
-                      color: '#555',
-                    }}>
-                    {p.openPositionCount} open
-                  </span>
-                )}
+            {filteredSig.length === 0 ? (
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'48px 0', gap:8 }}>
+                <AlertCircle size={22} style={{ color:'var(--text-muted)', opacity:0.3 }} />
+                <p className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>
+                  {running ? 'Generating signals…' : 'Start the engine'}
+                </p>
               </div>
-
-              {(!p || p.openPositionCount === 0) ? (
-                <div className="flex flex-col items-center justify-center h-44 gap-2">
-                  <BarChart2 size={22} style={{ color: '#333' }} />
-                  <span className="text-xs font-mono" style={{ color: '#444' }}>
-                    No open positions
-                  </span>
-                </div>
-              ) : (
-                <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 300 }}>
-                  {Object.entries(p.openPositions).map(([sym, pos]) => {
-                    const pnlColor = pos.unrealizedPnl >= 0 ? '#00e676' : '#ff4757';
-                    const pnlPct   = ((pos.currentPrice - pos.entryPrice) / pos.entryPrice * 100).toFixed(2);
-                    return (
-                      <div key={sym} className="p-3 rounded-lg"
-                        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                            {sym}
-                          </span>
-                          <div className="text-right">
-                            <span className="text-xs font-mono font-semibold" style={{ color: pnlColor }}>
-                              {pos.unrealizedPnl >= 0 ? '+' : ''}
-                              ₹{Math.abs(pos.unrealizedPnl).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                            </span>
-                            <span className="text-xs font-mono ml-1" style={{ color: pnlColor, opacity: 0.7 }}>
-                              ({pnlPct}%)
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-xs font-mono mb-1.5"
-                          style={{ color: '#555' }}>
-                          {pos.qty} shares · Entry ₹{pos.entryPrice.toLocaleString('en-IN')}
-                          → Now ₹{pos.currentPrice?.toLocaleString('en-IN') || '—'}
-                        </div>
-                        <div className="flex gap-3 text-xs font-mono" style={{ color: '#444' }}>
-                          <span style={{ color: 'rgba(255,71,87,0.7)' }}>SL ₹{pos.stopLoss}</span>
-                          <span style={{ color: 'rgba(0,230,118,0.7)' }}>TP ₹{pos.takeProfit}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            ) : (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, overflowY:'auto', maxHeight:400 }}>
+                {filteredSig.map(s => <SignalCard key={s.symbol} signal={s} />)}
+              </div>
+            )}
           </div>
 
-          {/* ── Bottom grid: Signals + Trade History ──────────────────────── */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-
-            {/* Live Signals */}
-            <div className="rounded-xl p-5"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <PulsingDot active={running} />
-                  <h2 className="text-xs font-mono uppercase tracking-widest"
-                    style={{ color: '#555' }}>Live Signals</h2>
-                  <span className="text-xs font-mono px-1.5 py-0.5 rounded"
-                    style={{ background: 'var(--bg-elevated)', color: '#555', border: '1px solid var(--border)' }}>
-                    {signals.length}
-                  </span>
-                </div>
-
-                {/* Filter chips */}
-                <div className="flex gap-1">
-                  {['ALL', 'BUY', 'SELL', 'HOLD'].map(f => {
-                    const colors = {
-                      ALL:  '#00d4ff', BUY: '#00e676',
-                      SELL: '#ff4757', HOLD: '#ffa726',
-                    };
-                    const active = filter === f;
-                    return (
-                      <button key={f} onClick={() => setFilter(f)}
-                        className="px-2 py-0.5 rounded text-xs font-mono transition-all"
-                        style={{
-                          background: active ? `${colors[f]}18` : 'var(--bg-elevated)',
-                          border: `1px solid ${active ? colors[f] + '55' : 'var(--border)'}`,
-                          color: active ? colors[f] : '#555',
-                        }}>
-                        {f}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Paper trades */}
+          <div className="card fade-up stagger-4" style={{ padding:20 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom:16 }}>
+              <div className="flex items-center gap-2">
+                <Activity size={13} style={{ color:'var(--text-muted)' }} />
+                <span className="section-label">Paper Trade History</span>
               </div>
-
-              {filteredSigs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 gap-2">
-                  <AlertCircle size={22} style={{ color: '#333' }} />
-                  <span className="text-xs font-mono" style={{ color: '#444' }}>
-                    {running ? 'Generating signals...' : 'Start the engine to generate signals'}
-                  </span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-0.5"
-                  style={{ maxHeight: 420 }}>
-                  {filteredSigs.map(s => (
-                    <div key={s.symbol}
-                      className="p-3 rounded-lg transition-all hover:brightness-110"
-                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <span className="text-sm font-bold"
-                            style={{ color: 'var(--text-primary)' }}>{s.symbol}</span>
-                          <span className="text-xs font-mono ml-2" style={{ color: '#555' }}>
-                            ₹{s.currentPrice?.toLocaleString('en-IN') || '—'}
-                          </span>
-                        </div>
-                        <SignalBadge signal={s.signal} />
-                      </div>
-
-                      <ConfBar value={s.confidence} />
-
-                      <div className="grid grid-cols-3 gap-1 mt-2 text-xs font-mono"
-                        style={{ color: '#444' }}>
-                        <span>RSI {s.rsi ?? '—'}</span>
-                        <span className="text-center truncate">{s.regime || '—'}</span>
-                        <span className="text-right">
-                          {new Date(s.timestamp).toLocaleTimeString('en-IN', { hour12: false })}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2 font-mono" style={{ fontSize:10, color:'var(--text-muted)' }}>
+                {trades.length > 0 && <><span style={{ color:'var(--green)' }}>{winTrades}W</span>/<span style={{ color:'var(--red)' }}>{trades.length-winTrades}L</span></>}
+                <span style={{ padding:'2px 8px', borderRadius:5, background:'var(--bg-elevated)', border:'1px solid var(--border)' }}>{trades.length}</span>
+              </div>
             </div>
 
-            {/* Trade History */}
-            <div className="rounded-xl p-5"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Activity size={13} style={{ color: '#555' }} />
-                  <h2 className="text-xs font-mono uppercase tracking-widest"
-                    style={{ color: '#555' }}>Paper Trade History</h2>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-mono" style={{ color: '#555' }}>
-                  {trades.length > 0 && (
-                    <>
-                      <span style={{ color: '#00e676' }}>{winTrades}W</span>
-                      <span>/</span>
-                      <span style={{ color: '#ff4757' }}>{trades.length - winTrades}L</span>
-                    </>
-                  )}
-                  <span className="px-2 py-0.5 rounded"
-                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                    {trades.length}
-                  </span>
-                </div>
+            {trades.length === 0 ? (
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'48px 0', gap:8 }}>
+                <Zap size={22} style={{ color:'var(--text-muted)', opacity:0.3 }} />
+                <p className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>Trades will appear here</p>
               </div>
-
-              {trades.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 gap-2">
-                  <Zap size={22} style={{ color: '#333' }} />
-                  <span className="text-xs font-mono" style={{ color: '#444' }}>
-                    Completed trades will appear here
-                  </span>
-                </div>
-              ) : (
-                <div className="overflow-y-auto" style={{ maxHeight: 420 }}>
-                  <table className="w-full">
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                        {['Symbol', 'Side', 'Qty', 'Entry', 'Exit', 'P&L', 'Exit Reason'].map(h => (
-                          <th key={h}
-                            className="pb-2 text-left text-xs font-mono"
-                            style={{ color: '#444', fontWeight: 500 }}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {trades.map(t => {
-                        const pnlColor = (t.pnl ?? 0) >= 0 ? '#00e676' : '#ff4757';
-                        const reasonColor =
-                          t.reason === 'STOP_LOSS'   ? 'rgba(255,71,87,0.12)' :
-                          t.reason === 'TAKE_PROFIT' ? 'rgba(0,230,118,0.12)' :
-                                                       'rgba(255,255,255,0.04)';
-                        return (
-                          <tr key={t.id}
-                            style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                            <td className="py-2 text-xs font-mono font-bold"
-                              style={{ color: 'var(--text-primary)' }}>{t.symbol}</td>
-                            <td className="py-2 text-xs font-mono font-semibold"
-                              style={{ color: t.side === 'BUY' ? '#00e676' : '#ff4757' }}>
-                              {t.side}
-                            </td>
-                            <td className="py-2 text-xs font-mono" style={{ color: '#666' }}>
-                              {t.qty}
-                            </td>
-                            <td className="py-2 text-xs font-mono" style={{ color: '#666' }}>
-                              ₹{t.entryPrice?.toLocaleString('en-IN') || '—'}
-                            </td>
-                            <td className="py-2 text-xs font-mono" style={{ color: '#666' }}>
-                              ₹{t.price?.toLocaleString('en-IN')}
-                            </td>
-                            <td className="py-2 text-xs font-mono font-semibold"
-                              style={{ color: pnlColor }}>
-                              {t.pnl != null
-                                ? `${t.pnl >= 0 ? '+' : ''}₹${Math.abs(t.pnl).toFixed(0)}`
-                                : '—'}
-                            </td>
-                            <td className="py-2">
-                              <span className="text-xs font-mono px-1.5 py-0.5 rounded"
-                                style={{ background: reasonColor, color: '#888' }}>
-                                {t.reason || 'SIGNAL'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div style={{ overflowY:'auto', maxHeight:400 }}>
+                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom:'1px solid var(--border)' }}>
+                      {['Symbol','Side','Qty','Entry','Exit','P&L','Reason'].map(h => (
+                        <th key={h} style={{ padding:'6px 12px', textAlign:'left', fontSize:9, fontFamily:'var(--font-mono)', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-muted)' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trades.map(t => <PaperTradeRow key={t.id} t={t} isNew={t.id === newTradeId} />)}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-
         </div>
       </main>
+
+      {toast && (
+        <div style={{ position:'fixed', bottom:24, right:24, zIndex:9999 }}>
+          <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
+        </div>
+      )}
     </div>
   );
 }

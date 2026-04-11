@@ -153,3 +153,15 @@
 {"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 01:46:32.263"}
 {"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 01:46:32.268"}
 {"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 01:46:34.906"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 09:26:18.567"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 09:26:18.571"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-04-11 09:26:36.891"}
+{"level":"error","message":"[SignalCtrl] getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:26:36.891"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-04-11 09:26:37.402"}
+{"level":"error","message":"[SignalCtrl] getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:26:37.402"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 09:27:26.230"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: SELECT * FROM backtest_runs ORDER BY created_at DESC LIMIT ?","timestamp":"2026-04-11 09:27:26.233"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-11 09:27:34.360"}
+{"level":"error","message":"[BtCtrl] runBacktest error: getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:27:34.360"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-11 09:27:49.752"}
+{"level":"error","message":"[BtCtrl] runBacktest error: getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:27:49.753"}

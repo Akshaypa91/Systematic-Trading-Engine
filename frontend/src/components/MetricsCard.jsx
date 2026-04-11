@@ -1,53 +1,50 @@
-export default function MetricsCard({ label, value, sub, color = 'cyan', icon: Icon, trend }) {
-  const colors = {
-    cyan:   { accent: 'var(--accent-cyan)',  bg: 'rgba(0,212,255,0.06)',  border: 'rgba(0,212,255,0.15)' },
-    green:  { accent: 'var(--accent-green)', bg: 'rgba(0,230,118,0.06)',  border: 'rgba(0,230,118,0.15)' },
-    red:    { accent: 'var(--accent-red)',   bg: 'rgba(255,71,87,0.06)',   border: 'rgba(255,71,87,0.15)' },
-    amber:  { accent: 'var(--accent-amber)', bg: 'rgba(255,167,38,0.06)', border: 'rgba(255,167,38,0.15)' },
-    purple: { accent: '#7c4dff',             bg: 'rgba(124,77,255,0.06)', border: 'rgba(124,77,255,0.15)' },
+export default function MetricsCard({ label, value, sub, color = 'cyan', icon: Icon, trend, loading }) {
+  const palette = {
+    cyan:   { c:'var(--cyan)',   bg:'rgba(0,212,255,0.07)',   border:'rgba(0,212,255,0.18)' },
+    green:  { c:'var(--green)',  bg:'rgba(0,229,160,0.07)',   border:'rgba(0,229,160,0.18)' },
+    red:    { c:'var(--red)',    bg:'rgba(255,77,106,0.07)',   border:'rgba(255,77,106,0.18)' },
+    amber:  { c:'var(--amber)',  bg:'rgba(255,176,32,0.07)',  border:'rgba(255,176,32,0.18)' },
+    purple: { c:'var(--purple)', bg:'rgba(139,92,246,0.07)',  border:'rgba(139,92,246,0.18)' },
   };
-  const c = colors[color] || colors.cyan;
+  const p = palette[color] || palette.cyan;
+
+  if (loading) {
+    return (
+      <div className="card" style={{ padding:20 }}>
+        <div className="skeleton" style={{ width:80, height:10, marginBottom:12 }} />
+        <div className="skeleton" style={{ width:120, height:24, marginBottom:8 }} />
+        <div className="skeleton" style={{ width:100, height:9 }} />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="card-hover rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden"
-      style={{
-        background: 'var(--bg-card)',
-        border: `1px solid var(--border)`,
-      }}
-    >
-      {/* Subtle corner accent */}
-      <div className="absolute top-0 right-0 w-20 h-20 opacity-10 rounded-bl-full"
-        style={{ background: `radial-gradient(circle, ${c.accent}, transparent 70%)` }} />
+    <div className="card fade-up" style={{ padding:20, position:'relative', overflow:'hidden' }}>
+      {/* Corner glow accent */}
+      <div style={{ position:'absolute', top:-20, right:-20, width:80, height:80, borderRadius:'50%',
+        background:`radial-gradient(circle, ${p.c}22, transparent 70%)`, pointerEvents:'none' }} />
 
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-          {label}
-        </span>
+      <div className="flex items-center justify-between" style={{ marginBottom:12 }}>
+        <span className="section-label">{label}</span>
         {Icon && (
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-            <Icon size={13} style={{ color: c.accent }} />
+          <div style={{ width:28, height:28, borderRadius:8, background:p.bg, border:`1px solid ${p.border}`,
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Icon size={13} style={{ color:p.c }} />
           </div>
         )}
       </div>
 
-      <div>
-        <div className="text-2xl font-bold count-up" style={{ color: c.accent, fontVariantNumeric: 'tabular-nums' }}>
-          {value ?? '—'}
-        </div>
-        {sub && (
-          <div className="text-xs font-mono mt-1" style={{ color: 'var(--text-secondary)' }}>
-            {sub}
-          </div>
-        )}
+      <div className="num-flip" style={{ fontSize:22, fontWeight:700, color:p.c, fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
+        {value ?? '—'}
       </div>
+
+      {sub && (
+        <div className="font-mono" style={{ fontSize:11, color:'var(--text-secondary)', marginTop:8 }}>{sub}</div>
+      )}
 
       {trend !== undefined && (
-        <div className="flex items-center gap-1 text-xs font-mono">
-          <span style={{ color: trend >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
-            {trend >= 0 ? '▲' : '▼'} {Math.abs(trend).toFixed(2)}%
-          </span>
+        <div className="font-mono" style={{ fontSize:11, marginTop:6, color: trend >= 0 ? 'var(--green)' : 'var(--red)' }}>
+          {trend >= 0 ? '▲' : '▼'} {Math.abs(trend).toFixed(2)}%
         </div>
       )}
     </div>
