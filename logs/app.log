@@ -383,3 +383,7 @@
 {"level":"error","message":"[BtCtrl] runBacktest error: getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:27:34.360"}
 {"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, exchange, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n","timestamp":"2026-04-11 09:27:49.752"}
 {"level":"error","message":"[BtCtrl] runBacktest error: getaddrinfo ENOTFOUND db","timestamp":"2026-04-11 09:27:49.753"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-11 09:50:56.546"}
+{"level":"info","message":"[WS] Client connected. Total: 1","timestamp":"2026-04-11 09:50:56.606"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-11 09:50:56.610"}
+{"level":"info","message":"[WS] Client connected. Total: 1","timestamp":"2026-04-11 09:50:56.616"}
