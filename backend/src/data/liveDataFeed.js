@@ -20,7 +20,7 @@
 
 const WebSocket   = require('ws');
 const url         = require('url');
-const nseFetcher  = require('./nseFetcher');
+const marketDataService = require('../services/marketDataService');
 const aggregator  = require('../strategies/aggregator');
 const dataStore   = require('./dataStore');
 const execEngine  = require('../engine/executionEngine');
@@ -193,8 +193,9 @@ function stopPolling(symbol) {
 
 async function pollSymbol(symbol) {
   try {
-    const quote = await nseFetcher.getQuote(symbol);
-    const price = quote.lastPrice;
+    // marketDataService: tries Twelve Data API first, falls back to simulation
+    const result = await marketDataService.getLivePrice(symbol);
+    const price  = result.price;
 
     if (!price) return;
 
@@ -202,13 +203,15 @@ async function pollSymbol(symbol) {
       type:      'PRICE',
       symbol,
       price,
-      open:      quote.open,
-      high:      quote.high,
-      low:       quote.low,
-      prevClose: quote.close,
-      changePct: quote.changePct,
-      volume:    quote.volume,
-      vwap:      quote.vwap,
+      source:    result.source,   // "API" or "SIMULATION"
+      // OHLC not available on Twelve Data free /price endpoint
+      open:      null,
+      high:      null,
+      low:       null,
+      prevClose: null,
+      changePct: null,
+      volume:    null,
+      vwap:      null,
       ts:        new Date().toISOString(),
     };
 

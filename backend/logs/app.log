@@ -2226,3 +2226,121 @@
 {"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-11 22:55:52.030"}
 {"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-11 22:55:52.030"}
 {"level":"info","message":"[App] SIGINT — shutting down gracefully","timestamp":"2026-04-11 22:57:25.903"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-13 21:17:41.044"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: connect ETIMEDOUT — starting in offline mode","timestamp":"2026-04-13 21:18:11.053"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-13 21:18:11.054"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-13 21:18:11.055"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-13 21:18:11.055"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-13 21:18:11.055"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-13 21:18:11.055"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-13 21:18:11.056"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-13 21:18:11.056"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-13 21:18:11.060"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-13 21:18:11.068"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-13 21:18:11.068"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-13 21:18:11.068"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-13 21:18:11.068"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-13 21:18:11.068"}
+{"level":"info","message":"[App] SIGINT — shutting down gracefully","timestamp":"2026-04-13 21:19:18.970"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-13 21:20:20.208"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 44)","timestamp":"2026-04-13 21:20:20.489"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-13 21:20:20.649"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-13 21:20:20.649"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-13 21:20:20.650"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-13 21:20:20.650"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-13 21:20:20.650"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-13 21:20:20.651"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-13 21:20:20.651"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-13 21:20:20.651"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-13 21:20:20.651"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-13 21:20:20.654"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-13 21:20:20.662"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-13 21:20:20.662"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-13 21:20:20.662"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-13 21:20:20.662"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-13 21:20:20.662"}
+{"level":"warn","message":"[MarketData] ⚠️  API failed for INFY: timeout of 8000ms exceeded → using SIMULATION","timestamp":"2026-04-13 21:20:55.908"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: INFY = ₹1622.8","timestamp":"2026-04-13 21:20:55.909"}
+{"level":"http","message":"\u001b[0mGET /api/data/quote/INFY \u001b[32m200\u001b[0m 8006.091 ms - 228\u001b[0m","timestamp":"2026-04-13 21:20:55.910"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 1): Symbol RELIANCE not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: RELIANCE = ₹2858.05","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TCS = ₹4197.23","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HDFCBANK = ₹1721.83","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ICICIBANK = ₹1182.57","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HINDUNILVR = ₹2485.73","timestamp":"2026-04-13 21:20:58.184"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 2): Symbol BAJFINANCE not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:58.406"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: BAJFINANCE = ₹6787.69","timestamp":"2026-04-13 21:20:58.407"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: SBIN = ₹808.99","timestamp":"2026-04-13 21:20:58.407"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: BHARTIARTL = ₹999.98","timestamp":"2026-04-13 21:20:58.407"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: KOTAKBANK = ₹1945.36","timestamp":"2026-04-13 21:20:58.407"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: LT = ₹3695.46","timestamp":"2026-04-13 21:20:58.407"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 3): Symbol AXISBANK not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:58.629"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: AXISBANK = ₹1186.74","timestamp":"2026-04-13 21:20:58.629"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: WIPRO = ₹561.16","timestamp":"2026-04-13 21:20:58.629"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ASIANPAINT = ₹2847.09","timestamp":"2026-04-13 21:20:58.629"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: MARUTI = ₹12515.35","timestamp":"2026-04-13 21:20:58.630"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TITAN = ₹3450.14","timestamp":"2026-04-13 21:20:58.630"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 4): Symbol TECHM not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:58.852"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TECHM = ₹1742.79","timestamp":"2026-04-13 21:20:58.852"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: SUNPHARMA = ₹1652.77","timestamp":"2026-04-13 21:20:58.852"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ULTRACEMCO = ₹10213.6","timestamp":"2026-04-13 21:20:58.853"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ONGC = ₹289.54","timestamp":"2026-04-13 21:20:58.853"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TATAMOTORS = ₹962.16","timestamp":"2026-04-13 21:20:58.853"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 5): Symbol POWERGRID not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:59.098"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: POWERGRID = ₹1002.05","timestamp":"2026-04-13 21:20:59.098"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: NTPC = ₹1001.46","timestamp":"2026-04-13 21:20:59.098"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HCLTECH = ₹1002.78","timestamp":"2026-04-13 21:20:59.098"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: JSWSTEEL = ₹997.8","timestamp":"2026-04-13 21:20:59.098"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TATASTEEL = ₹1000.4","timestamp":"2026-04-13 21:20:59.099"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 6): Symbol INDUSINDBK not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:59.315"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: INDUSINDBK = ₹997.3","timestamp":"2026-04-13 21:20:59.315"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ADANIENT = ₹1002.79","timestamp":"2026-04-13 21:20:59.315"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ADANIPORTS = ₹997.19","timestamp":"2026-04-13 21:20:59.315"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: BAJAJFINSV = ₹1002.92","timestamp":"2026-04-13 21:20:59.315"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: BPCL = ₹998.58","timestamp":"2026-04-13 21:20:59.316"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 7): Symbol BRITANNIA not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:59.540"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: BRITANNIA = ₹1000.23","timestamp":"2026-04-13 21:20:59.541"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: CIPLA = ₹1000.84","timestamp":"2026-04-13 21:20:59.541"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: COALINDIA = ₹1001.7","timestamp":"2026-04-13 21:20:59.542"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: DIVISLAB = ₹1002.81","timestamp":"2026-04-13 21:20:59.542"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: DRREDDY = ₹1000.65","timestamp":"2026-04-13 21:20:59.542"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 8): Symbol EICHERMOT not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:59.767"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: EICHERMOT = ₹999.93","timestamp":"2026-04-13 21:20:59.767"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: GRASIM = ₹1000.61","timestamp":"2026-04-13 21:20:59.767"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HDFCLIFE = ₹1001.35","timestamp":"2026-04-13 21:20:59.767"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HEROMOTOCO = ₹998.56","timestamp":"2026-04-13 21:20:59.768"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: HINDALCO = ₹1001.05","timestamp":"2026-04-13 21:20:59.768"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 9): Symbol IOC not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:20:59.985"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: IOC = ₹1002.77","timestamp":"2026-04-13 21:20:59.986"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: ITC = ₹999.83","timestamp":"2026-04-13 21:20:59.986"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: M&M = ₹999.95","timestamp":"2026-04-13 21:20:59.986"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: NESTLEIND = ₹998.07","timestamp":"2026-04-13 21:20:59.986"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: SBILIFE = ₹999.77","timestamp":"2026-04-13 21:20:59.986"}
+{"level":"warn","message":"[MarketData] ⚠️  Batch API failed (chunk 10): Symbol SHREECEM not found in batch response → using SIMULATION for chunk","timestamp":"2026-04-13 21:21:00.223"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: SHREECEM = ₹1000.7","timestamp":"2026-04-13 21:21:00.223"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: TATACONSUM = ₹999.67","timestamp":"2026-04-13 21:21:00.224"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: UPL = ₹1002.07","timestamp":"2026-04-13 21:21:00.224"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: VEDL = ₹1002.74","timestamp":"2026-04-13 21:21:00.224"}
+{"level":"info","message":"[MarketData] Batch complete: 0 from API, 50 from simulation (total: 50)","timestamp":"2026-04-13 21:21:00.224"}
+{"level":"http","message":"\u001b[0mGET /api/data/nifty50 \u001b[32m200\u001b[0m 2317.683 ms - 10051\u001b[0m","timestamp":"2026-04-13 21:21:00.226"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-13 21:23:06.062"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 45)","timestamp":"2026-04-13 21:23:06.273"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-13 21:23:06.343"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-13 21:23:48.412"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: connect ETIMEDOUT — starting in offline mode","timestamp":"2026-04-13 21:24:18.421"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-13 21:24:18.422"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-13 21:24:18.422"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-13 21:24:18.423"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-13 21:24:18.423"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-13 21:24:18.423"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-13 21:24:18.423"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-13 21:24:18.423"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-13 21:24:18.427"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-13 21:24:18.432"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-13 21:24:18.432"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-13 21:24:18.433"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-13 21:24:18.433"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-13 21:24:18.433"}
+{"level":"warn","message":"[MarketData] ⚠️  API failed for INFY: timeout of 8000ms exceeded → using SIMULATION","timestamp":"2026-04-13 21:24:42.359"}
+{"level":"info","message":"[MarketData] 🔄 Simulation fallback: INFY = ₹1618.03","timestamp":"2026-04-13 21:24:42.359"}
+{"level":"http","message":"\u001b[0mGET /api/data/quote/INFY \u001b[32m200\u001b[0m 8007.349 ms - 230\u001b[0m","timestamp":"2026-04-13 21:24:42.361"}

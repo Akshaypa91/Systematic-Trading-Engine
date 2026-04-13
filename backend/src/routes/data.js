@@ -3,6 +3,9 @@ const router = require('express').Router();
 const ctrl   = require('../controllers/dataController');
 const { requireAuth } = require('../middleware/authMiddleware');
 
+// Health check — API connectivity + cache diagnostics (public, no auth needed)
+router.get('/health',                   ctrl.getDataHealth);
+
 // Read-only data endpoints — public (market data, quotes)
 router.get('/quote/:symbol',            ctrl.getQuote);
 router.get('/historical/:symbol',       ctrl.getHistorical);

@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
-const nseFetcher      = require('../data/nseFetcher');
+const marketDataService = require('../services/marketDataService');
 const dataStore       = require('../data/dataStore');
 const screener        = require('../screener/screener');
 const aggregator      = require('../strategies/aggregator');
@@ -190,18 +190,32 @@ async function signalSnapshotJob() {
 
 // Preserved: EOD data sync (daily)
 async function dataSyncJob() {
-  logger.info('[Scheduler] Running EOD data sync...');
-  const ist      = new Date(Date.now() + 5.5 * 3600000);
-  const fmt      = d => `${String(d.getUTCDate()).padStart(2,'0')}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${d.getUTCFullYear()}`;
-  const toDate   = fmt(ist);
-  const fromDate = fmt(new Date(ist.getTime() - 7 * 86400000));
+  logger.info('[Scheduler] Running EOD data sync via marketDataService...');
   let synced = 0;
 
+  // Twelve Data free tier: fetch live price per symbol and store as today EOD row.
+  // Historical OHLCV bulk import is not available on the free plan.
   for (const symbol of C.NIFTY50_SYMBOLS.slice(0, 10)) {
     try {
-      const rows = await nseFetcher.getHistoricalData(symbol, fromDate, toDate);
-      if (rows.length > 0) { await dataStore.saveDailyPrices(rows); synced++; }
-    } catch (err) { logger.warn(`[Scheduler] Sync failed for ${symbol}: ${err.message}`); }
+      const result = await marketDataService.getLivePrice(symbol);
+      const today  = new Date().toISOString().slice(0, 10);
+      const rows   = [{
+        symbol,
+        date:     today,
+        open:     result.price,
+        high:     result.price,
+        low:      result.price,
+        close:    result.price,
+        vwap:     result.price,
+        volume:   0,
+        exchange: 'NSE',
+      }];
+      await dataStore.saveDailyPrices(rows);
+      synced++;
+      logger.info(`[Scheduler] EOD sync: ${symbol} = \u20b9${result.price} (${result.source})`);
+    } catch (err) {
+      logger.warn(`[Scheduler] Sync failed for ${symbol}: ${err.message}`);
+    }
     await new Promise(r => setTimeout(r, 500));
   }
 

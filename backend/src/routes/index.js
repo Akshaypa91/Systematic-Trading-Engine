@@ -19,6 +19,7 @@ router.get('/health', (req, res) => res.json({
 }));
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
+router.get ('/data/health',              dataCtrl.getDataHealth);
 router.get ('/data/quote/:symbol',           dataCtrl.getQuote);
 router.get ('/data/historical/:symbol',      dataCtrl.getHistorical);
 router.post('/data/fetch-and-store/:symbol', dataCtrl.fetchAndStore);
@@ -71,6 +72,7 @@ router.get('/info', (req, res) => res.json({
   memory:  process.memoryUsage(),
   endpoints: [
     'GET  /api/health',
+    'GET  /api/data/health',
     'GET  /api/data/quote/:symbol',
     'GET  /api/data/historical/:symbol?from=DD-MM-YYYY&to=DD-MM-YYYY',
     'POST /api/data/fetch-and-store/:symbol',
