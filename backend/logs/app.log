@@ -2384,3 +2384,28 @@
 {"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-14 01:40:50.697"}
 {"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 2","timestamp":"2026-04-14 01:40:50.708"}
 {"level":"info","message":"[App] SIGINT — shutting down gracefully","timestamp":"2026-04-14 01:42:44.972"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-14 01:51:35.928"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 67)","timestamp":"2026-04-14 01:51:37.197"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-14 01:51:37.261"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-14 01:51:37.261"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-14 01:51:37.261"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-14 01:51:37.261"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-14 01:51:37.261"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-14 01:51:37.262"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-14 01:51:37.262"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-14 01:51:37.262"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-14 01:51:37.262"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-14 01:51:37.264"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-14 01:51:37.266"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-14 01:51:37.266"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-14 01:51:37.266"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-14 01:51:37.266"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-14 01:51:37.266"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-14 01:51:41.308"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 2","timestamp":"2026-04-14 01:51:42.890"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 3","timestamp":"2026-04-14 01:51:48.079"}
+{"level":"info","message":"[WS] Client disconnected. Total: 2","timestamp":"2026-04-14 01:51:48.082"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 3","timestamp":"2026-04-14 01:51:48.091"}
+{"level":"info","message":"[WS] Client disconnected. Total: 2","timestamp":"2026-04-14 01:51:50.437"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-14 01:51:50.437"}
+{"level":"info","message":"[App] SIGINT — shutting down gracefully","timestamp":"2026-04-14 01:53:11.288"}

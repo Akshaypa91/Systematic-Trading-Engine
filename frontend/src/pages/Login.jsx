@@ -43,10 +43,10 @@ export default function Login() {
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)' }}>
-            <Zap size={20} style={{ color: 'var(--accent-cyan)' }} />
+            <Zap size={20} style={{ color: 'var(--cyan)' }} />
           </div>
           <div>
-            <div className="text-lg font-bold tracking-widest uppercase" style={{ color: 'var(--accent-cyan)' }}>SYSTRA</div>
+            <div className="text-lg font-bold tracking-widest uppercase" style={{ color: 'var(--cyan)' }}>SYSTRA</div>
             <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Systematic Trading Engine</div>
           </div>
         </div>
@@ -59,7 +59,7 @@ export default function Login() {
 
           {error && (
             <div className="flex items-start gap-2 text-xs font-mono px-3 py-2.5 rounded-lg mb-4"
-              style={{ background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', color: 'var(--accent-red)' }}>
+              style={{ background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', color: 'var(--red)' }}>
               <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -80,7 +80,7 @@ export default function Login() {
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border)',
                   color: 'var(--text-primary)',
-                  fontFamily: 'IBM Plex Mono, monospace',
+                  fontFamily: 'var(--font-mono), monospace',
                 }}
                 onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border)'}
@@ -102,7 +102,7 @@ export default function Login() {
                     background: 'var(--bg-elevated)',
                     border: '1px solid var(--border)',
                     color: 'var(--text-primary)',
-                    fontFamily: 'IBM Plex Mono, monospace',
+                    fontFamily: 'var(--font-mono), monospace',
                   }}
                   onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
                   onBlur={e  => e.target.style.borderColor = 'var(--border)'}
@@ -120,7 +120,7 @@ export default function Login() {
               style={{
                 background: loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)',
                 border: '1px solid rgba(0,212,255,0.4)',
-                color: 'var(--accent-cyan)',
+                color: 'var(--cyan)',
               }}
               onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(0,212,255,0.2)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)'; }}>
@@ -131,7 +131,7 @@ export default function Login() {
           <p className="text-center text-xs mt-5" style={{ color: 'var(--text-muted)' }}>
             No account?{' '}
             <Link to="/signup" className="transition-colors"
-              style={{ color: 'var(--accent-cyan)' }}
+              style={{ color: 'var(--cyan)' }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
               onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
               Create one

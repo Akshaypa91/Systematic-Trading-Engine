@@ -114,7 +114,7 @@ export default function Backtest() {
                   ))}
                   <button type="submit" disabled={loading}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all mt-2 disabled:opacity-50"
-                    style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--accent-cyan)' }}>
+                    style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}>
                     {loading ? <><RefreshCw size={13} className="animate-spin" /> Running...</> : <><Play size={13} /> Run Backtest</>}
                   </button>
                 </form>
@@ -134,7 +134,7 @@ export default function Backtest() {
                         style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.symbol}</span>
-                          <span className="text-xs font-mono" style={{ color: Number(r.total_return_pct) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
+                          <span className="text-xs font-mono" style={{ color: Number(r.total_return_pct) >= 0 ? 'var(--green)' : 'var(--red)' }}>
                             {Number(r.total_return_pct) >= 0 ? '+' : ''}{Number(r.total_return_pct).toFixed(1)}%
                           </span>
                         </div>
@@ -166,10 +166,10 @@ export default function Backtest() {
               {s && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 fade-in">
                   {[
-                    { label: 'Total Return', value: `${s.totalReturnPct?.toFixed(2)}%`, color: s.totalReturnPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', icon: TrendingUp },
-                    { label: 'Win Rate',     value: `${s.winRatePct?.toFixed(1)}%`,     color: 'var(--accent-cyan)',  icon: Activity },
-                    { label: 'Sharpe',       value: s.sharpeRatio?.toFixed(3),           color: 'var(--accent-amber)', icon: BarChart2 },
-                    { label: 'Max DD',       value: `${s.maxDrawdownPct?.toFixed(2)}%`,  color: 'var(--accent-red)',   icon: Shield },
+                    { label: 'Total Return', value: `${s.totalReturnPct?.toFixed(2)}%`, color: s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)', icon: TrendingUp },
+                    { label: 'Win Rate',     value: `${s.winRatePct?.toFixed(1)}%`,     color: 'var(--cyan)',  icon: Activity },
+                    { label: 'Sharpe',       value: s.sharpeRatio?.toFixed(3),           color: 'var(--amber)', icon: BarChart2 },
+                    { label: 'Max DD',       value: `${s.maxDrawdownPct?.toFixed(2)}%`,  color: 'var(--red)',   icon: Shield },
                   ].map(({ label, value, color, icon: Icon }) => (
                     <div key={label} className="rounded-xl p-4"
                       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -189,24 +189,24 @@ export default function Backtest() {
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Performance</h3>
                     <StatRow label="Initial Capital"  value={`₹${Number(s.initialCapital).toLocaleString('en-IN')}`} />
-                    <StatRow label="Final Capital"    value={`₹${Number(s.finalCapital).toLocaleString('en-IN')}`}   color={s.totalReturnPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'} />
+                    <StatRow label="Final Capital"    value={`₹${Number(s.finalCapital).toLocaleString('en-IN')}`}   color={s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)'} />
                     <StatRow label="Ann. Return"      value={`${s.annualisedReturnPct?.toFixed(2)}%`} />
                     <StatRow label="Profit Factor"    value={s.profitFactor?.toFixed(2)} />
-                    <StatRow label="Avg Win"          value={`${s.avgWinPct?.toFixed(2)}%`}  color="var(--accent-green)" />
-                    <StatRow label="Avg Loss"         value={`${s.avgLossPct?.toFixed(2)}%`} color="var(--accent-red)" />
+                    <StatRow label="Avg Win"          value={`${s.avgWinPct?.toFixed(2)}%`}  color="var(--green)" />
+                    <StatRow label="Avg Loss"         value={`${s.avgLossPct?.toFixed(2)}%`} color="var(--red)" />
                   </div>
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Trade Stats</h3>
                     <StatRow label="Total Trades"   value={s.totalTrades} />
-                    <StatRow label="Winning Trades" value={s.winningTrades} color="var(--accent-green)" />
-                    <StatRow label="Losing Trades"  value={s.losingTrades}  color="var(--accent-red)" />
+                    <StatRow label="Winning Trades" value={s.winningTrades} color="var(--green)" />
+                    <StatRow label="Losing Trades"  value={s.losingTrades}  color="var(--red)" />
                     <StatRow label="Win Rate"       value={`${s.winRatePct?.toFixed(1)}%`} />
                     <StatRow label="Period"         value={`${s.startDate} → ${s.endDate}`} />
                   </div>
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Risk Metrics</h3>
                     <StatRow label="Sharpe Ratio"   value={s.sharpeRatio?.toFixed(4)} />
-                    <StatRow label="Max Drawdown"   value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--accent-red)" />
+                    <StatRow label="Max Drawdown"   value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--red)" />
                     <StatRow label="Stop Loss"      value={`${(form.stopLossPct * 100).toFixed(1)}%`} />
                     <StatRow label="Take Profit"    value={`${(form.takeProfitPct * 100).toFixed(1)}%`} />
                     <StatRow label="Risk/Trade"     value={`${(form.riskPerTrade * 100).toFixed(1)}%`} />

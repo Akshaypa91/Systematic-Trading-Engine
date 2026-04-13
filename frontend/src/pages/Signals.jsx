@@ -18,9 +18,9 @@ const AUTO_REFRESH_OPTIONS = [0, 30, 60, 120, 300]; // seconds; 0 = off
 
 // ── Signal config ─────────────────────────────────────────────────────────────
 const SIG_CFG = {
-  BUY:  { color: 'var(--accent-green)', bg: 'rgba(0,230,118,0.08)',  border: 'rgba(0,230,118,0.25)',  icon: TrendingUp },
-  SELL: { color: 'var(--accent-red)',   bg: 'rgba(255,71,87,0.08)',  border: 'rgba(255,71,87,0.25)',  icon: TrendingDown },
-  HOLD: { color: 'var(--accent-amber)', bg: 'rgba(255,167,38,0.08)', border: 'rgba(255,167,38,0.25)', icon: Minus },
+  BUY:  { color: 'var(--green)', bg: 'rgba(0,230,118,0.08)',  border: 'rgba(0,230,118,0.25)',  icon: TrendingUp },
+  SELL: { color: 'var(--red)',   bg: 'rgba(255,71,87,0.08)',  border: 'rgba(255,71,87,0.25)',  icon: TrendingDown },
+  HOLD: { color: 'var(--amber)', bg: 'rgba(255,167,38,0.08)', border: 'rgba(255,167,38,0.25)', icon: Minus },
 };
 
 // ── Helper components ─────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ function ConfidenceRing({ value = 0 }) {
   const pct   = Math.round(value * 100);
   const r     = 28, circ = 2 * Math.PI * r;
   const dash  = (pct / 100) * circ;
-  const color = pct > 65 ? 'var(--accent-green)' : pct > 35 ? 'var(--accent-cyan)' : 'var(--accent-amber)';
+  const color = pct > 65 ? 'var(--green)' : pct > 35 ? 'var(--cyan)' : 'var(--amber)';
   return (
     <div className="relative flex items-center justify-center" style={{ width: 72, height: 72 }}>
       <svg width="72" height="72" style={{ transform: 'rotate(-90deg)' }}>
@@ -79,7 +79,7 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
             <button onClick={() => onToggleAlert(symbol)}
               className="p-1.5 rounded transition-colors"
               title={alertEnabled ? 'Alerts on' : 'Alerts off'}
-              style={{ color: alertEnabled ? 'var(--accent-amber)' : 'var(--text-muted)', background: alertEnabled ? 'rgba(255,167,38,0.1)' : 'transparent' }}>
+              style={{ color: alertEnabled ? 'var(--amber)' : 'var(--text-muted)', background: alertEnabled ? 'rgba(255,167,38,0.1)' : 'transparent' }}>
               {alertEnabled ? <Bell size={12} /> : <BellOff size={12} />}
             </button>
             <button onClick={() => setExpanded(v => !v)}
@@ -89,7 +89,7 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
             </button>
             <button onClick={onRemove} className="p-1.5 rounded transition-colors"
               style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-red)'}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
               <X size={12} />
             </button>
@@ -115,9 +115,9 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
         {/* Quick indicators */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: 'RSI', value: rsiValue != null ? Number(rsiValue).toFixed(1) : '—', color: rsiValue > 70 ? 'var(--accent-red)' : rsiValue < 30 ? 'var(--accent-green)' : 'var(--text-primary)' },
-            { label: 'Z-Score', value: zScore != null ? Number(zScore).toFixed(2) : '—', color: Math.abs(zScore||0) > 1.5 ? 'var(--accent-amber)' : 'var(--text-primary)' },
-            { label: 'MA Cross', value: maFast && maSlow ? (maFast > maSlow ? '▲ Bull' : '▼ Bear') : '—', color: maFast > maSlow ? 'var(--accent-green)' : 'var(--accent-red)' },
+            { label: 'RSI', value: rsiValue != null ? Number(rsiValue).toFixed(1) : '—', color: rsiValue > 70 ? 'var(--red)' : rsiValue < 30 ? 'var(--green)' : 'var(--text-primary)' },
+            { label: 'Z-Score', value: zScore != null ? Number(zScore).toFixed(2) : '—', color: Math.abs(zScore||0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)' },
+            { label: 'MA Cross', value: maFast && maSlow ? (maFast > maSlow ? '▲ Bull' : '▼ Bear') : '—', color: maFast > maSlow ? 'var(--green)' : 'var(--red)' },
           ].map(({ label, value, color }) => (
             <div key={label} className="p-2 rounded-lg text-center"
               style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
@@ -135,7 +135,7 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} margin={{ top: 0, right: 20, bottom: 0, left: 20 }}>
                   <PolarGrid stroke="var(--border)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'IBM Plex Mono' }} />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' }} />
                   <Radar name={symbol} dataKey="value" stroke={c.color} fill={c.color} fillOpacity={0.2} />
                 </RadarChart>
               </ResponsiveContainer>
@@ -260,7 +260,7 @@ export default function Signals() {
                 <Clock size={11} />
                 <select value={autoRefresh} onChange={e => setAutoRefresh(+e.target.value)}
                   className="bg-transparent outline-none text-xs font-mono"
-                  style={{ color: autoRefresh > 0 ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}>
+                  style={{ color: autoRefresh > 0 ? 'var(--cyan)' : 'var(--text-secondary)' }}>
                   <option value={0}>Auto-refresh: Off</option>
                   <option value={30}>Every 30s</option>
                   <option value={60}>Every 1m</option>
@@ -268,7 +268,7 @@ export default function Signals() {
                   <option value={300}>Every 5m</option>
                 </select>
                 {autoRefresh > 0 && signals.length > 0 && (
-                  <span style={{ color: 'var(--accent-cyan)' }}>{countdown}s</span>
+                  <span style={{ color: 'var(--cyan)' }}>{countdown}s</span>
                 )}
               </div>
               {signals.length > 0 && (
@@ -294,7 +294,7 @@ export default function Signals() {
                     style={{
                       background: strategy === s ? 'rgba(0,212,255,0.12)' : 'var(--bg-elevated)',
                       border: strategy === s ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)',
-                      color: strategy === s ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                      color: strategy === s ? 'var(--cyan)' : 'var(--text-muted)',
                     }}>
                     {s.replace(/_/g, ' ')}
                   </button>
@@ -313,12 +313,12 @@ export default function Signals() {
                     style={{
                       background: already ? 'rgba(0,212,255,0.08)' : 'var(--bg-elevated)',
                       border: already ? '1px solid rgba(0,212,255,0.3)' : '1px solid var(--border)',
-                      color: already ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                      color: already ? 'var(--cyan)' : 'var(--text-muted)',
                     }}>
                     {sym}
                     {already && (
                       <span className="ml-1.5 text-xs" style={{
-                        color: already.signal === 'BUY' ? 'var(--accent-green)' : already.signal === 'SELL' ? 'var(--accent-red)' : 'var(--accent-amber)',
+                        color: already.signal === 'BUY' ? 'var(--green)' : already.signal === 'SELL' ? 'var(--red)' : 'var(--amber)',
                         fontSize: 9,
                       }}>
                         {already.signal === 'BUY' ? '▲' : already.signal === 'SELL' ? '▼' : '—'}
@@ -341,7 +341,7 @@ export default function Signals() {
               <button onClick={() => { if (custom) { fetchSignal(custom); setCustom(''); }}}
                 disabled={!custom || loading}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-mono transition-all disabled:opacity-40"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--accent-cyan)' }}>
+                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--cyan)' }}>
                 <Plus size={11} /> Add Signal
               </button>
             </div>
@@ -353,9 +353,9 @@ export default function Signals() {
               {/* Summary cards */}
               <div className="flex flex-col gap-3">
                 {[
-                  { label: 'BUY Signals',  count: buys,  color: 'var(--accent-green)', icon: TrendingUp },
-                  { label: 'SELL Signals', count: sells, color: 'var(--accent-red)',   icon: TrendingDown },
-                  { label: 'HOLD',         count: holds, color: 'var(--accent-amber)', icon: Minus },
+                  { label: 'BUY Signals',  count: buys,  color: 'var(--green)', icon: TrendingUp },
+                  { label: 'SELL Signals', count: sells, color: 'var(--red)',   icon: TrendingDown },
+                  { label: 'HOLD',         count: holds, color: 'var(--amber)', icon: Minus },
                 ].map(({ label, count, color, icon: Icon }) => (
                   <div key={label} className="flex items-center gap-3 p-3 rounded-xl"
                     style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -380,17 +380,17 @@ export default function Signals() {
                 <div style={{ height: 140 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-                      <XAxis dataKey="symbol" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'IBM Plex Mono' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'IBM Plex Mono' }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                      <XAxis dataKey="symbol" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} domain={[0, 100]} />
                       <Tooltip
                         formatter={v => [`${v}%`, 'Confidence']}
-                        contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, fontFamily: 'IBM Plex Mono', fontSize: 11 }}
+                        contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, fontFamily: 'var(--font-mono)', fontSize: 11 }}
                         labelStyle={{ color: 'var(--text-secondary)' }} />
                       <Bar dataKey="confidence" radius={[4, 4, 0, 0]} maxBarSize={40}>
                         {chartData.map((entry, i) => (
                           <Cell key={i} fill={
-                            entry.signal === 'BUY'  ? 'var(--accent-green)' :
-                            entry.signal === 'SELL' ? 'var(--accent-red)'   : 'var(--accent-amber)'
+                            entry.signal === 'BUY'  ? 'var(--green)' :
+                            entry.signal === 'SELL' ? 'var(--red)'   : 'var(--amber)'
                           } fillOpacity={0.8} />
                         ))}
                       </Bar>

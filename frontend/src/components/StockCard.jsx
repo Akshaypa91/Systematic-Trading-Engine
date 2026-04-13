@@ -1,24 +1,21 @@
-import { TrendingUp, TrendingDown, Minus, Activity, BarChart2, Zap, RefreshCw, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, RefreshCw, Clock, Activity, BarChart2 } from 'lucide-react';
 
-const SIGNAL_CONFIG = {
-  BUY:  { color: 'var(--green)',  bg: 'rgba(0,229,160,0.10)',  border: 'rgba(0,229,160,0.30)',  icon: TrendingUp,   glow: 'var(--glow-green)' },
-  SELL: { color: 'var(--red)',    bg: 'rgba(255,77,106,0.10)', border: 'rgba(255,77,106,0.30)', icon: TrendingDown, glow: 'var(--glow-red)'   },
-  HOLD: { color: 'var(--text-secondary)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.10)', icon: Minus, glow: 'none' },
+const SIG = {
+  BUY:  { color: 'var(--green)', bg: 'rgba(0,229,160,0.10)', border: 'rgba(0,229,160,0.30)', icon: TrendingUp  },
+  SELL: { color: 'var(--red)',   bg: 'rgba(255,77,106,0.10)', border: 'rgba(255,77,106,0.30)', icon: TrendingDown },
+  HOLD: { color: 'var(--amber)', bg: 'rgba(255,176,32,0.10)', border: 'rgba(255,176,32,0.30)', icon: Minus       },
 };
 
-function StatPill({ label, value, color }) {
+function Pill({ label, value, color }) {
   return (
     <div style={{
-      padding: '8px 14px',
-      background: 'var(--bg-base)',
-      border: '1px solid var(--border)',
-      borderRadius: 8,
-      display: 'flex', flexDirection: 'column', gap: 4,
+      padding: '8px 12px', background: 'var(--bg-base)',
+      border: '1px solid var(--border)', borderRadius: 8,
     }}>
-      <span className="section-label">{label}</span>
-      <span className="font-mono" style={{ fontSize: 14, fontWeight: 700, color: color || 'var(--text-primary)' }}>
+      <div className="section-label" style={{ marginBottom: 4 }}>{label}</div>
+      <div className="font-mono" style={{ fontSize: 13, fontWeight: 700, color: color || 'var(--text-primary)' }}>
         {value ?? '—'}
-      </span>
+      </div>
     </div>
   );
 }
@@ -28,67 +25,52 @@ function RSIBar({ value }) {
   const pct   = Math.min(Math.max(value, 0), 100);
   const color = value >= 70 ? 'var(--red)' : value <= 30 ? 'var(--green)' : 'var(--cyan)';
   const zone  = value >= 70 ? 'Overbought' : value <= 30 ? 'Oversold' : 'Neutral';
-
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span className="section-label">RSI (14)</span>
-        <span className="font-mono" style={{ fontSize: 11, color }}>
-          {value.toFixed(1)} · {zone}
-        </span>
+        <span className="font-mono" style={{ fontSize: 11, color }}>{value.toFixed(1)} · {zone}</span>
       </div>
-      <div style={{ height: 4, background: 'var(--bg-base)', borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
-        {/* Zone markers */}
-        <div style={{ position: 'absolute', left: '30%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.08)' }} />
-        <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.08)' }} />
-        {/* Fill */}
+      <div style={{ height: 4, background: 'var(--bg-base)', borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: '30%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.07)' }} />
         <div style={{
-          height: '100%', width: `${pct}%`, borderRadius: 2,
-          background: color,
+          height: '100%', width: `${pct}%`, background: color, borderRadius: 2,
           transition: 'width 0.6s cubic-bezier(0.34,1.56,0.64,1)',
-          boxShadow: `0 0 8px ${color}40`,
         }} />
       </div>
     </div>
   );
 }
 
-function ConfidenceBar({ value }) {
+function ConfBar({ value }) {
   if (value == null) return null;
   const pct = Math.min(Math.max(value * 100, 0), 100);
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span className="section-label">Signal Confidence</span>
-        <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-          {pct.toFixed(1)}%
-        </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span className="section-label">Confidence</span>
+        <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{pct.toFixed(1)}%</span>
       </div>
-      <div style={{ height: 4, background: 'var(--bg-base)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${pct}%`, borderRadius: 2,
-          background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
-          transition: 'width 0.6s cubic-bezier(0.34,1.56,0.64,1)',
-        }} />
+      <div className="conf-track">
+        <div className="conf-fill" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--cyan), var(--purple))' }} />
       </div>
     </div>
   );
 }
 
 export default function StockCard({ data, loading, onRefresh }) {
-  // Loading skeleton
   if (loading) {
     return (
       <div className="card fade-in" style={{ padding: 24 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[180, 120, 60].map((w, i) => (
-            <div key={i} style={{
-              height: i === 0 ? 28 : 16, width: `${w}px`, borderRadius: 6,
-              background: 'linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 1.4s infinite',
-            }} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="skeleton" style={{ width: 160, height: 22 }} />
+          <div className="skeleton" style={{ width: 220, height: 32 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+            {[0,1,2].map(i => <div key={i} className="skeleton" style={{ height: 54 }} />)}
+          </div>
+          <div className="skeleton" style={{ height: 4 }} />
+          <div className="skeleton" style={{ height: 4 }} />
         </div>
       </div>
     );
@@ -97,65 +79,58 @@ export default function StockCard({ data, loading, onRefresh }) {
   if (!data) return null;
 
   const signal = (data.signal || 'HOLD').toUpperCase();
-  const cfg    = SIGNAL_CONFIG[signal] || SIGNAL_CONFIG.HOLD;
+  const cfg    = SIG[signal] || SIG.HOLD;
   const Icon   = cfg.icon;
 
-  const price      = data.price ?? data.lastPrice ?? data.data?.price ?? data.data?.lastPrice;
-  const rsi        = data.rsi ?? data.indicators?.rsi ?? data.rsiValue;
-  const confidence = data.confidence;
-  const trend      = data.trend ?? data.regime;
-  const symbol     = data.symbol;
-  const maFast     = data.maFast ?? data.indicators?.maFast;
-  const maSlow     = data.maSlow ?? data.indicators?.maSlow;
-  const zScore     = data.zScore ?? data.indicators?.zScore;
-  const source     = data.source;
-  const fetchedAt  = data.fetchedAt ?? data.timestamp;
+  const price     = data.price ?? data.lastPrice;
+  const rsi       = data.rsi ?? data.rsiValue;
+  const conf      = data.confidence;
+  const trend     = data.trend ?? data.regime;
+  const maFast    = data.maFast;
+  const maSlow    = data.maSlow;
+  const zScore    = data.zScore;
+  const source    = data.source;
+  const fetchedAt = data.fetchedAt ?? data.timestamp;
 
   return (
     <div className="card fade-up" style={{
       padding: 24, position: 'relative', overflow: 'hidden',
       borderColor: cfg.border,
-      boxShadow: `inset 0 0 0 1px ${cfg.border}`,
     }}>
-      {/* Ambient glow strip */}
+      {/* Top accent stripe */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg, transparent, ${cfg.color}80, transparent)`,
+        background: `linear-gradient(90deg, transparent, ${cfg.color}70, transparent)`,
       }} />
 
-      {/* Header row */}
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <span className="font-mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>
-              {symbol}
+            <span className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>
+              {data.symbol}
             </span>
             {source && (
               <span className="font-mono" style={{
-                fontSize: 9, padding: '2px 7px', borderRadius: 4,
+                fontSize: 9, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.08em',
                 background: source === 'API' ? 'rgba(0,229,160,0.10)' : 'rgba(255,176,32,0.10)',
                 border: `1px solid ${source === 'API' ? 'rgba(0,229,160,0.25)' : 'rgba(255,176,32,0.25)'}`,
                 color: source === 'API' ? 'var(--green)' : 'var(--amber)',
-                letterSpacing: '0.08em',
               }}>
                 {source === 'API' ? '● LIVE' : '◌ SIM'}
               </span>
             )}
           </div>
-
           {price != null && (
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span className="font-mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                ₹{Number(price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
+            <div className="font-mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              ₹{Number(price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           )}
-
           {fetchedAt && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
               <Clock size={10} style={{ color: 'var(--text-muted)' }} />
               <span className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                {new Date(fetchedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                {new Date(fetchedAt).toLocaleTimeString('en-IN', { hour12: false })}
               </span>
             </div>
           )}
@@ -165,9 +140,8 @@ export default function StockCard({ data, loading, onRefresh }) {
           {/* Signal badge */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 7,
-            padding: '8px 16px', borderRadius: 8,
+            padding: '8px 14px', borderRadius: 8,
             background: cfg.bg, border: `1px solid ${cfg.border}`,
-            boxShadow: cfg.glow,
           }}>
             <Icon size={14} style={{ color: cfg.color }} strokeWidth={2.5} />
             <span className="font-mono" style={{ fontSize: 13, fontWeight: 700, color: cfg.color, letterSpacing: '0.08em' }}>
@@ -175,53 +149,47 @@ export default function StockCard({ data, loading, onRefresh }) {
             </span>
           </div>
 
-          {/* Trend badge */}
           {trend && (
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '4px 10px', borderRadius: 6,
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '3px 10px', borderRadius: 6,
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',
             }}>
-              {trend === 'TRENDING' || trend === 'BULL' || trend === 'BEAR'
-                ? <Activity size={11} style={{ color: 'var(--cyan)' }} />
-                : <BarChart2 size={11} style={{ color: 'var(--amber)' }} />
+              {trend.includes('TREND') || trend.includes('BULL') || trend.includes('BEAR')
+                ? <Activity size={10} style={{ color: 'var(--cyan)' }} />
+                : <BarChart2 size={10} style={{ color: 'var(--amber)' }} />
               }
-              <span className="font-mono" style={{ fontSize: 10, color: 'var(--text-secondary)', letterSpacing: '0.06em' }}>
-                {trend}
-              </span>
+              <span className="font-mono" style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{trend}</span>
             </div>
           )}
 
           {onRefresh && (
-            <button onClick={onRefresh} className="btn btn-ghost"
-              style={{ padding: '4px 8px', fontSize: 10 }}>
-              <RefreshCw size={11} />
-              Refresh
+            <button onClick={onRefresh} className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 10 }}>
+              <RefreshCw size={10} />Refresh
             </button>
           )}
         </div>
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 }}>
-        <StatPill label="RSI" value={rsi != null ? rsi.toFixed(1) : null}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+        <Pill label="RSI" value={rsi != null ? rsi.toFixed(1) : null}
           color={rsi >= 70 ? 'var(--red)' : rsi <= 30 ? 'var(--green)' : 'var(--text-primary)'} />
-        <StatPill label="MA Fast" value={maFast != null ? `₹${Number(maFast).toFixed(2)}` : null} />
-        <StatPill label="MA Slow"  value={maSlow != null ? `₹${Number(maSlow).toFixed(2)}` : null} />
+        <Pill label="MA Fast" value={maFast != null ? `₹${Number(maFast).toFixed(0)}` : null} />
+        <Pill label="MA Slow"  value={maSlow != null ? `₹${Number(maSlow).toFixed(0)}` : null} />
         {zScore != null && (
-          <StatPill label="Z-Score" value={zScore.toFixed(3)}
+          <Pill label="Z-Score" value={zScore.toFixed(3)}
             color={Math.abs(zScore) > 2 ? 'var(--amber)' : 'var(--text-primary)'} />
         )}
-        {confidence != null && (
-          <StatPill label="Confidence" value={`${(confidence * 100).toFixed(1)}%`}
-            color="var(--cyan)" />
+        {conf != null && (
+          <Pill label="Confidence" value={`${(conf * 100).toFixed(1)}%`} color="var(--cyan)" />
         )}
       </div>
 
       {/* Progress bars */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
         <RSIBar value={rsi} />
-        <ConfidenceBar value={confidence} />
+        <ConfBar value={conf} />
       </div>
     </div>
   );

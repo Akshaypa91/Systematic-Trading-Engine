@@ -14,7 +14,7 @@ const FILTERS = ['ALL', 'BUY_CANDIDATES', 'SELL_CANDIDATES', 'NEUTRAL'];
 
 function ScoreBadge({ score }) {
   const pct   = (score * 100).toFixed(1);
-  const color = score > 0.6 ? 'var(--accent-green)' : score > 0.4 ? 'var(--accent-amber)' : 'var(--accent-red)';
+  const color = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
   return (
     <div className="flex items-center gap-2">
       <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
@@ -27,9 +27,9 @@ function ScoreBadge({ score }) {
 
 function SignalChip({ signal, size = 'sm' }) {
   const map = {
-    BUY:  { bg: 'rgba(0,230,118,0.12)', border: 'rgba(0,230,118,0.3)',  color: 'var(--accent-green)', icon: TrendingUp },
-    SELL: { bg: 'rgba(255,71,87,0.12)',  border: 'rgba(255,71,87,0.3)',  color: 'var(--accent-red)',   icon: TrendingDown },
-    HOLD: { bg: 'rgba(255,167,38,0.12)', border: 'rgba(255,167,38,0.3)', color: 'var(--accent-amber)', icon: Minus },
+    BUY:  { bg: 'rgba(0,230,118,0.12)', border: 'rgba(0,230,118,0.3)',  color: 'var(--green)', icon: TrendingUp },
+    SELL: { bg: 'rgba(255,71,87,0.12)',  border: 'rgba(255,71,87,0.3)',  color: 'var(--red)',   icon: TrendingDown },
+    HOLD: { bg: 'rgba(255,167,38,0.12)', border: 'rgba(255,167,38,0.3)', color: 'var(--amber)', icon: Minus },
   };
   const c = map[signal] || map.HOLD;
   const Icon = c.icon;
@@ -43,10 +43,10 @@ function SignalChip({ signal, size = 'sm' }) {
 }
 
 function MiniSparkline({ data }) {
-  if (!data?.length) return <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono' }}>No history yet</span></div>;
+  if (!data?.length) return <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'var(--text-muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>No history yet</span></div>;
   const min = Math.min(...data), max = Math.max(...data);
   const isUp = data[data.length - 1] >= data[0];
-  const color = isUp ? 'var(--accent-green)' : 'var(--accent-red)';
+  const color = isUp ? 'var(--green)' : 'var(--red)';
   return (
     <div style={{ width: '100%', height: 50 }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -59,7 +59,7 @@ function MiniSparkline({ data }) {
           </defs>
           <YAxis domain={[min * 0.99, max * 1.01]} hide />
           <Tooltip formatter={v => [`₹${Number(v).toFixed(2)}`, '']}
-            contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 10, fontFamily: 'IBM Plex Mono' }} />
+            contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 10, fontFamily: 'var(--font-mono)' }} />
           <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5} fill="url(#spkGrad)" dot={false} isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
@@ -98,7 +98,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
 
   if (!row) return null;
   const score = row.compositeScore ?? 0;
-  const scoreColor = score > 0.6 ? 'var(--accent-green)' : score > 0.4 ? 'var(--accent-amber)' : 'var(--accent-red)';
+  const scoreColor = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
 
   return (
     <div className="fixed right-0 top-14 bottom-0 w-80 z-40 flex flex-col fade-in overflow-y-auto"
@@ -110,7 +110,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
         </div>
         <button onClick={onClose} className="p-1.5 rounded"
           style={{ color: 'var(--text-muted)' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-red)'}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
           <X size={16} />
         </button>
@@ -139,10 +139,10 @@ function DetailPanel({ row, onClose, onBacktest }) {
           <div>
             <div className="flex justify-between text-xs font-mono mb-1">
               <span style={{ color: 'var(--text-muted)' }}>Confidence</span>
-              <span style={{ color: 'var(--accent-cyan)' }}>{Math.round(signal.confidence * 100)}%</span>
+              <span style={{ color: 'var(--cyan)' }}>{Math.round(signal.confidence * 100)}%</span>
             </div>
             <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: `${signal.confidence * 100}%`, background: 'var(--accent-cyan)', transition: 'width 0.5s' }} />
+              <div className="h-full rounded-full" style={{ width: `${signal.confidence * 100}%`, background: 'var(--cyan)', transition: 'width 0.5s' }} />
             </div>
           </div>
         )}
@@ -161,10 +161,10 @@ function DetailPanel({ row, onClose, onBacktest }) {
           <div className="grid grid-cols-2 gap-2">
             <StatBlock label="RSI (14)"
               value={row.rsi != null ? Number(row.rsi).toFixed(1) : '—'}
-              color={row.rsi > 70 ? 'var(--accent-red)' : row.rsi < 30 ? 'var(--accent-green)' : 'var(--text-primary)'} />
+              color={row.rsi > 70 ? 'var(--red)' : row.rsi < 30 ? 'var(--green)' : 'var(--text-primary)'} />
             <StatBlock label="Z-Score"
               value={signal?.zScore != null ? Number(signal.zScore).toFixed(3) : '—'}
-              color={Math.abs(signal?.zScore || 0) > 1.5 ? 'var(--accent-amber)' : 'var(--text-primary)'} />
+              color={Math.abs(signal?.zScore || 0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)'} />
             <StatBlock label="MA Fast" value={signal?.maFast != null ? `₹${Number(signal.maFast).toFixed(0)}` : '—'} />
             <StatBlock label="MA Slow" value={signal?.maSlow != null ? `₹${Number(signal.maSlow).toFixed(0)}` : '—'} />
           </div>
@@ -175,7 +175,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
             style={{
               background: row.rsi > 70 ? 'rgba(255,71,87,0.08)' : row.rsi < 30 ? 'rgba(0,230,118,0.08)' : 'var(--bg-card)',
               border: `1px solid ${row.rsi > 70 ? 'rgba(255,71,87,0.3)' : row.rsi < 30 ? 'rgba(0,230,118,0.3)' : 'var(--border)'}`,
-              color: row.rsi > 70 ? 'var(--accent-red)' : row.rsi < 30 ? 'var(--accent-green)' : 'var(--text-muted)',
+              color: row.rsi > 70 ? 'var(--red)' : row.rsi < 30 ? 'var(--green)' : 'var(--text-muted)',
             }}>
             {row.rsi > 70 ? '⚠ Overbought — RSI above 70' : row.rsi < 30 ? '✓ Oversold — potential buy zone' : 'RSI in neutral zone (30–70)'}
           </div>
@@ -184,7 +184,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
         <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={() => onBacktest(row.symbol)}
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-semibold transition-all"
-            style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--accent-cyan)' }}
+            style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,255,0.2)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,212,255,0.12)'}>
             <Play size={13} /> Backtest {row.symbol}
@@ -238,7 +238,7 @@ export default function Screener() {
     .sort((a, b) => { const av = a[sortKey] ?? 0, bv = b[sortKey] ?? 0; return sortAsc ? av - bv : bv - av; });
 
   const SortIcon = ({ col }) => (
-    <ArrowUpDown size={10} style={{ color: sortKey === col ? 'var(--accent-cyan)' : 'var(--text-muted)', display: 'inline', marginLeft: 4 }} />
+    <ArrowUpDown size={10} style={{ color: sortKey === col ? 'var(--cyan)' : 'var(--text-muted)', display: 'inline', marginLeft: 4 }} />
   );
 
   const panelOpen = !!selected;
@@ -247,7 +247,7 @@ export default function Screener() {
     <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <Navbar />
       <Sidebar />
-      <main style={{ marginLeft: 192, marginRight: panelOpen ? 320 : 0, paddingTop: 56, minHeight: '100vh', transition: 'margin-right 0.3s' }}>
+      <main style={{ marginLeft: 'var(--sidebar-w)', marginRight: panelOpen ? 320 : 0, paddingTop: 'var(--navbar-h)', minHeight: '100vh', transition: 'margin-right 0.3s' }}>
         <div className="p-6 max-w-screen-xl">
 
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -258,12 +258,12 @@ export default function Screener() {
             <div className="flex items-center gap-2">
               <button onClick={() => setShowWeights(v => !v)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
-                style={{ background: showWeights ? 'rgba(0,212,255,0.1)' : 'var(--bg-card)', border: showWeights ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: showWeights ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}>
+                style={{ background: showWeights ? 'rgba(0,212,255,0.1)' : 'var(--bg-card)', border: showWeights ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: showWeights ? 'var(--cyan)' : 'var(--text-secondary)' }}>
                 <SlidersHorizontal size={12} /> Weights
               </button>
               <button onClick={fetchScreener} disabled={loading}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all disabled:opacity-50"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--accent-cyan)' }}>
+                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--cyan)' }}>
                 <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
               </button>
             </div>
@@ -272,9 +272,9 @@ export default function Screener() {
           {results.length > 0 && (
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[
-                { label: 'BUY Candidates',  count: results.filter(r => r.signal === 'BUY').length,  color: 'var(--accent-green)', icon: TrendingUp },
-                { label: 'HOLD',            count: results.filter(r => r.signal === 'HOLD').length, color: 'var(--accent-amber)', icon: Minus },
-                { label: 'SELL Candidates', count: results.filter(r => r.signal === 'SELL').length, color: 'var(--accent-red)',   icon: TrendingDown },
+                { label: 'BUY Candidates',  count: results.filter(r => r.signal === 'BUY').length,  color: 'var(--green)', icon: TrendingUp },
+                { label: 'HOLD',            count: results.filter(r => r.signal === 'HOLD').length, color: 'var(--amber)', icon: Minus },
+                { label: 'SELL Candidates', count: results.filter(r => r.signal === 'SELL').length, color: 'var(--red)',   icon: TrendingDown },
               ].map(({ label, count, color, icon: Icon }) => (
                 <div key={label} className="rounded-xl p-4 flex items-center gap-3"
                   style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -301,16 +301,16 @@ export default function Screener() {
                   <div key={k}>
                     <label className="text-xs font-mono flex justify-between mb-1">
                       <span style={{ color: 'var(--text-muted)' }}>{l}</span>
-                      <span style={{ color: 'var(--accent-cyan)' }}>{weights[k]}</span>
+                      <span style={{ color: 'var(--cyan)' }}>{weights[k]}</span>
                     </label>
                     <input type="range" min="0" max="1" step="0.05" value={weights[k]}
                       onChange={e => setWeights(p => ({ ...p, [k]: +e.target.value }))}
-                      className="w-full" style={{ accentColor: 'var(--accent-cyan)' }} />
+                      className="w-full" style={{ accentColor: 'var(--cyan)' }} />
                   </div>
                 ))}
               </div>
               <button onClick={fetchScreener} className="mt-3 px-4 py-1.5 rounded text-xs font-mono"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--accent-cyan)' }}>
+                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--cyan)' }}>
                 Apply & Refresh
               </button>
             </div>
@@ -329,7 +329,7 @@ export default function Screener() {
             <div className="flex gap-1">
               {FILTERS.map(f => (
                 <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded text-xs font-mono transition-all"
-                  style={{ background: filter === f ? 'rgba(0,212,255,0.12)' : 'var(--bg-elevated)', border: filter === f ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: filter === f ? 'var(--accent-cyan)' : 'var(--text-muted)' }}>
+                  style={{ background: filter === f ? 'rgba(0,212,255,0.12)' : 'var(--bg-elevated)', border: filter === f ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: filter === f ? 'var(--cyan)' : 'var(--text-muted)' }}>
                   {f.replace(/_/g, ' ')}
                 </button>
               ))}
@@ -356,7 +356,7 @@ export default function Screener() {
                         ['RSI','rsi'],['Price','price'],['',null]].map(([label, key]) => (
                         <th key={label}
                           className={`text-left py-3 px-4 font-medium uppercase tracking-wider ${key ? 'cursor-pointer select-none' : ''}`}
-                          style={{ color: sortKey === key ? 'var(--accent-cyan)' : 'var(--text-muted)' }}
+                          style={{ color: sortKey === key ? 'var(--cyan)' : 'var(--text-muted)' }}
                           onClick={() => key && toggleSort(key)}>
                           {label}{key && <SortIcon col={key} />}
                         </th>
@@ -371,17 +371,17 @@ export default function Screener() {
                       return (
                         <tr key={row.symbol} onClick={() => setSelected(isSel ? null : row)}
                           className="transition-colors cursor-pointer"
-                          style={{ borderBottom: '1px solid rgba(30,45,69,0.5)', background: isSel ? 'rgba(0,212,255,0.06)' : 'transparent', borderLeft: isSel ? '2px solid var(--accent-cyan)' : '2px solid transparent' }}
+                          style={{ borderBottom: '1px solid rgba(30,45,69,0.5)', background: isSel ? 'rgba(0,212,255,0.06)' : 'transparent', borderLeft: isSel ? '2px solid var(--cyan)' : '2px solid transparent' }}
                           onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'rgba(0,212,255,0.03)'; }}
                           onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}>
                           <td className="py-3 px-4" style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
-                          <td className="py-3 px-4 font-bold" style={{ color: isSel ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{row.symbol}</td>
+                          <td className="py-3 px-4 font-bold" style={{ color: isSel ? 'var(--cyan)' : 'var(--text-primary)' }}>{row.symbol}</td>
                           <td className="py-3 px-4"><SignalChip signal={row.signal} /></td>
                           <td className="py-3 px-4"><ScoreBadge score={row.compositeScore ?? 0} /></td>
                           <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{row.momentumScore  != null ? (row.momentumScore  * 100).toFixed(1) + '%' : '—'}</td>
                           <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{row.volatilityScore != null ? (row.volatilityScore * 100).toFixed(1) + '%' : '—'}</td>
                           <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{row.mrScore         != null ? (row.mrScore         * 100).toFixed(1) + '%' : '—'}</td>
-                          <td className="py-3 px-4" style={{ color: row.rsi > 70 ? 'var(--accent-red)' : row.rsi < 30 ? 'var(--accent-green)' : 'var(--text-secondary)' }}>
+                          <td className="py-3 px-4" style={{ color: row.rsi > 70 ? 'var(--red)' : row.rsi < 30 ? 'var(--green)' : 'var(--text-secondary)' }}>
                             {row.rsi != null ? Number(row.rsi).toFixed(1) : '—'}
                           </td>
                           <td className="py-3 px-4" style={{ color: 'var(--text-primary)' }}>{row.price ? `₹${Number(row.price).toLocaleString('en-IN')}` : '—'}</td>
