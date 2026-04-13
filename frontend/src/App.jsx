@@ -9,6 +9,7 @@ import Screener    from './pages/Screener';
 import Backtest    from './pages/Backtest';
 import Signals     from './pages/Signals';
 import LiveTrading from './pages/LiveTrading';
+import Trade       from './pages/Trade';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/screener" element={<ProtectedRoute><Screener /></ProtectedRoute>} />
             <Route path="/backtest" element={<ProtectedRoute><Backtest /></ProtectedRoute>} />
             <Route path="/signals"  element={<ProtectedRoute><Signals /></ProtectedRoute>} />
+            <Route path="/trade"    element={<ProtectedRoute><Trade /></ProtectedRoute>} />
             <Route path="*"         element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

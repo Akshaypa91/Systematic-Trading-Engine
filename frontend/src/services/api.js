@@ -86,4 +86,17 @@ export const simAPI = {
   removeSymbol:  (symbol) => api.post('/sim/watchlist/remove', { symbol }),
 };
 
+
+// ── Market Data ───────────────────────────────────────────────────────────────
+export const marketAPI = {
+  getQuote:  (symbol) => api.get(`/data/quote/${symbol}`),
+  getHealth: ()       => api.get('/data/health'),
+};
+
+// ── Manual Trading ────────────────────────────────────────────────────────────
+export const manualTradeAPI = {
+  place: (symbol, action, qty) =>
+    api.post('/trade/manual', { symbol, action, qty }),
+};
+
 export default api;

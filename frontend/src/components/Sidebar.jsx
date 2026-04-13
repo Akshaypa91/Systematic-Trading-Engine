@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Zap, Search, TrendingUp, Activity, Radio } from 'lucide-react';
+import { LayoutDashboard, Zap, Search, TrendingUp, Activity, Radio, ArrowLeftRight } from 'lucide-react';
 
 const NAV = [
   { to: '/',         icon: LayoutDashboard, label: 'Dashboard',    end: true },
@@ -7,6 +7,7 @@ const NAV = [
   { to: '/signals',  icon: Radio,           label: 'Signals' },
   { to: '/screener', icon: Search,          label: 'Screener' },
   { to: '/backtest', icon: TrendingUp,      label: 'Backtest' },
+  { to: '/trade',    icon: ArrowLeftRight, label: 'Trade' },
 ];
 
 function isMarketOpen() {
