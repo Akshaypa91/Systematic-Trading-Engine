@@ -1,5 +1,5 @@
 // src/pages/Trade.jsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Navbar        from '../components/Navbar';
 import Sidebar       from '../components/Sidebar';
 import Toast         from '../components/Toast';
@@ -7,20 +7,59 @@ import SearchBar     from '../components/SearchBar';
 import StockCard     from '../components/StockCard';
 import TradePanel    from '../components/TradePanel';
 import PortfolioCard from '../components/PortfolioCard';
-import { marketAPI, manualTradeAPI, signalAPI } from '../services/api';
-import { Activity, Info, Layers } from 'lucide-react';
+import CapitalSetup  from '../components/CapitalSetup';
+import { marketAPI, manualTradeAPI, signalAPI, simAPI } from '../services/api';
+import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 
 const MAX_HISTORY = 8;
 
 export default function Trade() {
-  const [symbol,          setSymbol]          = useState('');
-  const [data,            setData]            = useState(null);
-  const [loading,         setLoading]         = useState(false);
-  const [toast,           setToast]           = useState(null);
-  const [history,         setHistory]         = useState([]);
+  const [symbol,           setSymbol]           = useState('');
+  const [data,             setData]             = useState(null);
+  const [loading,          setLoading]          = useState(false);
+  const [toast,            setToast]            = useState(null);
+  const [history,          setHistory]          = useState([]);
   const [portfolioRefresh, setPortfolioRefresh] = useState(0);
 
+  // ── Portfolio init state ───────────────────────────────────────────────────
+  const [initialized,     setInitialized]     = useState(null); // null = loading
+  const [checkingInit,    setCheckingInit]    = useState(true);
+
+  // On mount, check if portfolio is already initialized
+  useEffect(() => {
+    async function checkPortfolio() {
+      try {
+        const res = await simAPI.getPortfolio();
+        const port = res.data?.data ?? res.data ?? {};
+        setInitialized(port.initialized === true);
+      } catch {
+        setInitialized(false);
+      } finally {
+        setCheckingInit(false);
+      }
+    }
+    checkPortfolio();
+  }, []);
+
   const showToast = useCallback((msg, type = 'info') => setToast({ msg, type }), []);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  function handleInitialized(portfolio) {
+    setInitialized(true);
+    setPortfolioRefresh(n => n + 1);
+    showToast(
+      `Portfolio ready · ₹${Number(portfolio?.capital ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
+      'success',
+    );
+  }
+
+  function handleReset(portfolio) {
+    setPortfolioRefresh(n => n + 1);
+    showToast(
+      `Portfolio reset · ₹${Number(portfolio?.capital ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} restored`,
+      'info',
+    );
+  }
 
   const fetchStock = useCallback(async (sym) => {
     const upper = sym.toUpperCase().trim();
@@ -31,8 +70,8 @@ export default function Trade() {
         marketAPI.getQuote(upper),
         signalAPI.get(upper),
       ]);
-      const quote  = quoteRes.status  === 'fulfilled' ? quoteRes.value.data?.data   : null;
-      const signal = signalRes.status === 'fulfilled' ? signalRes.value.data        : null;
+      const quote  = quoteRes.status  === 'fulfilled' ? quoteRes.value.data?.data : null;
+      const signal = signalRes.status === 'fulfilled' ? signalRes.value.data      : null;
 
       if (!quote && !signal) throw new Error(`No data found for "${upper}"`);
 
@@ -57,8 +96,7 @@ export default function Trade() {
       const sigType = merged.signal === 'BUY' ? 'success' : merged.signal === 'SELL' ? 'error' : 'info';
       showToast(
         `${upper} · ${merged.signal}${merged.confidence != null
-          ? ` · ${(merged.confidence * 100).toFixed(0)}% confidence`
-          : ''}`,
+          ? ` · ${(merged.confidence * 100).toFixed(0)}% confidence` : ''}`,
         sigType,
       );
     } catch (err) {
@@ -68,25 +106,54 @@ export default function Trade() {
     }
   }, [showToast]);
 
-  // ── BUG FIX: handleTrade properly declares variables before use ────────────
   const handleTrade = useCallback(async ({ symbol: sym, action, qty }) => {
-    // Call API — this may throw; caller (TradePanel) wraps in try/catch
     const res = await manualTradeAPI.place(sym, action, qty);
-
-    // Refresh portfolio after trade
     setPortfolioRefresh(n => n + 1);
-
-    // Refresh stock data after short delay (price may have moved)
     setTimeout(() => fetchStock(sym), 600);
-
     showToast(
       `${action} order placed — ${qty} × ${sym}`,
       action === 'BUY' ? 'success' : 'error',
     );
-
-    return res; // return to TradePanel so it can extract order details
+    return res;
   }, [fetchStock, showToast]);
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  // Checking portfolio state on mount
+  if (checkingInit) {
+    return (
+      <div className="page-shell">
+        <Navbar />
+        <Sidebar />
+        <main className="page-content" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          minHeight: 'calc(100vh - var(--navbar-h))',
+        }}>
+          <Loader2 size={20} style={{ color: 'var(--text-muted)', animation: 'spin 1s linear infinite' }} />
+        </main>
+      </div>
+    );
+  }
+
+  // Portfolio not initialized — show capital setup screen
+  if (!initialized) {
+    return (
+      <div className="page-shell">
+        <Navbar />
+        <Sidebar />
+        <main className="page-content">
+          <CapitalSetup onInitialized={handleInitialized} />
+        </main>
+        {toast && (
+          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
+            <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Portfolio initialized — show full trading UI
   return (
     <div className="page-shell">
       <Navbar />
@@ -97,36 +164,27 @@ export default function Trade() {
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <Layers size={18} style={{ color: 'var(--cyan)' }} />
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Trade
-            </h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>Trade</h1>
           </div>
           <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 28 }}>
             Search stocks · view signals · execute manual orders
           </p>
         </div>
 
-        {/* Search + recent history */}
+        {/* Search + recent */}
         <div style={{ marginBottom: 20 }}>
           <SearchBar onSearch={fetchStock} loading={loading} />
           {history.length > 0 && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              marginTop: 10, flexWrap: 'wrap',
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
               <span className="section-label">Recent:</span>
               {history.map(sym => (
-                <button
-                  key={sym}
-                  onClick={() => fetchStock(sym)}
-                  className="font-mono"
-                  style={{
-                    padding: '3px 10px', borderRadius: 6, fontSize: 11,
-                    background: sym === symbol ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
-                    border: `1px solid ${sym === symbol ? 'rgba(0,212,255,0.30)' : 'var(--border)'}`,
-                    color: sym === symbol ? 'var(--cyan)' : 'var(--text-secondary)',
-                    cursor: 'pointer', transition: 'all 0.12s',
-                  }}>
+                <button key={sym} onClick={() => fetchStock(sym)} className="font-mono" style={{
+                  padding: '3px 10px', borderRadius: 6, fontSize: 11,
+                  background: sym === symbol ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
+                  border: `1px solid ${sym === symbol ? 'rgba(0,212,255,0.30)' : 'var(--border)'}`,
+                  color: sym === symbol ? 'var(--cyan)' : 'var(--text-secondary)',
+                  cursor: 'pointer', transition: 'all 0.12s',
+                }}>
                   {sym}
                 </button>
               ))}
@@ -134,46 +192,40 @@ export default function Trade() {
           )}
         </div>
 
-        {/* Empty state */}
+        {/* Empty state — show portfolio even with no stock selected */}
         {!data && !loading && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', padding: '60px 32px 32px', textAlign: 'center',
-          }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{
-              width: 56, height: 56, borderRadius: 16, marginBottom: 18,
-              background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              padding: '48px 32px 24px', textAlign: 'center',
             }}>
-              <Activity size={22} style={{ color: 'var(--text-muted)' }} />
+              <div style={{
+                width: 52, height: 52, borderRadius: 14, marginBottom: 16,
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Activity size={20} style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                Search for a stock to begin
+              </p>
+              <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 300, lineHeight: 1.7 }}>
+                Enter an NSE symbol above to view live price, technical signals, and execute manual trades
+              </p>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
-              Search for a stock to begin
-            </p>
-            <p className="font-mono" style={{
-              fontSize: 11, color: 'var(--text-muted)',
-              maxWidth: 320, lineHeight: 1.7,
-            }}>
-              Enter an NSE symbol above to view live price,<br />
-              technical signals, and execute manual trades
-            </p>
 
-            {/* Portfolio even in empty state */}
-            <div style={{ width: '100%', maxWidth: 600, marginTop: 32 }}>
-              <PortfolioCard refreshTrigger={portfolioRefresh} />
-            </div>
+            <PortfolioCard
+              refreshTrigger={portfolioRefresh}
+              onReset={handleReset}
+            />
           </div>
         )}
 
-        {/* Main content grid */}
+        {/* Main trading grid */}
         {(data || loading) && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 320px',
-            gap: 16, alignItems: 'start',
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16, alignItems: 'start' }}>
 
-            {/* Left column: stock card + portfolio */}
+            {/* Left: StockCard + Portfolio */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <StockCard
                 data={data}
@@ -195,10 +247,13 @@ export default function Trade() {
                 </div>
               )}
 
-              <PortfolioCard refreshTrigger={portfolioRefresh} />
+              <PortfolioCard
+                refreshTrigger={portfolioRefresh}
+                onReset={handleReset}
+              />
             </div>
 
-            {/* Right column: trade panel (sticky) */}
+            {/* Right: Trade panel (sticky) */}
             <div style={{ position: 'sticky', top: 'calc(var(--navbar-h) + 24px)' }}>
               <TradePanel
                 symbol={data?.symbol ?? symbol}

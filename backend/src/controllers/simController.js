@@ -1,11 +1,13 @@
 // src/controllers/simController.js
 // ─────────────────────────────────────────────────────────────────────────────
-// REST API controller backed entirely by simulationEngine.
-// Zero external dependencies — works with no DB, no NSE connection.
+// REST API controller backed by simulationEngine + portfolioState.
+// Adds POST /api/sim/start and POST /api/sim/reset for user-defined capital.
 // ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
-const sim = require('../engine/simulationEngine');
+const sim       = require('../engine/simulationEngine');
+const portfolio = require('../portfolio/portfolioState');
+const logger    = require('../config/logger');
 
 // ── GET /api/sim/signals ──────────────────────────────────────────────────────
 function getLiveSignals(req, res) {
@@ -16,42 +18,25 @@ function getLiveSignals(req, res) {
   const signals = sim.getLatestSignals(symbols);
   const status  = sim.getStatus();
 
-  res.json({
-    success: true,
-    count:   signals.length,
-    mode:    'SIMULATION',
-    status,
-    signals,
-  });
+  res.json({ success: true, count: signals.length, mode: 'SIMULATION', status, signals });
 }
 
 // ── GET /api/sim/portfolio ────────────────────────────────────────────────────
 function getPortfolio(req, res) {
-  res.json({
-    success: true,
-    data:    sim.getPortfolioState(),
-  });
+  res.json({ success: true, data: portfolio.getState() });
 }
 
 // ── GET /api/sim/trades ───────────────────────────────────────────────────────
 function getTrades(req, res) {
-  const limit = Math.min(parseInt(req.query.limit || '30', 10), 200);
+  const limit  = Math.min(parseInt(req.query.limit || '30', 10), 200);
   const trades = sim.getRecentTrades(limit);
-  res.json({
-    success: true,
-    count:   trades.length,
-    data:    trades,
-  });
+  res.json({ success: true, count: trades.length, data: trades });
 }
 
 // ── GET /api/sim/equity ───────────────────────────────────────────────────────
 function getEquityCurve(req, res) {
   const curve = sim.getEquityCurve();
-  res.json({
-    success: true,
-    count:   curve.length,
-    data:    curve,
-  });
+  res.json({ success: true, count: curve.length, data: curve });
 }
 
 // ── GET /api/sim/status ───────────────────────────────────────────────────────
@@ -59,7 +44,7 @@ function getStatus(req, res) {
   res.json({
     success:   true,
     engine:    sim.getStatus(),
-    portfolio: sim.getPortfolioState(),
+    portfolio: portfolio.getState(),
     timestamp: new Date().toISOString(),
   });
 }
@@ -93,8 +78,101 @@ function removeFromWatchlist(req, res) {
   res.json({ success: true, removed });
 }
 
+// ── POST /api/sim/start ───────────────────────────────────────────────────────
+/**
+ * Initialize portfolio with user-defined capital.
+ * Clears all positions and trade history.
+ * Body: { capital: number }
+ *
+ * Response: { success, message, portfolio }
+ */
+function startWithCapital(req, res) {
+  try {
+    const { capital } = req.body || {};
+
+    if (capital === undefined || capital === null || capital === '') {
+      return res.status(400).json({ success: false, error: 'capital is required' });
+    }
+
+    const cap = Number(capital);
+    if (!Number.isFinite(cap) || cap <= 0) {
+      return res.status(400).json({
+        success: false,
+        error:   `capital must be a positive number, got "${capital}"`,
+      });
+    }
+    if (cap < 1000) {
+      return res.status(400).json({
+        success: false,
+        error:   'Minimum capital is ₹1,000',
+      });
+    }
+    if (cap > 1e9) {
+      return res.status(400).json({
+        success: false,
+        error:   'Maximum capital is ₹1,00,00,00,000 (1 billion)',
+      });
+    }
+
+    portfolio.initialize(cap);
+
+    logger.info(`[SimCtrl] Portfolio initialized: ₹${cap.toLocaleString('en-IN')}`);
+
+    res.status(200).json({
+      success:   true,
+      message:   `Portfolio initialized with ₹${cap.toLocaleString('en-IN')} capital`,
+      portfolio: portfolio.getState(),
+    });
+  } catch (err) {
+    const code = err.statusCode || 500;
+    logger.error(`[SimCtrl] startWithCapital: ${err.message}`);
+    res.status(code).json({ success: false, error: err.message });
+  }
+}
+
+// ── POST /api/sim/reset ───────────────────────────────────────────────────────
+/**
+ * Reset portfolio to initial capital (from last /api/sim/start call).
+ * Clears positions and trades, restores starting capital.
+ *
+ * Response: { success, message, portfolio }
+ */
+function resetPortfolio(req, res) {
+  try {
+    const state = portfolio.getState();
+
+    if (!state.initialized) {
+      return res.status(400).json({
+        success: false,
+        error:   'Portfolio not initialized. Call POST /api/sim/start first.',
+      });
+    }
+
+    portfolio.resetToInitial();
+
+    logger.info(`[SimCtrl] Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`);
+
+    res.status(200).json({
+      success:   true,
+      message:   `Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`,
+      portfolio: portfolio.getState(),
+    });
+  } catch (err) {
+    logger.error(`[SimCtrl] resetPortfolio: ${err.message}`);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
-  getLiveSignals, getPortfolio, getTrades, getEquityCurve,
-  getStatus, startEngine, stopEngine,
-  addToWatchlist, removeFromWatchlist,
+  getLiveSignals,
+  getPortfolio,
+  getTrades,
+  getEquityCurve,
+  getStatus,
+  startEngine,
+  stopEngine,
+  addToWatchlist,
+  removeFromWatchlist,
+  startWithCapital,
+  resetPortfolio,
 };

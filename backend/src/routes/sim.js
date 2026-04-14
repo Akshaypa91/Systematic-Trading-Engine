@@ -1,10 +1,11 @@
-// src/routes/sim.js — Simulation mode live trading API
+// src/routes/sim.js — Simulation mode + manual portfolio API
 'use strict';
 const router = require('express').Router();
 const ctrl   = require('../controllers/simController');
 const trade  = require('../controllers/tradeController');
 const { requireAuth } = require('../middleware/authMiddleware');
 
+// ── Simulation engine ─────────────────────────────────────────────────────────
 router.get('/signals',           requireAuth, ctrl.getLiveSignals);
 router.get('/trades',            requireAuth, ctrl.getTrades);
 router.get('/equity',            requireAuth, ctrl.getEquityCurve);
@@ -14,7 +15,12 @@ router.post('/engine/stop',      requireAuth, ctrl.stopEngine);
 router.post('/watchlist/add',    requireAuth, ctrl.addToWatchlist);
 router.post('/watchlist/remove', requireAuth, ctrl.removeFromWatchlist);
 
-// GET /api/sim/portfolio → in-memory manual portfolio state
-router.get('/portfolio', requireAuth, trade.getManualPortfolio);
+// ── Manual portfolio ──────────────────────────────────────────────────────────
+// GET  /api/sim/portfolio  → current portfolio state
+// POST /api/sim/start      → initialize with user-defined capital
+// POST /api/sim/reset      → reset to initial capital
+router.get('/portfolio', requireAuth, ctrl.getPortfolio);
+router.post('/start',    requireAuth, ctrl.startWithCapital);
+router.post('/reset',    requireAuth, ctrl.resetPortfolio);
 
 module.exports = router;

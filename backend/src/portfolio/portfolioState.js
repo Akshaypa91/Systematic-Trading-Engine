@@ -1,41 +1,105 @@
 // src/portfolio/portfolioState.js
 // ─────────────────────────────────────────────────────────────────────────────
 // In-memory portfolio state: capital, positions, trade history.
-// Single source of truth for manual trade execution.
+// Capital is USER-DEFINED via /api/sim/start — no hardcoded values.
 // ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
+const DEFAULT_CAPITAL = 100000; // fallback only until user calls /api/sim/start
+
 const state = {
-  capital:   100000,   // Starting capital in ₹
-  positions: {},       // { [symbol]: { qty, entryPrice, value } }
-  trades:    [],       // Array of executed trade records
+  capital:        DEFAULT_CAPITAL,
+  initialCapital: DEFAULT_CAPITAL,
+  positions:      {},
+  trades:         [],
+  initialized:    false,   // false until user calls POST /api/sim/start
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Init / Reset ──────────────────────────────────────────────────────────────
 
 /**
- * Get a snapshot of the full portfolio state.
- * @returns {{ capital, positions, trades }}
+ * Initialize portfolio with user-defined capital.
+ * Called by POST /api/sim/start
+ * Clears all positions and trades.
+ *
+ * @param {number} capital - User-supplied starting capital in ₹
+ * @throws {Error} with .statusCode = 400 if invalid
  */
-function getState() {
-  return {
-    capital:   parseFloat(state.capital.toFixed(2)),
-    positions: { ...state.positions },
-    trades:    [...state.trades],
-  };
+function initialize(capital) {
+  const cap = Number(capital);
+  if (!Number.isFinite(cap) || cap <= 0) {
+    const err = new Error('capital must be a positive number');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (cap < 1) {
+    const err = new Error('capital must be at least ₹1');
+    err.statusCode = 400;
+    throw err;
+  }
+  state.capital        = parseFloat(cap.toFixed(2));
+  state.initialCapital = parseFloat(cap.toFixed(2));
+  state.positions      = {};
+  state.trades         = [];
+  state.initialized    = true;
 }
 
 /**
+ * Reset portfolio back to initialCapital (stored from last /api/sim/start).
+ * Called by POST /api/sim/reset
+ */
+function resetToInitial() {
+  state.capital   = state.initialCapital;
+  state.positions = {};
+  state.trades    = [];
+  // initialCapital and initialized flag preserved
+}
+
+/**
+ * Hard reset for testing — clears everything.
+ * @param {number} [startingCapital]
+ */
+function reset(startingCapital) {
+  const cap            = startingCapital != null ? Number(startingCapital) : DEFAULT_CAPITAL;
+  state.capital        = cap;
+  state.initialCapital = cap;
+  state.positions      = {};
+  state.trades         = [];
+  state.initialized    = false;
+}
+
+// ── Read ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Get snapshot of full portfolio state.
+ * @returns {{ capital, initialCapital, positions, trades, initialized }}
+ */
+function getState() {
+  return {
+    capital:        parseFloat(state.capital.toFixed(2)),
+    initialCapital: parseFloat(state.initialCapital.toFixed(2)),
+    positions:      { ...state.positions },
+    trades:         [...state.trades],
+    initialized:    state.initialized,
+  };
+}
+
+/** Whether portfolio has been initialized by the user. */
+function isInitialized() {
+  return state.initialized;
+}
+
+// ── Trade execution ───────────────────────────────────────────────────────────
+
+/**
  * Execute a BUY trade.
- * Checks capital, deducts cost, adds/updates position.
- *
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
  * @returns {{ trade, capital, position }}
- * @throws {Error} with .statusCode = 400 if insufficient capital
+ * @throws {Error} .statusCode = 400
  */
 function executeBuy(symbol, qty, price) {
   const cost = qty * price;
@@ -48,15 +112,13 @@ function executeBuy(symbol, qty, price) {
     throw err;
   }
 
-  // Deduct capital
   state.capital -= cost;
 
-  // Add / average-up position
   const existing = state.positions[symbol];
   if (existing) {
-    const totalQty        = existing.qty + qty;
-    const totalCost       = existing.qty * existing.entryPrice + cost;
-    const avgEntryPrice   = totalCost / totalQty;
+    const totalQty      = existing.qty + qty;
+    const totalCost     = existing.qty * existing.entryPrice + cost;
+    const avgEntryPrice = totalCost / totalQty;
     state.positions[symbol] = {
       qty:        totalQty,
       entryPrice: parseFloat(avgEntryPrice.toFixed(2)),
@@ -76,13 +138,11 @@ function executeBuy(symbol, qty, price) {
 
 /**
  * Execute a SELL trade.
- * Checks position exists, increases capital, reduces/removes position.
- *
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
  * @returns {{ trade, capital, position|null, pnl }}
- * @throws {Error} with .statusCode = 400 if no/insufficient position
+ * @throws {Error} .statusCode = 400
  */
 function executeSell(symbol, qty, price) {
   const existing = state.positions[symbol];
@@ -101,15 +161,12 @@ function executeSell(symbol, qty, price) {
     throw err;
   }
 
-  // Calculate P&L for the sold portion
-  const proceeds = qty * price;
+  const proceeds  = qty * price;
   const costBasis = qty * existing.entryPrice;
-  const pnl = parseFloat((proceeds - costBasis).toFixed(2));
+  const pnl       = parseFloat((proceeds - costBasis).toFixed(2));
 
-  // Increase capital
   state.capital += proceeds;
 
-  // Reduce or remove position
   let position = null;
   if (qty === existing.qty) {
     delete state.positions[symbol];
@@ -125,16 +182,6 @@ function executeSell(symbol, qty, price) {
 
   const trade = _recordTrade({ symbol, action: 'SELL', qty, price, pnl });
   return { trade, capital: state.capital, position, pnl };
-}
-
-/**
- * Reset portfolio to initial state (useful for testing).
- * @param {number} [startingCapital=100000]
- */
-function reset(startingCapital = 100000) {
-  state.capital   = startingCapital;
-  state.positions = {};
-  state.trades    = [];
 }
 
 // ── Private ───────────────────────────────────────────────────────────────────
@@ -153,4 +200,12 @@ function _recordTrade({ symbol, action, qty, price, pnl = null }) {
   return trade;
 }
 
-module.exports = { getState, executeBuy, executeSell, reset };
+module.exports = {
+  initialize,
+  resetToInitial,
+  reset,
+  getState,
+  isInitialized,
+  executeBuy,
+  executeSell,
+};
