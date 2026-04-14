@@ -1,27 +1,31 @@
+// src/pages/Trade.jsx
 import { useState, useCallback } from 'react';
-import Navbar     from '../components/Navbar';
-import Sidebar    from '../components/Sidebar';
-import Toast      from '../components/Toast';
-import SearchBar  from '../components/SearchBar';
-import StockCard  from '../components/StockCard';
-import TradePanel from '../components/TradePanel';
+import Navbar        from '../components/Navbar';
+import Sidebar       from '../components/Sidebar';
+import Toast         from '../components/Toast';
+import SearchBar     from '../components/SearchBar';
+import StockCard     from '../components/StockCard';
+import TradePanel    from '../components/TradePanel';
+import PortfolioCard from '../components/PortfolioCard';
 import { marketAPI, manualTradeAPI, signalAPI } from '../services/api';
-import { Activity, Info } from 'lucide-react';
+import { Activity, Info, Layers } from 'lucide-react';
 
 const MAX_HISTORY = 8;
 
 export default function Trade() {
-  const [symbol,   setSymbol]   = useState('');
-  const [data,     setData]     = useState(null);
-  const [loading,  setLoading]  = useState(false);
-  const [toast,    setToast]    = useState(null);
-  const [history,  setHistory]  = useState([]);
+  const [symbol,          setSymbol]          = useState('');
+  const [data,            setData]            = useState(null);
+  const [loading,         setLoading]         = useState(false);
+  const [toast,           setToast]           = useState(null);
+  const [history,         setHistory]         = useState([]);
+  const [portfolioRefresh, setPortfolioRefresh] = useState(0);
 
   const showToast = useCallback((msg, type = 'info') => setToast({ msg, type }), []);
 
   const fetchStock = useCallback(async (sym) => {
     const upper = sym.toUpperCase().trim();
-    setLoading(true); setData(null);
+    setLoading(true);
+    setData(null);
     try {
       const [quoteRes, signalRes] = await Promise.allSettled([
         marketAPI.getQuote(upper),
@@ -51,7 +55,12 @@ export default function Trade() {
       setHistory(prev => [upper, ...prev.filter(s => s !== upper)].slice(0, MAX_HISTORY));
 
       const sigType = merged.signal === 'BUY' ? 'success' : merged.signal === 'SELL' ? 'error' : 'info';
-      showToast(`${upper} · ${merged.signal}${merged.confidence != null ? ` · ${(merged.confidence*100).toFixed(0)}% confidence` : ''}`, sigType);
+      showToast(
+        `${upper} · ${merged.signal}${merged.confidence != null
+          ? ` · ${(merged.confidence * 100).toFixed(0)}% confidence`
+          : ''}`,
+        sigType,
+      );
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Failed', 'error');
     } finally {
@@ -59,11 +68,23 @@ export default function Trade() {
     }
   }, [showToast]);
 
+  // ── BUG FIX: handleTrade properly declares variables before use ────────────
   const handleTrade = useCallback(async ({ symbol: sym, action, qty }) => {
+    // Call API — this may throw; caller (TradePanel) wraps in try/catch
     const res = await manualTradeAPI.place(sym, action, qty);
+
+    // Refresh portfolio after trade
+    setPortfolioRefresh(n => n + 1);
+
+    // Refresh stock data after short delay (price may have moved)
     setTimeout(() => fetchStock(sym), 600);
-    showToast(`${action} order placed — ${qty} × ${sym}`, action === 'BUY' ? 'success' : 'error');
-    return res;
+
+    showToast(
+      `${action} order placed — ${qty} × ${sym}`,
+      action === 'BUY' ? 'success' : 'error',
+    );
+
+    return res; // return to TradePanel so it can extract order details
   }, [fetchStock, showToast]);
 
   return (
@@ -72,27 +93,40 @@ export default function Trade() {
       <Sidebar />
       <main className="page-content">
 
+        {/* Page header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Trade</h1>
-          <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <Layers size={18} style={{ color: 'var(--cyan)' }} />
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Trade
+            </h1>
+          </div>
+          <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 28 }}>
             Search stocks · view signals · execute manual orders
           </p>
         </div>
 
-        {/* Search + history */}
+        {/* Search + recent history */}
         <div style={{ marginBottom: 20 }}>
           <SearchBar onSearch={fetchStock} loading={loading} />
           {history.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              marginTop: 10, flexWrap: 'wrap',
+            }}>
               <span className="section-label">Recent:</span>
               {history.map(sym => (
-                <button key={sym} onClick={() => fetchStock(sym)} className="font-mono" style={{
-                  padding: '3px 10px', borderRadius: 5, fontSize: 11,
-                  background: sym === symbol ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
-                  border: `1px solid ${sym === symbol ? 'rgba(0,212,255,0.3)' : 'var(--border)'}`,
-                  color: sym === symbol ? 'var(--cyan)' : 'var(--text-secondary)',
-                  cursor: 'pointer', transition: 'all 0.12s',
-                }}>
+                <button
+                  key={sym}
+                  onClick={() => fetchStock(sym)}
+                  className="font-mono"
+                  style={{
+                    padding: '3px 10px', borderRadius: 6, fontSize: 11,
+                    background: sym === symbol ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
+                    border: `1px solid ${sym === symbol ? 'rgba(0,212,255,0.30)' : 'var(--border)'}`,
+                    color: sym === symbol ? 'var(--cyan)' : 'var(--text-secondary)',
+                    cursor: 'pointer', transition: 'all 0.12s',
+                  }}>
                   {sym}
                 </button>
               ))}
@@ -102,9 +136,12 @@ export default function Trade() {
 
         {/* Empty state */}
         {!data && !loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', textAlign: 'center' }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', padding: '60px 32px 32px', textAlign: 'center',
+          }}>
             <div style={{
-              width: 60, height: 60, borderRadius: '50%', marginBottom: 20,
+              width: 56, height: 56, borderRadius: 16, marginBottom: 18,
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
@@ -113,22 +150,43 @@ export default function Trade() {
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
               Search for a stock to begin
             </p>
-            <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 320, lineHeight: 1.6 }}>
-              Enter an NSE symbol above to view live price, technical signals, and execute manual trades
+            <p className="font-mono" style={{
+              fontSize: 11, color: 'var(--text-muted)',
+              maxWidth: 320, lineHeight: 1.7,
+            }}>
+              Enter an NSE symbol above to view live price,<br />
+              technical signals, and execute manual trades
             </p>
+
+            {/* Portfolio even in empty state */}
+            <div style={{ width: '100%', maxWidth: 600, marginTop: 32 }}>
+              <PortfolioCard refreshTrigger={portfolioRefresh} />
+            </div>
           </div>
         )}
 
-        {/* Main content */}
+        {/* Main content grid */}
         {(data || loading) && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16, alignItems: 'start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <StockCard data={data} loading={loading} onRefresh={symbol ? () => fetchStock(symbol) : undefined} />
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 320px',
+            gap: 16, alignItems: 'start',
+          }}>
+
+            {/* Left column: stock card + portfolio */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <StockCard
+                data={data}
+                loading={loading}
+                onRefresh={symbol ? () => fetchStock(symbol) : undefined}
+              />
 
               {data?.source === 'SIMULATION' && (
                 <div style={{
-                  padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
-                  background: 'rgba(255,176,32,0.06)', border: '1px solid rgba(255,176,32,0.20)',
+                  padding: '10px 14px', borderRadius: 8,
+                  display: 'flex', alignItems: 'flex-start', gap: 10,
+                  background: 'rgba(255,176,32,0.06)',
+                  border: '1px solid rgba(255,176,32,0.20)',
                 }}>
                   <Info size={13} style={{ color: 'var(--amber)', flexShrink: 0, marginTop: 1 }} />
                   <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -136,8 +194,11 @@ export default function Trade() {
                   </p>
                 </div>
               )}
+
+              <PortfolioCard refreshTrigger={portfolioRefresh} />
             </div>
 
+            {/* Right column: trade panel (sticky) */}
             <div style={{ position: 'sticky', top: 'calc(var(--navbar-h) + 24px)' }}>
               <TradePanel
                 symbol={data?.symbol ?? symbol}

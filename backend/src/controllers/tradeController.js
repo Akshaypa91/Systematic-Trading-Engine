@@ -1,12 +1,34 @@
 // src/controllers/tradeController.js
+// ─────────────────────────────────────────────────────────────────────────────
+// Trade controller — handles order placement, portfolio queries, and
+// manual trades with full in-memory portfolio tracking.
+// ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
-const exec    = require('../engine/executionEngine');
-const riskMgr = require('../risk/riskManager');
-const logger  = require('../config/logger');
+const exec      = require('../engine/executionEngine');
+const riskMgr   = require('../risk/riskManager');
+const portfolio = require('../portfolio/portfolioState');
+const logger    = require('../config/logger');
+
+// ── Shared price-fetch utility ────────────────────────────────────────────────
 
 /**
- * POST /api/trade/order
+ * Fetch live price for a symbol.
+ * Falls back to simulated price automatically via marketDataService.
+ *
+ * @param {string} symbol
+ * @returns {Promise<{ price: number, source: string }>}
+ */
+async function fetchPrice(symbol) {
+  const marketDataService = require('../services/marketDataService');
+  const result = await marketDataService.getLivePrice(symbol);
+  return { price: result.price, source: result.source };
+}
+
+// ── POST /api/trade/order ─────────────────────────────────────────────────────
+
+/**
+ * Place an automated/strategy order via executionEngine.
  * Body: { symbol, side, quantity, currentPrice, orderType,
  *         limitPrice, stopLossPct, takeProfitPct, strategy }
  */
@@ -21,19 +43,17 @@ async function placeOrder(req, res) {
   }
 }
 
-/**
- * GET /api/trade/portfolio
- */
+// ── GET /api/trade/portfolio ──────────────────────────────────────────────────
+
 function getPortfolio(req, res) {
   res.json({ success: true, data: exec.getPortfolioState() });
 }
 
-/**
- * GET /api/trade/orders?limit=50
- */
+// ── GET /api/trade/orders ─────────────────────────────────────────────────────
+
 async function getOrders(req, res) {
   try {
-    const limit = parseInt(req.query.limit || '50', 10);
+    const limit  = parseInt(req.query.limit || '50', 10);
     const orders = await exec.getRecentOrders(limit);
     res.json({ success: true, count: orders.length, data: orders });
   } catch (err) {
@@ -41,11 +61,8 @@ async function getOrders(req, res) {
   }
 }
 
-/**
- * POST /api/trade/check-exits
- * Body: { prices: [{ symbol, currentPrice }] }
- * Checks all open positions against provided prices, auto-closes SL/TP hits.
- */
+// ── POST /api/trade/check-exits ───────────────────────────────────────────────
+
 async function checkExits(req, res) {
   try {
     const { prices = [] } = req.body;
@@ -60,16 +77,16 @@ async function checkExits(req, res) {
   }
 }
 
-/**
- * POST /api/trade/size
- * Compute position size without placing an order.
- * Body: { capital, entryPrice, stopLossPct, riskPct, method }
- */
+// ── POST /api/trade/size ──────────────────────────────────────────────────────
+
 function computeSize(req, res) {
   try {
     const { capital, entryPrice, stopLossPct, riskPct = 0.02, method = 'fixed' } = req.body;
     if (!capital || !entryPrice || !stopLossPct) {
-      return res.status(400).json({ success: false, error: 'capital, entryPrice, stopLossPct required' });
+      return res.status(400).json({
+        success: false,
+        error:   'capital, entryPrice, stopLossPct required',
+      });
     }
 
     let sizing;
@@ -82,7 +99,7 @@ function computeSize(req, res) {
 
     const levels = riskMgr.computeLevels({
       entryPrice,
-      side: 'BUY',
+      side:          'BUY',
       stopLossPct,
       takeProfitPct: req.body.takeProfitPct || 0.04,
     });
@@ -93,23 +110,22 @@ function computeSize(req, res) {
   }
 }
 
+// ── POST /api/trade/manual ────────────────────────────────────────────────────
 
 /**
- * POST /api/trade/manual
- * Body: { symbol, action, qty }
+ * Manual trade entry with full in-memory portfolio tracking.
+ * Body: { symbol, action, qty, price? }
  *
- * Frontend-facing manual trade entry. Translates the simplified
- * { action, qty } shape into the executionEngine's { side, quantity }
- * convention and delegates to the same placeOrder path as automated
- * trades — so risk checks, deduplication, and DB logging all apply.
+ * - BUY:  checks capital, deducts cost, adds/updates position
+ * - SELL: checks position exists, increases capital, reduces/removes position
  *
- * Response: { success, message, trade: { symbol, action, qty, ... } }
+ * Response: { success, message, trade, portfolio }
  */
 async function placeManualOrder(req, res) {
   try {
-    const { symbol, action, qty } = req.body;
+    const { symbol, action, qty, price: bodyPrice } = req.body;
 
-    // ── Validate required fields ──────────────────────────────────────────
+    // ── Validate ────────────────────────────────────────────────────────────
     const missing = [];
     if (!symbol) missing.push('symbol');
     if (!action) missing.push('action');
@@ -138,7 +154,6 @@ async function placeManualOrder(req, res) {
         error:   `qty must be a positive number, got "${qty}"`,
       });
     }
-
     if (!Number.isInteger(quantity)) {
       return res.status(400).json({
         success: false,
@@ -146,80 +161,102 @@ async function placeManualOrder(req, res) {
       });
     }
 
-    logger.info(`[TradeCtrl] Manual order: ${normalizedAction} ${quantity} × ${sym}`);
+    logger.info(`[TradeCtrl] Manual ${normalizedAction} ${quantity} × ${sym}`);
 
-    // ── Fetch live price so executionEngine can value the position ────────
-    let currentPrice = null;
+    // ── Resolve price ───────────────────────────────────────────────────────
+    let price  = null;
+    let source = 'MANUAL';
+
+    if (bodyPrice && Number.isFinite(Number(bodyPrice)) && Number(bodyPrice) > 0) {
+      // Caller supplied a price (e.g. from frontend input)
+      price  = parseFloat(Number(bodyPrice).toFixed(2));
+      source = 'MANUAL';
+      logger.info(`[TradeCtrl] Using caller-supplied price: ₹${price}`);
+    } else {
+      // Fetch from marketDataService (API → simulation fallback)
+      try {
+        const result = await fetchPrice(sym);
+        price  = result.price;
+        source = result.source;
+        logger.info(`[TradeCtrl] Fetched price: ${sym} = ₹${price} (${source})`);
+      } catch (priceErr) {
+        logger.error(`[TradeCtrl] Cannot resolve price for ${sym}: ${priceErr.message}`);
+        return res.status(500).json({
+          success: false,
+          error:   `Could not determine price for ${sym}: ${priceErr.message}`,
+        });
+      }
+    }
+
+    // ── Execute against portfolio ────────────────────────────────────────────
+    let result;
     try {
-      const marketDataService = require('../services/marketDataService');
-      const priceResult = await marketDataService.getLivePrice(sym);
-      currentPrice = priceResult.price;
-      logger.info(`[TradeCtrl] Manual order price: ${sym} = ₹${currentPrice} (${priceResult.source})`);
-    } catch (priceErr) {
-      logger.warn(`[TradeCtrl] Could not fetch price for ${sym}: ${priceErr.message} — proceeding without currentPrice`);
+      if (normalizedAction === 'BUY') {
+        result = portfolio.executeBuy(sym, quantity, price);
+      } else {
+        result = portfolio.executeSell(sym, quantity, price);
+      }
+    } catch (execErr) {
+      const code = execErr.statusCode || 400;
+      return res.status(code).json({ success: false, error: execErr.message });
     }
 
-    // ── Delegate to executionEngine ───────────────────────────────────────
-    // skipDedup + skipCooldown so manual orders are never silently swallowed
-    const result = await exec.placeOrder({
-      symbol:       sym,
-      side:         normalizedAction,   // BUY | SELL
-      quantity,
-      currentPrice,
-      orderType:    'MARKET',
-      strategy:     'MANUAL',
-      skipDedup:    true,
-      skipCooldown: true,
-    });
-
-    // ── Surface REJECTED orders as 422 (not 500) ─────────────────────────
-    if (result.status === 'REJECTED') {
-      return res.status(422).json({
-        success: false,
-        error:   `Order rejected: ${(result.reasons || []).join('; ')}`,
-        details: result,
-      });
-    }
+    logger.info(
+      `[TradeCtrl] ${normalizedAction} executed: ${quantity} × ${sym} @ ₹${price}` +
+      (result.pnl != null ? ` | P&L: ₹${result.pnl}` : '')
+    );
 
     return res.status(201).json({
-      success: true,
-      message: 'Trade executed',
-      trade: {
-        symbol:    sym,
-        action:    normalizedAction,
-        qty:       quantity,
-        price:     currentPrice,
-        orderId:   result.orderId,
-        status:    result.status,
-        executedAt: result.executedAt || new Date().toISOString(),
-      },
-      portfolio: result.portfolioState || null,
+      success:   true,
+      message:   'Trade executed',
+      trade:     { ...result.trade, priceSource: source },
+      portfolio: portfolio.getState(),
     });
 
   } catch (err) {
-    logger.error(`[TradeCtrl] placeManualOrder: ${err.message}`);
+    logger.error(`[TradeCtrl] placeManualOrder unexpected: ${err.message}`);
     return res.status(500).json({ success: false, error: err.message });
   }
 }
 
-module.exports = { placeOrder, placeManualOrder, getPortfolio, getOrders, checkExits, computeSize,
-  // Alias: routes/index.js references checkPosition for GET /trade/check/:symbol
-  checkPosition: async (req, res) => {
-    try {
-      const { symbol }       = req.params;
-      const { currentPrice } = req.query;
-      if (!currentPrice) {
-        return res.status(400).json({ success: false, error: 'currentPrice query param required' });
-      }
-      const price  = parseFloat(currentPrice);
-      if (!isFinite(price) || price <= 0) {
-        return res.status(400).json({ success: false, error: 'currentPrice must be a positive number' });
-      }
-      const result = await exec.checkAndClosePosition(symbol.toUpperCase(), price);
-      res.json({ success: true, closed: !!result, data: result || null });
-    } catch (err) {
-      logger.error(`[TradeCtrl] checkPosition: ${err.message}`);
-      res.status(500).json({ success: false, error: err.message });
+// ── GET /api/sim/portfolio ────────────────────────────────────────────────────
+
+/**
+ * Return in-memory portfolio state for the manual trading engine.
+ * Mounted in routes/sim.js → GET /api/sim/portfolio
+ */
+function getManualPortfolio(req, res) {
+  res.json({ success: true, data: portfolio.getState() });
+}
+
+// ── Alias kept for routes/index.js ───────────────────────────────────────────
+
+const checkPosition = async (req, res) => {
+  try {
+    const { symbol }       = req.params;
+    const { currentPrice } = req.query;
+    if (!currentPrice) {
+      return res.status(400).json({ success: false, error: 'currentPrice query param required' });
     }
-  },
+    const price = parseFloat(currentPrice);
+    if (!isFinite(price) || price <= 0) {
+      return res.status(400).json({ success: false, error: 'currentPrice must be a positive number' });
+    }
+    const result = await exec.checkAndClosePosition(symbol.toUpperCase(), price);
+    res.json({ success: true, closed: !!result, data: result || null });
+  } catch (err) {
+    logger.error(`[TradeCtrl] checkPosition: ${err.message}`);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+module.exports = {
+  placeOrder,
+  placeManualOrder,
+  getPortfolio,
+  getManualPortfolio,
+  getOrders,
+  checkExits,
+  computeSize,
+  checkPosition,
 };
