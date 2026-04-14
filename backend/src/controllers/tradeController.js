@@ -93,7 +93,116 @@ function computeSize(req, res) {
   }
 }
 
-module.exports = { placeOrder, getPortfolio, getOrders, checkExits, computeSize,
+
+/**
+ * POST /api/trade/manual
+ * Body: { symbol, action, qty }
+ *
+ * Frontend-facing manual trade entry. Translates the simplified
+ * { action, qty } shape into the executionEngine's { side, quantity }
+ * convention and delegates to the same placeOrder path as automated
+ * trades — so risk checks, deduplication, and DB logging all apply.
+ *
+ * Response: { success, message, trade: { symbol, action, qty, ... } }
+ */
+async function placeManualOrder(req, res) {
+  try {
+    const { symbol, action, qty } = req.body;
+
+    // ── Validate required fields ──────────────────────────────────────────
+    const missing = [];
+    if (!symbol) missing.push('symbol');
+    if (!action) missing.push('action');
+    if (qty === undefined || qty === null || qty === '') missing.push('qty');
+    if (missing.length) {
+      return res.status(400).json({
+        success: false,
+        error:   `Missing required fields: ${missing.join(', ')}`,
+      });
+    }
+
+    const sym = String(symbol).trim().toUpperCase();
+
+    const normalizedAction = String(action).trim().toUpperCase();
+    if (!['BUY', 'SELL'].includes(normalizedAction)) {
+      return res.status(400).json({
+        success: false,
+        error:   `action must be "BUY" or "SELL", got "${action}"`,
+      });
+    }
+
+    const quantity = Number(qty);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        error:   `qty must be a positive number, got "${qty}"`,
+      });
+    }
+
+    if (!Number.isInteger(quantity)) {
+      return res.status(400).json({
+        success: false,
+        error:   `qty must be a whole number (shares), got ${quantity}`,
+      });
+    }
+
+    logger.info(`[TradeCtrl] Manual order: ${normalizedAction} ${quantity} × ${sym}`);
+
+    // ── Fetch live price so executionEngine can value the position ────────
+    let currentPrice = null;
+    try {
+      const marketDataService = require('../services/marketDataService');
+      const priceResult = await marketDataService.getLivePrice(sym);
+      currentPrice = priceResult.price;
+      logger.info(`[TradeCtrl] Manual order price: ${sym} = ₹${currentPrice} (${priceResult.source})`);
+    } catch (priceErr) {
+      logger.warn(`[TradeCtrl] Could not fetch price for ${sym}: ${priceErr.message} — proceeding without currentPrice`);
+    }
+
+    // ── Delegate to executionEngine ───────────────────────────────────────
+    // skipDedup + skipCooldown so manual orders are never silently swallowed
+    const result = await exec.placeOrder({
+      symbol:       sym,
+      side:         normalizedAction,   // BUY | SELL
+      quantity,
+      currentPrice,
+      orderType:    'MARKET',
+      strategy:     'MANUAL',
+      skipDedup:    true,
+      skipCooldown: true,
+    });
+
+    // ── Surface REJECTED orders as 422 (not 500) ─────────────────────────
+    if (result.status === 'REJECTED') {
+      return res.status(422).json({
+        success: false,
+        error:   `Order rejected: ${(result.reasons || []).join('; ')}`,
+        details: result,
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Trade executed',
+      trade: {
+        symbol:    sym,
+        action:    normalizedAction,
+        qty:       quantity,
+        price:     currentPrice,
+        orderId:   result.orderId,
+        status:    result.status,
+        executedAt: result.executedAt || new Date().toISOString(),
+      },
+      portfolio: result.portfolioState || null,
+    });
+
+  } catch (err) {
+    logger.error(`[TradeCtrl] placeManualOrder: ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { placeOrder, placeManualOrder, getPortfolio, getOrders, checkExits, computeSize,
   // Alias: routes/index.js references checkPosition for GET /trade/check/:symbol
   checkPosition: async (req, res) => {
     try {

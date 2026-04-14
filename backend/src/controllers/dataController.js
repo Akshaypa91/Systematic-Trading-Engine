@@ -212,4 +212,89 @@ async function getDataHealth(req, res) {
   }
 }
 
-module.exports = { getQuote, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth };
+
+/**
+ * GET /api/data/stock/:symbol
+ * Unified endpoint for the Trade UI.
+ * Returns live price + aggregated signal + key indicators in one call.
+ *
+ * Response:
+ *   { symbol, price, signal, rsi, trend, confidence, source, timestamp }
+ *
+ * Strategy:
+ *   1. Fetch live price via marketDataService (API → simulation fallback)
+ *   2. Fetch aggregated signal from aggregator using DB price history
+ *   3. Merge both into a single response — never errors out (falls back to
+ *      simulation price + HOLD signal if either source is unavailable)
+ */
+async function getStock(req, res) {
+  const { symbol } = req.params;
+
+  if (!symbol || !symbol.trim()) {
+    return res.status(400).json({ success: false, error: 'Symbol is required' });
+  }
+
+  const sym = symbol.trim().toUpperCase();
+  logger.info(`[DataCtrl] getStock: ${sym}`);
+
+  try {
+    // ── 1. Live price (always succeeds — simulation fallback built in) ────────
+    const priceResult = await marketDataService.getLivePrice(sym);
+
+    // ── 2. Signal from aggregator (requires DB price history) ─────────────────
+    let signal     = 'HOLD';
+    let confidence = null;
+    let rsi        = null;
+    let trend      = 'UNKNOWN';
+
+    try {
+      const dataStore  = require('../data/dataStore');
+      const aggregator = require('../strategies/aggregator');
+
+      const bars = await dataStore.getRecentPrices(sym, 250);
+
+      if (bars && bars.length >= 20) {
+        const closes = bars.map(b => b.close);
+        const result = aggregator.aggregate(closes, { method: 'weighted', symbol: sym, useRegime: true });
+
+        signal     = result.signal     || 'HOLD';
+        confidence = result.confidence ?? null;
+        rsi        = result.rsiValue   ?? null;
+
+        // Normalise regime label → frontend-friendly trend string
+        const regimeLabel = result.regime?.detected || '';
+        if      (regimeLabel.includes('TREND') || regimeLabel === 'BULL' || regimeLabel === 'BEAR') {
+          trend = 'TRENDING';
+        } else if (regimeLabel.includes('MEAN') || regimeLabel.includes('RANG')) {
+          trend = 'MEAN_REVERTING';
+        } else {
+          trend = regimeLabel || 'UNKNOWN';
+        }
+      } else {
+        logger.warn(`[DataCtrl] getStock: insufficient bars for ${sym} (${bars?.length ?? 0}) — returning HOLD`);
+      }
+    } catch (sigErr) {
+      // Signal generation is non-fatal — price data alone is still useful
+      logger.warn(`[DataCtrl] getStock signal error for ${sym}: ${sigErr.message}`);
+    }
+
+    // ── 3. Merged response ────────────────────────────────────────────────────
+    return res.json({
+      success:    true,
+      symbol:     sym,
+      price:      priceResult.price,
+      signal,
+      confidence,
+      rsi,
+      trend,
+      source:     priceResult.source,
+      timestamp:  priceResult.timestamp,
+    });
+
+  } catch (err) {
+    logger.error(`[DataCtrl] getStock error for ${sym}: ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth };
