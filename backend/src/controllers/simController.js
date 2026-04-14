@@ -5,9 +5,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
-const sim       = require('../engine/simulationEngine');
-const portfolio = require('../portfolio/portfolioState');
-const logger    = require('../config/logger');
+const sim           = require('../engine/simulationEngine');
+const portfolio     = require('../portfolio/portfolioState');
+const logger        = require('../config/logger');
+const marketDataSvc = require('../services/marketDataService');
+const pnlCalc       = require('../utils/pnlCalculator');
 
 // ── GET /api/sim/signals ──────────────────────────────────────────────────────
 function getLiveSignals(req, res) {
@@ -22,8 +24,48 @@ function getLiveSignals(req, res) {
 }
 
 // ── GET /api/sim/portfolio ────────────────────────────────────────────────────
-function getPortfolio(req, res) {
-  res.json({ success: true, data: portfolio.getState() });
+async function getPortfolio(req, res) {
+  try {
+    const state   = portfolio.getState();
+    const symbols = Object.keys(state.positions);
+
+    // Fetch live prices for open positions (batch + sim fallback)
+    let priceMap = {};
+    if (symbols.length > 0) {
+      try {
+        const priceResults = await marketDataSvc.getBatchPrices(symbols);
+        for (const { symbol, price } of priceResults) priceMap[symbol] = price;
+      } catch (priceErr) {
+        logger.warn(`[SimCtrl] price fetch failed: ${priceErr.message} — using entry prices`);
+        for (const [sym, pos] of Object.entries(state.positions)) priceMap[sym] = pos.entryPrice;
+      }
+    }
+
+    const enrichedPositions = pnlCalc.enrichPositionsWithPnL(state.positions, priceMap);
+    const summary = pnlCalc.calcPortfolioSummary(
+      enrichedPositions, state.capital, state.initialCapital, state.trades
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...state,
+        positions:      enrichedPositions,
+        unrealizedPnL:  summary.unrealizedPnL,
+        realizedPnL:    summary.realizedPnL,
+        totalPnL:       summary.totalPnL,
+        totalPnLPct:    summary.totalPnLPct,
+        totalValue:     summary.totalValue,
+        positionsValue: summary.positionsValue,
+        biggestGainer:  summary.biggestGainer,
+        biggestLoser:   summary.biggestLoser,
+        pricesAt:       new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    logger.error(`[SimCtrl] getPortfolio: ${err.message}`);
+    res.status(500).json({ success: false, error: err.message });
+  }
 }
 
 // ── GET /api/sim/trades ───────────────────────────────────────────────────────
