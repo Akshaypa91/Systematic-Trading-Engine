@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Wallet, TrendingUp, TrendingDown, RefreshCw,
-  BarChart2, Loader2, Package, RotateCcw, AlertTriangle, Activity,
+  BarChart2, Loader2, Package, RotateCcw, AlertTriangle, Activity, XCircle,
 } from 'lucide-react';
 import { simAPI } from '../services/api';
 import PositionsTable from './PositionsTable';
@@ -173,6 +173,8 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
   const [data,        setData]        = useState(null);
   const [loading,     setLoading]     = useState(false);
   const [resetBusy,   setResetBusy]   = useState(false);
+  const [exitBusy,    setExitBusy]    = useState(false);
+  const [exitResult,  setExitResult]  = useState(null); // { pnl, count }
   const [showConfirm, setShowConfirm] = useState(false);
   const [tab,         setTab]         = useState('positions');
   const timerRef = useRef(null);
@@ -207,6 +209,23 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
     } catch (err) {
       console.error('Reset failed:', err.response?.data?.error || err.message);
     } finally { setResetBusy(false); }
+  }
+
+  async function handleExitAll() {
+    setExitBusy(true);
+    setExitResult(null);
+    try {
+      const res  = await simAPI.exitAll();
+      const d    = res.data;
+      setData(d.portfolio ?? null);
+      setExitResult({ pnl: d.realizedPnL, count: d.closedCount });
+      setTimeout(() => setExitResult(null), 5000);
+      if (onReset) onReset(d.portfolio);
+    } catch (err) {
+      console.error('Exit all failed:', err.response?.data?.error || err.message);
+    } finally {
+      setExitBusy(false);
+    }
   }
 
   // Derived
@@ -262,6 +281,33 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
+            {/* Exit All — only when positions open */}
+            {posCount > 0 && (
+              <button
+                onClick={handleExitAll}
+                disabled={exitBusy || loading}
+                title="Close all open positions at market price"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '5px 10px', borderRadius: 7,
+                  border: '1px solid rgba(255,77,106,0.30)',
+                  background: 'rgba(255,77,106,0.08)',
+                  cursor: exitBusy || loading ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
+                  color: 'var(--red)', transition: 'all 0.15s',
+                  opacity: exitBusy || loading ? 0.5 : 1,
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,77,106,0.55)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,77,106,0.30)'}
+              >
+                {exitBusy
+                  ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+                  : <XCircle size={10} />
+                }
+                {exitBusy ? 'Closing…' : 'Exit All'}
+              </button>
+            )}
+
             <button onClick={() => setShowConfirm(true)} disabled={loading || resetBusy} style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,176,32,0.22)',
@@ -343,6 +389,26 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
               )
             )}
           </div>
+
+          {/* Exit All result flash */}
+          {exitResult && (
+            <div style={{
+              padding: '8px 12px', borderRadius: 8, animation: 'fadeUp 0.2s ease-out',
+              background: exitResult.pnl >= 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,106,0.08)',
+              border: `1px solid ${exitResult.pnl >= 0 ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                ✓ Closed {exitResult.count} position{exitResult.count !== 1 ? 's' : ''}
+              </span>
+              <span className="font-mono" style={{
+                fontSize: 12, fontWeight: 700,
+                color: exitResult.pnl >= 0 ? 'var(--green)' : 'var(--red)',
+              }}>
+                {exitResult.pnl >= 0 ? '+' : ''}₹{Math.abs(exitResult.pnl).toLocaleString('en-IN', { maximumFractionDigits: 0 })} PnL
+              </span>
+            </div>
+          )}
 
           {/* Price timestamp */}
           {data?.pricesAt && posCount > 0 && (

@@ -81,6 +81,7 @@ export const simAPI = {
   getPortfolio: ()        => api.get('/sim/portfolio'),
   start:        (capital) => api.post('/sim/start', { capital }),
   reset:        ()        => api.post('/sim/reset'),
+  exitAll:      ()        => api.post('/sim/exit-all'),
 };
 
 export const marketAPI = {

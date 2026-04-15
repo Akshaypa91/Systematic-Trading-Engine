@@ -205,6 +205,72 @@ function resetPortfolio(req, res) {
   }
 }
 
+
+// ── POST /api/sim/exit-all ────────────────────────────────────────────────────
+/**
+ * Close ALL open positions at current market price.
+ * Fetches live price per symbol, sells full qty, updates capital.
+ * Response: { success, closedCount, totalProceeds, realizedPnL, trades, portfolio }
+ */
+async function exitAll(req, res) {
+  try {
+    const state   = portfolio.getState();
+    const symbols = Object.keys(state.positions);
+
+    if (!state.initialized) {
+      return res.status(400).json({ success: false, error: 'Portfolio not initialized' });
+    }
+    if (symbols.length === 0) {
+      return res.status(400).json({ success: false, error: 'No open positions to close' });
+    }
+
+    // Fetch all current prices in one batch
+    let priceMap = {};
+    try {
+      const priceResults = await marketDataSvc.getBatchPrices(symbols);
+      for (const { symbol, price } of priceResults) priceMap[symbol] = price;
+    } catch (priceErr) {
+      logger.warn(`[SimCtrl] exitAll price fetch failed: ${priceErr.message} — using entry prices`);
+      for (const [sym, pos] of Object.entries(state.positions)) priceMap[sym] = pos.entryPrice;
+    }
+
+    // Close each position
+    const closedTrades = [];
+    let totalProceeds  = 0;
+    let totalRealPnL   = 0;
+
+    for (const sym of symbols) {
+      const pos   = state.positions[sym];
+      if (!pos) continue;
+      const price = priceMap[sym] ?? pos.entryPrice;
+
+      try {
+        const result = portfolio.executeSell(sym, pos.qty, price);
+        closedTrades.push(result.trade);
+        totalProceeds += pos.qty * price;
+        totalRealPnL  += result.pnl ?? 0;
+        logger.info(`[SimCtrl] exitAll: closed ${sym} ${pos.qty} @ ₹${price} | PnL ₹${result.pnl}`);
+      } catch (sellErr) {
+        logger.error(`[SimCtrl] exitAll: failed to close ${sym}: ${sellErr.message}`);
+      }
+    }
+
+    logger.info(`[SimCtrl] exitAll complete: ${closedTrades.length} positions closed, PnL ₹${totalRealPnL.toFixed(2)}`);
+
+    res.json({
+      success:       true,
+      closedCount:   closedTrades.length,
+      totalProceeds: parseFloat(totalProceeds.toFixed(2)),
+      realizedPnL:   parseFloat(totalRealPnL.toFixed(2)),
+      trades:        closedTrades,
+      portfolio:     portfolio.getState(),
+    });
+  } catch (err) {
+    logger.error(`[SimCtrl] exitAll: ${err.message}`);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   getLiveSignals,
   getPortfolio,
@@ -217,4 +283,5 @@ module.exports = {
   removeFromWatchlist,
   startWithCapital,
   resetPortfolio,
+  exitAll,
 };
