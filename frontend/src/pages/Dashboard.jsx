@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import AppShell from '../components/AppShell';
 import { backtestAPI, tradeAPI, signalAPI } from '../services/api';
 import { useWS } from '../context/WSContext';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import MetricsCard from '../components/MetricsCard';
 import EquityChart from '../components/EquityChart';
 import TradesTable from '../components/TradesTable';
@@ -72,9 +71,9 @@ export default function Dashboard() {
   const s = btResult?.summary;
 
   return (
-    <div className="page-shell">
-      <Navbar />
-      <Sidebar />
+    <AppShell>
+      
+      
 
       <main className="page-content">
         {/* Page header */}
@@ -286,6 +285,6 @@ export default function Dashboard() {
           <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

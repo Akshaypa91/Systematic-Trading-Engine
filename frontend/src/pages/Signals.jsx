@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import AppShell from '../components/AppShell';
 import { signalAPI } from '../services/api';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import Toast from '../components/Toast';
 import {
   TrendingUp, TrendingDown, Minus, RefreshCw, Plus, X,
@@ -12,18 +11,14 @@ import {
   Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis
 } from 'recharts';
 
-const STRATEGIES   = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
+const STRATEGIES    = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
 const VALID_SYMBOLS = ['RELIANCE','TCS','INFY','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK'];
-const AUTO_REFRESH_OPTIONS = [0, 30, 60, 120, 300]; // seconds; 0 = off
 
-// ── Signal config ─────────────────────────────────────────────────────────────
 const SIG_CFG = {
   BUY:  { color: 'var(--green)', bg: 'rgba(0,230,118,0.08)',  border: 'rgba(0,230,118,0.25)',  icon: TrendingUp },
   SELL: { color: 'var(--red)',   bg: 'rgba(255,71,87,0.08)',  border: 'rgba(255,71,87,0.25)',  icon: TrendingDown },
   HOLD: { color: 'var(--amber)', bg: 'rgba(255,167,38,0.08)', border: 'rgba(255,167,38,0.25)', icon: Minus },
 };
-
-// ── Helper components ─────────────────────────────────────────────────────────
 
 function ConfidenceRing({ value = 0 }) {
   const pct   = Math.round(value * 100);
@@ -51,7 +46,6 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
   const c    = SIG_CFG[signal] || SIG_CFG.HOLD;
   const Icon = c.icon;
 
-  // Radar chart for this card
   const radarData = [
     { subject: 'Conf',    value: Math.round((confidence || 0) * 100) },
     { subject: 'RSI',     value: rsiValue != null ? Math.round(rsiValue) : 50 },
@@ -62,11 +56,8 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
   return (
     <div className="rounded-xl fade-in relative overflow-hidden"
       style={{ background: 'var(--bg-card)', border: `1px solid ${c.border}` }}>
-      {/* Top accent line */}
       <div style={{ height: 3, background: c.color, opacity: 0.7 }} />
-
       <div className="p-5">
-        {/* Header row */}
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{symbol}</div>
@@ -76,14 +67,12 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
             </div>}
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={() => onToggleAlert(symbol)}
-              className="p-1.5 rounded transition-colors"
+            <button onClick={() => onToggleAlert(symbol)} className="p-1.5 rounded transition-colors"
               title={alertEnabled ? 'Alerts on' : 'Alerts off'}
               style={{ color: alertEnabled ? 'var(--amber)' : 'var(--text-muted)', background: alertEnabled ? 'rgba(255,167,38,0.1)' : 'transparent' }}>
               {alertEnabled ? <Bell size={12} /> : <BellOff size={12} />}
             </button>
-            <button onClick={() => setExpanded(v => !v)}
-              className="p-1.5 rounded transition-colors"
+            <button onClick={() => setExpanded(v => !v)} className="p-1.5 rounded transition-colors"
               style={{ color: 'var(--text-muted)' }}>
               {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
@@ -96,7 +85,6 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
           </div>
         </div>
 
-        {/* Signal + ring */}
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-base font-bold inline-flex"
@@ -112,11 +100,10 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
           <ConfidenceRing value={confidence} />
         </div>
 
-        {/* Quick indicators */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: 'RSI', value: rsiValue != null ? Number(rsiValue).toFixed(1) : '—', color: rsiValue > 70 ? 'var(--red)' : rsiValue < 30 ? 'var(--green)' : 'var(--text-primary)' },
-            { label: 'Z-Score', value: zScore != null ? Number(zScore).toFixed(2) : '—', color: Math.abs(zScore||0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)' },
+            { label: 'RSI',      value: rsiValue != null ? Number(rsiValue).toFixed(1) : '—', color: rsiValue > 70 ? 'var(--red)' : rsiValue < 30 ? 'var(--green)' : 'var(--text-primary)' },
+            { label: 'Z-Score', value: zScore   != null ? Number(zScore).toFixed(2)   : '—', color: Math.abs(zScore||0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)' },
             { label: 'MA Cross', value: maFast && maSlow ? (maFast > maSlow ? '▲ Bull' : '▼ Bear') : '—', color: maFast > maSlow ? 'var(--green)' : 'var(--red)' },
           ].map(({ label, value, color }) => (
             <div key={label} className="p-2 rounded-lg text-center"
@@ -127,7 +114,6 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
           ))}
         </div>
 
-        {/* Expanded: radar chart */}
         {expanded && (
           <div className="mt-4 fade-in">
             <div className="text-xs font-mono mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Signal Breakdown</div>
@@ -151,27 +137,24 @@ function SignalCard({ data, onRemove, alertEnabled, onToggleAlert }) {
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
 export default function Signals() {
-  const [signals,    setSignals]    = useState([]);
-  const [loading,    setLoading]    = useState(false);
-  const [strategy,   setStrategy]   = useState('AGGREGATED');
-  const [custom,     setCustom]     = useState('');
-  const [toast,      setToast]      = useState(null);
-  const [alerts,     setAlerts]     = useState({});      // symbol → bool
-  const [autoRefresh,setAutoRefresh]= useState(0);       // seconds
-  const [countdown,  setCountdown]  = useState(0);
+  const [signals,     setSignals]     = useState([]);
+  const [loading,     setLoading]     = useState(false);
+  const [strategy,    setStrategy]    = useState('AGGREGATED');
+  const [custom,      setCustom]      = useState('');
+  const [toast,       setToast]       = useState(null);
+  const [alerts,      setAlerts]      = useState({});
+  const [autoRefresh, setAutoRefresh] = useState(0);
+  const [countdown,   setCountdown]   = useState(0);
   const timerRef = useRef(null);
   const cdRef    = useRef(null);
 
-  // Auto-refresh logic
   useEffect(() => {
     clearInterval(timerRef.current);
     clearInterval(cdRef.current);
     if (autoRefresh > 0 && signals.length > 0) {
       setCountdown(autoRefresh);
-      cdRef.current = setInterval(() => setCountdown(v => v <= 1 ? autoRefresh : v - 1), 1000);
+      cdRef.current    = setInterval(() => setCountdown(v => v <= 1 ? autoRefresh : v - 1), 1000);
       timerRef.current = setInterval(() => refreshAll(), autoRefresh * 1000);
     }
     return () => { clearInterval(timerRef.current); clearInterval(cdRef.current); };
@@ -189,19 +172,13 @@ export default function Signals() {
         zScore: d.zScore, rsiValue: d.rsiValue, maFast: d.maFast, maSlow: d.maSlow,
         ts: new Date().toLocaleTimeString('en-IN', { hour12: false }),
       };
-      setSignals(prev => {
-        const filtered = prev.filter(s => s.symbol !== entry.symbol);
-        return [entry, ...filtered];
-      });
-      // Check alert
+      setSignals(prev => [entry, ...prev.filter(s => s.symbol !== entry.symbol)]);
       if (alerts[d.symbol] && (d.signal === 'BUY' || d.signal === 'SELL')) {
         setToast({ message: `🔔 ${d.symbol}: ${d.signal} signal (${Math.round(d.confidence * 100)}% conf)`, type: d.signal === 'BUY' ? 'success' : 'error' });
       }
     } catch (err) {
       setToast({ message: err.response?.data?.error || `Failed for ${symbol}`, type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   const refreshAll = useCallback(async () => {
@@ -223,26 +200,22 @@ export default function Signals() {
     setLoading(false);
   }, [signals, strategy]);
 
-  function remove(symbol) { setSignals(p => p.filter(s => s.symbol !== symbol)); }
-  function toggleAlert(sym) { setAlerts(p => ({ ...p, [sym]: !p[sym] })); }
+  function remove(symbol)      { setSignals(p => p.filter(s => s.symbol !== symbol)); }
+  function toggleAlert(sym)    { setAlerts(p => ({ ...p, [sym]: !p[sym] })); }
 
-  // Comparison bar chart data
   const chartData = signals.map(s => ({
     symbol: s.symbol,
     confidence: Math.round((s.confidence || 0) * 100),
     signal: s.signal,
   }));
 
-  // Summary counts
   const buys  = signals.filter(s => s.signal === 'BUY').length;
   const sells = signals.filter(s => s.signal === 'SELL').length;
   const holds = signals.filter(s => s.signal === 'HOLD').length;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <Navbar />
-      <Sidebar />
-      <main className="ml-48 pt-14 min-h-screen">
+    <AppShell>
+      <main className="page-content">
         <div className="p-6 max-w-screen-xl">
 
           {/* Header */}
@@ -254,7 +227,6 @@ export default function Signals() {
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Auto-refresh selector */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                 <Clock size={11} />
@@ -284,7 +256,6 @@ export default function Signals() {
 
           {/* Controls */}
           <div className="rounded-xl p-4 mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            {/* Strategy selector */}
             <div className="flex flex-wrap gap-3 items-center mb-4">
               <span className="text-xs font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Strategy</span>
               <div className="flex gap-1 flex-wrap">
@@ -293,8 +264,8 @@ export default function Signals() {
                     className="px-2.5 py-1 rounded text-xs font-mono transition-all"
                     style={{
                       background: strategy === s ? 'rgba(0,212,255,0.12)' : 'var(--bg-elevated)',
-                      border: strategy === s ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)',
-                      color: strategy === s ? 'var(--cyan)' : 'var(--text-muted)',
+                      border:     strategy === s ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)',
+                      color:      strategy === s ? 'var(--cyan)' : 'var(--text-muted)',
                     }}>
                     {s.replace(/_/g, ' ')}
                   </button>
@@ -312,12 +283,12 @@ export default function Signals() {
                     className="px-2.5 py-1 rounded text-xs font-mono transition-all relative"
                     style={{
                       background: already ? 'rgba(0,212,255,0.08)' : 'var(--bg-elevated)',
-                      border: already ? '1px solid rgba(0,212,255,0.3)' : '1px solid var(--border)',
-                      color: already ? 'var(--cyan)' : 'var(--text-muted)',
+                      border:     already ? '1px solid rgba(0,212,255,0.3)' : '1px solid var(--border)',
+                      color:      already ? 'var(--cyan)' : 'var(--text-muted)',
                     }}>
                     {sym}
                     {already && (
-                      <span className="ml-1.5 text-xs" style={{
+                      <span className="ml-1.5" style={{
                         color: already.signal === 'BUY' ? 'var(--green)' : already.signal === 'SELL' ? 'var(--red)' : 'var(--amber)',
                         fontSize: 9,
                       }}>
@@ -347,10 +318,9 @@ export default function Signals() {
             </div>
           </div>
 
-          {/* Summary + Chart row */}
+          {/* Summary + Chart */}
           {signals.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              {/* Summary cards */}
               <div className="flex flex-col gap-3">
                 {[
                   { label: 'BUY Signals',  count: buys,  color: 'var(--green)', icon: TrendingUp },
@@ -371,7 +341,6 @@ export default function Signals() {
                 ))}
               </div>
 
-              {/* Confidence comparison chart */}
               <div className="lg:col-span-2 rounded-xl p-5"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 <div className="text-xs font-mono uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -435,6 +404,6 @@ export default function Signals() {
           <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

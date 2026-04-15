@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
+import AppShell from '../components/AppShell';
 import { useSearchParams } from 'react-router-dom';
 import { backtestAPI } from '../services/api';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import EquityChart from '../components/EquityChart';
 import TradesTable from '../components/TradesTable';
 import Toast from '../components/Toast';
-import { Play, RefreshCw, TrendingUp, Activity, BarChart2, Shield, Target, Percent, DollarSign, Clock } from 'lucide-react';
+import { Play, RefreshCw, TrendingUp, Activity, BarChart2, Shield, Clock } from 'lucide-react';
 
 const STRATEGIES = ['AGGREGATED','RSI','MA_CROSSOVER','MEAN_REVERSION'];
 
@@ -64,10 +63,8 @@ export default function Backtest() {
   const s = result?.summary;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <Navbar />
-      <Sidebar />
-      <main className="ml-48 pt-14 min-h-screen">
+    <AppShell>
+      <main className="page-content">
         <div className="p-6 max-w-screen-xl">
           <div className="mb-6">
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Backtester</h1>
@@ -84,14 +81,14 @@ export default function Backtest() {
                 <h3 className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Configuration</h3>
                 <form onSubmit={run} className="space-y-3">
                   {[
-                    ['Symbol', 'symbol', 'text', null],
-                    ['Strategy', 'strategy', 'select', STRATEGIES],
-                    ['Start Date', 'startDate', 'date', null],
-                    ['End Date',   'endDate',   'date', null],
+                    ['Symbol',          'symbol',         'text',   null],
+                    ['Strategy',        'strategy',       'select', STRATEGIES],
+                    ['Start Date',      'startDate',      'date',   null],
+                    ['End Date',        'endDate',        'date',   null],
                     ['Initial Capital', 'initialCapital', 'number', null],
-                    ['Stop Loss %',    'stopLossPct',    'number', null],
-                    ['Take Profit %',  'takeProfitPct',  'number', null],
-                    ['Risk/Trade %',   'riskPerTrade',   'number', null],
+                    ['Stop Loss %',     'stopLossPct',    'number', null],
+                    ['Take Profit %',   'takeProfitPct',  'number', null],
+                    ['Risk/Trade %',    'riskPerTrade',   'number', null],
                   ].map(([label, key, type, opts]) => (
                     <div key={key}>
                       <label className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{label}</label>
@@ -183,17 +180,17 @@ export default function Backtest() {
                 </div>
               )}
 
-              {/* Detailed stats + Trades */}
+              {/* Detailed stats */}
               {s && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in">
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Performance</h3>
-                    <StatRow label="Initial Capital"  value={`₹${Number(s.initialCapital).toLocaleString('en-IN')}`} />
-                    <StatRow label="Final Capital"    value={`₹${Number(s.finalCapital).toLocaleString('en-IN')}`}   color={s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)'} />
-                    <StatRow label="Ann. Return"      value={`${s.annualisedReturnPct?.toFixed(2)}%`} />
-                    <StatRow label="Profit Factor"    value={s.profitFactor?.toFixed(2)} />
-                    <StatRow label="Avg Win"          value={`${s.avgWinPct?.toFixed(2)}%`}  color="var(--green)" />
-                    <StatRow label="Avg Loss"         value={`${s.avgLossPct?.toFixed(2)}%`} color="var(--red)" />
+                    <StatRow label="Initial Capital" value={`₹${Number(s.initialCapital).toLocaleString('en-IN')}`} />
+                    <StatRow label="Final Capital"   value={`₹${Number(s.finalCapital).toLocaleString('en-IN')}`} color={s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)'} />
+                    <StatRow label="Ann. Return"     value={`${s.annualisedReturnPct?.toFixed(2)}%`} />
+                    <StatRow label="Profit Factor"   value={s.profitFactor?.toFixed(2)} />
+                    <StatRow label="Avg Win"         value={`${s.avgWinPct?.toFixed(2)}%`}  color="var(--green)" />
+                    <StatRow label="Avg Loss"        value={`${s.avgLossPct?.toFixed(2)}%`} color="var(--red)" />
                   </div>
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Trade Stats</h3>
@@ -205,11 +202,11 @@ export default function Backtest() {
                   </div>
                   <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                     <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Risk Metrics</h3>
-                    <StatRow label="Sharpe Ratio"   value={s.sharpeRatio?.toFixed(4)} />
-                    <StatRow label="Max Drawdown"   value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--red)" />
-                    <StatRow label="Stop Loss"      value={`${(form.stopLossPct * 100).toFixed(1)}%`} />
-                    <StatRow label="Take Profit"    value={`${(form.takeProfitPct * 100).toFixed(1)}%`} />
-                    <StatRow label="Risk/Trade"     value={`${(form.riskPerTrade * 100).toFixed(1)}%`} />
+                    <StatRow label="Sharpe Ratio" value={s.sharpeRatio?.toFixed(4)} />
+                    <StatRow label="Max Drawdown" value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--red)" />
+                    <StatRow label="Stop Loss"    value={`${(form.stopLossPct * 100).toFixed(1)}%`} />
+                    <StatRow label="Take Profit"  value={`${(form.takeProfitPct * 100).toFixed(1)}%`} />
+                    <StatRow label="Risk/Trade"   value={`${(form.riskPerTrade * 100).toFixed(1)}%`} />
                   </div>
                 </div>
               )}
@@ -248,6 +245,6 @@ export default function Backtest() {
           <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

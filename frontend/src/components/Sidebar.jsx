@@ -1,5 +1,8 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Zap, Search, TrendingUp, Activity, Radio, ArrowLeftRight } from 'lucide-react';
+// src/components/Sidebar.jsx
+// Desktop: fixed left panel. Mobile: slide-in overlay controlled by `open` prop.
+import { useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Zap, Search, TrendingUp, Activity, Radio, ArrowLeftRight, X } from 'lucide-react';
 
 const NAV = [
   { to: '/',         icon: LayoutDashboard, label: 'Dashboard',    end: true },
@@ -7,7 +10,7 @@ const NAV = [
   { to: '/signals',  icon: Radio,           label: 'Signals' },
   { to: '/screener', icon: Search,          label: 'Screener' },
   { to: '/backtest', icon: TrendingUp,      label: 'Backtest' },
-  { to: '/trade',    icon: ArrowLeftRight, label: 'Trade' },
+  { to: '/trade',    icon: ArrowLeftRight,  label: 'Trade' },
 ];
 
 function isMarketOpen() {
@@ -18,36 +21,83 @@ function isMarketOpen() {
   return ist >= 555 && ist <= 930;
 }
 
-export default function Sidebar() {
-  const open = isMarketOpen();
+export default function Sidebar({ open, onClose }) {
+  const location = useLocation();
+  const marketOpen = isMarketOpen();
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { if (onClose) onClose(); }, [location.pathname]);
+
+  // Prevent body scroll when mobile menu open
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden';
+    else      document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
   return (
-    <aside className="fixed left-0 bottom-0 z-40 flex flex-col py-4 px-3"
-      style={{ top:'var(--navbar-h)', width:'var(--sidebar-w)', background:'var(--bg-surface)', borderRight:'1px solid var(--border)' }}>
+    <>
+      {/* Backdrop — mobile only */}
+      {open && (
+        <div
+          onClick={onClose}
+          className="lg:hidden fixed inset-0 z-40"
+          style={{ background: 'rgba(6,10,18,0.75)', backdropFilter: 'blur(4px)', animation: 'fadeIn 0.2s ease-out' }}
+        />
+      )}
 
-      {/* Section label */}
-      <div className="section-label px-3 mb-3">Navigation</div>
+      {/* Sidebar panel */}
+      <aside
+        className="fixed left-0 bottom-0 z-40 flex flex-col py-4 px-3"
+        style={{
+          top: 'var(--navbar-h)',
+          width: 'var(--sidebar-w)',
+          background: 'var(--bg-surface)',
+          borderRight: '1px solid var(--border)',
+          // Desktop: always visible. Mobile: slide in/out.
+          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)',
+        }}
+        // On mobile, hide unless open
+        data-open={open}
+      >
+        {/* Mobile close button */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-3 right-3 flex items-center justify-center"
+          style={{
+            width: 28, height: 28, borderRadius: 7,
+            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            color: 'var(--text-muted)', cursor: 'pointer',
+          }}
+        >
+          <X size={13} />
+        </button>
 
-      <nav className="flex flex-col gap-0.5 flex-1">
-        {NAV.map(({ to, icon: Icon, label, end }) => (
-          <NavLink key={to} to={to} end={end}
-            className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
-            <Icon size={14} strokeWidth={1.8} />
-            <span style={{ fontSize:13 }}>{label}</span>
-          </NavLink>
-        ))}
-      </nav>
+        <div className="section-label px-3 mb-3">Navigation</div>
 
-      {/* Market status card */}
-      <div style={{ margin:'0 4px 4px', padding:'12px 14px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10 }}>
-        <div className="section-label mb-2">NSE Market</div>
-        <div className="flex items-center gap-2">
-          <span className={`live-dot ${open ? '' : 'stopped'}`} style={{ width:6, height:6 }} />
-          <span className="font-mono" style={{ fontSize:11, fontWeight:600, color: open ? 'var(--green)' : 'var(--red)' }}>
-            {open ? 'OPEN' : 'CLOSED'}
-          </span>
+        <nav className="flex flex-col gap-0.5 flex-1">
+          {NAV.map(({ to, icon: Icon, label, end }) => (
+            <NavLink key={to} to={to} end={end}
+              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+              <Icon size={14} strokeWidth={1.8} />
+              <span style={{ fontSize: 13 }}>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Market status */}
+        <div style={{ margin: '0 4px 4px', padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10 }}>
+          <div className="section-label mb-2">NSE Market</div>
+          <div className="flex items-center gap-2">
+            <span className={`live-dot ${marketOpen ? '' : 'stopped'}`} style={{ width: 6, height: 6 }} />
+            <span className="font-mono" style={{ fontSize: 11, fontWeight: 600, color: marketOpen ? 'var(--green)' : 'var(--red)' }}>
+              {marketOpen ? 'OPEN' : 'CLOSED'}
+            </span>
+          </div>
+          <div className="font-mono mt-1.5" style={{ fontSize: 10, color: 'var(--text-muted)' }}>9:15 – 15:30 IST</div>
         </div>
-        <div className="font-mono mt-1.5" style={{ fontSize:10, color:'var(--text-muted)' }}>9:15 – 15:30 IST</div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -19,7 +19,7 @@ function toTVSymbol(symbol) {
 
 const SCRIPT_SRC = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
 
-function TradingChart({ symbol }) {
+function TradingChart({ symbol, height }) {
   const containerRef = useRef(null);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -85,7 +85,7 @@ function TradingChart({ symbol }) {
     flexDirection: 'column',
   };
 
-  const chartHeight = fullscreen ? 'calc(100vh - 52px)' : 520;
+  const chartHeight = fullscreen ? 'calc(100vh - 52px)' : (height || '100%');
 
   return (
     <div style={wrapStyle}>
@@ -157,7 +157,7 @@ function TradingChart({ symbol }) {
       <div
         ref={containerRef}
         className="tradingview-widget-container"
-        style={{ width: '100%', height: chartHeight, flex: fullscreen ? 1 : undefined }}
+        style={{ width: '100%', height: fullscreen ? chartHeight : undefined, minHeight: fullscreen ? undefined : 360, flex: fullscreen ? 1 : undefined }}
       />
 
       {/* ESC hint in fullscreen */}

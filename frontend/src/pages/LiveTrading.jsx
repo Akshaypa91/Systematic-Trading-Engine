@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import AppShell from '../components/AppShell';
 import { useWS } from '../context/WSContext';
 import { simAPI } from '../services/api';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import SignalCard from '../components/SignalCard';
 import LiveEquityChart from '../components/LiveEquityChart';
 import Toast from '../components/Toast';
@@ -209,9 +208,9 @@ export default function LiveTrading() {
   const openPositions = p?.openPositions ? Object.entries(p.openPositions) : [];
 
   return (
-    <div className="page-shell">
-      <Navbar />
-      <Sidebar />
+    <AppShell>
+      
+      
 
       <main className="page-content">
         {/* ── Page header */}
@@ -409,6 +408,6 @@ export default function LiveTrading() {
           <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

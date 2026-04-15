@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
+import AppShell from '../components/AppShell';
 import { screenerAPI, signalAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import Toast from '../components/Toast';
 import {
   Search, RefreshCw, TrendingUp, TrendingDown, Minus,
@@ -43,7 +42,11 @@ function SignalChip({ signal, size = 'sm' }) {
 }
 
 function MiniSparkline({ data }) {
-  if (!data?.length) return <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'var(--text-muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>No history yet</span></div>;
+  if (!data?.length) return (
+    <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>No history yet</span>
+    </div>
+  );
   const min = Math.min(...data), max = Math.max(...data);
   const isUp = data[data.length - 1] >= data[0];
   const color = isUp ? 'var(--green)' : 'var(--red)';
@@ -97,7 +100,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
   }, [row?.symbol]);
 
   if (!row) return null;
-  const score = row.compositeScore ?? 0;
+  const score      = row.compositeScore ?? 0;
   const scoreColor = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
 
   return (
@@ -189,7 +192,8 @@ function DetailPanel({ row, onClose, onBacktest }) {
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,212,255,0.12)'}>
             <Play size={13} /> Backtest {row.symbol}
           </button>
-          <button onClick={() => { setSigLoad(true); signalAPI.get(row.symbol).then(r => setSignal(r.data)).catch(() => {}).finally(() => setSigLoad(false)); }}
+          <button
+            onClick={() => { setSigLoad(true); signalAPI.get(row.symbol).then(r => setSignal(r.data)).catch(() => {}).finally(() => setSigLoad(false)); }}
             className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-mono transition-all"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
@@ -244,10 +248,10 @@ export default function Screener() {
   const panelOpen = !!selected;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <Navbar />
-      <Sidebar />
-      <main style={{ marginLeft: 'var(--sidebar-w)', marginRight: panelOpen ? 320 : 0, paddingTop: 'var(--navbar-h)', minHeight: '100vh', transition: 'margin-right 0.3s' }}>
+    <AppShell>
+      <main
+        className="page-content"
+        style={{ marginRight: panelOpen ? 320 : 0, transition: 'margin-right 0.3s' }}>
         <div className="p-6 max-w-screen-xl">
 
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -401,7 +405,11 @@ export default function Screener() {
 
       <DetailPanel row={selected} onClose={() => setSelected(null)} onBacktest={sym => navigate(`/backtest?symbol=${sym}`)} />
 
-      {toast && <div className="fixed bottom-6 right-6 z-50"><Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} /></div>}
-    </div>
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        </div>
+      )}
+    </AppShell>
   );
 }

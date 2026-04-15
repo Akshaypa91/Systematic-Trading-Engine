@@ -205,3 +205,154 @@ body {
 /* ── Scan overlay ──────────────────────────────────────────────────────────── */
 .scan-overlay { pointer-events:none; position:absolute; inset:0; overflow:hidden; border-radius:inherit; z-index:1; }
 .scan-overlay::after { content:''; position:absolute; left:0; right:0; height:60px; background:linear-gradient(transparent,rgba(0,212,255,0.025),transparent); animation:scanLine 5s ease-in-out infinite; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE / MOBILE LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Mobile: hide sidebar by default, show only when .open ─────────────────── */
+@media (max-width: 1023px) {
+  /* Sidebar hidden off-screen on mobile */
+  aside[data-open="false"],
+  aside:not([data-open]) {
+    transform: translateX(-110%) !important;
+  }
+  aside[data-open="true"] {
+    transform: translateX(0) !important;
+  }
+
+  /* No sidebar offset on mobile */
+  .page-shell {
+    padding-left: 0 !important;
+  }
+
+  /* Legacy layout classes */
+  .ml-48,
+  .ml-192 {
+    margin-left: 0 !important;
+  }
+
+  /* Tighter page padding on mobile */
+  .page-content {
+    padding: 16px 14px !important;
+  }
+
+  /* Trade page grid: single column on mobile */
+  .trade-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* TradePanel: bottom-anchored feel on mobile */
+  .trade-right {
+    position: static !important;
+    order: -1; /* trade panel above chart on mobile */
+  }
+}
+
+/* ── Tablet (md) ─────────────────────────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-content {
+    padding: 20px 20px !important;
+  }
+}
+
+/* ── Desktop (lg+): sidebar always visible ───────────────────────────────── */
+@media (min-width: 1024px) {
+  aside {
+    transform: none !important;
+  }
+  .page-shell {
+    padding-left: var(--sidebar-w) !important;
+  }
+  .trade-right {
+    position: sticky;
+    top: calc(var(--navbar-h) + 24px);
+  }
+}
+
+/* ── Trade page layout ───────────────────────────────────────────────────── */
+.trade-page-content {
+  padding-top: 20px;
+}
+
+.trade-page-header {
+  margin-bottom: 20px;
+}
+
+.trade-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.trade-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0; /* prevent overflow */
+}
+
+/* ── Touch targets — minimum 44px on mobile ─────────────────────────────── */
+@media (max-width: 767px) {
+  .btn {
+    min-height: 40px;
+  }
+  .nav-item {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+  .input {
+    min-height: 42px;
+    font-size: 16px !important; /* prevent iOS zoom */
+    padding: 10px 12px;
+  }
+  .trade-page-header h1 {
+    font-size: 18px !important;
+  }
+}
+
+/* ── Chart: responsive height ────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .tradingview-widget-container {
+    height: 340px !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tradingview-widget-container {
+    height: 420px !important;
+  }
+}
+
+/* ── Portfolio tiles: responsive grid ───────────────────────────────────── */
+@media (max-width: 400px) {
+  /* 2-col on very small screens */
+  .portfolio-tiles-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* ── Positions table: horizontal scroll on mobile ────────────────────────── */
+@media (max-width: 767px) {
+  .positions-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Slide-in animation for mobile sidebar ───────────────────────────────── */
+@keyframes slideInLeft {
+  from { transform: translateX(-110%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Prevent body scroll when nav open (set via JS) ─────────────────────── */
+body.nav-open {
+  overflow: hidden;
+}
+
+/* ── Toast: full width on mobile ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .toast-enter {
+    max-width: calc(100vw - 32px) !important;
+  }
+}
