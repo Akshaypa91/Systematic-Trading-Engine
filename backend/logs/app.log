@@ -2643,3 +2643,88 @@
 {"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 00:33:49.318"}
 {"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-15 00:33:49.326"}
 {"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 00:40:54.585"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-15 09:47:20.841"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 142)","timestamp":"2026-04-15 09:47:21.332"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-15 09:47:21.531"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-15 09:47:21.531"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-15 09:47:21.531"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-15 09:47:21.532"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-15 09:47:21.534"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-15 09:47:21.536"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-15 09:47:21.537"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-15 09:47:21.537"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-15 09:47:21.537"}
+{"level":"info","message":"[App] 🔗 Live:    http://localhost:3000/api/sim/signals","timestamp":"2026-04-15 09:47:21.537"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-15 09:47:32.349"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 09:47:32.354"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-15 09:47:32.357"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:49:21.532"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:51:21.531"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-15 09:52:21.529"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-15 09:52:21.530"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 2ms — OK","timestamp":"2026-04-15 09:52:21.530"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:53:21.531"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:55:21.530"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-15 09:57:21.526"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-15 09:57:21.526"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-15 09:57:21.527"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:57:21.528"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 09:59:21.529"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:01:21.528"}
+{"level":"info","message":"[Scheduler] Running market scan...","timestamp":"2026-04-15 10:02:21.671"}
+{"level":"info","message":"[Screener] Scanning 20 symbols...","timestamp":"2026-04-15 10:02:21.672"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-15 10:02:21.680"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-15 10:02:21.680"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-15 10:02:21.681"}
+{"level":"debug","message":"[Screener] Skipping ADANIENT: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:21.873"}
+{"level":"debug","message":"[Screener] Skipping BPCL: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.009"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 151)","timestamp":"2026-04-15 10:02:22.199"}
+{"level":"debug","message":"[Screener] Skipping BHARTIARTL: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.201"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 152)","timestamp":"2026-04-15 10:02:22.202"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 153)","timestamp":"2026-04-15 10:02:22.202"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 157)","timestamp":"2026-04-15 10:02:22.202"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 155)","timestamp":"2026-04-15 10:02:22.203"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 156)","timestamp":"2026-04-15 10:02:22.203"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 154)","timestamp":"2026-04-15 10:02:22.210"}
+{"level":"debug","message":"[Screener] Skipping BAJAJ-AUTO: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.398"}
+{"level":"debug","message":"[Screener] Skipping BRITANNIA: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.399"}
+{"level":"debug","message":"[Screener] Skipping ASIANPAINT: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.400"}
+{"level":"debug","message":"[Screener] Skipping BAJFINANCE: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.401"}
+{"level":"debug","message":"[Screener] Skipping APOLLOHOSP: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.401"}
+{"level":"debug","message":"[Screener] Skipping AXISBANK: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.402"}
+{"level":"debug","message":"[Screener] Skipping BAJAJFINSV: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.402"}
+{"level":"debug","message":"[Screener] Skipping ADANIPORTS: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.403"}
+{"level":"debug","message":"[Screener] Skipping COALINDIA: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.529"}
+{"level":"debug","message":"[Screener] Skipping CIPLA: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.530"}
+{"level":"debug","message":"[Screener] Skipping DIVISLAB: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.530"}
+{"level":"debug","message":"[Screener] Skipping DRREDDY: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.531"}
+{"level":"debug","message":"[Screener] Skipping HCLTECH: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.540"}
+{"level":"debug","message":"[Screener] Skipping EICHERMOT: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.550"}
+{"level":"debug","message":"[Screener] Skipping GRASIM: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.553"}
+{"level":"debug","message":"[Screener] Skipping HDFCBANK: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.568"}
+{"level":"debug","message":"[Screener] Skipping HDFCLIFE: only 0 bars (need 25)","timestamp":"2026-04-15 10:02:22.722"}
+{"level":"warn","message":"[Screener] No symbols could be scored","timestamp":"2026-04-15 10:02:22.722"}
+{"level":"debug","message":"[Scheduler] \"MARKET_SCAN\" completed in 1051ms — OK","timestamp":"2026-04-15 10:02:22.722"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:03:21.677"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:05:21.678"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 1ms — OK","timestamp":"2026-04-15 10:07:21.679"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-15 10:07:21.681"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-15 10:07:21.681"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-15 10:07:21.681"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:09:21.679"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:11:21.679"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-15 10:12:21.681"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-15 10:12:21.682"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-15 10:12:21.682"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:13:21.681"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 10:14:40.119"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-15 10:14:40.185"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 10:14:40.188"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-15 10:14:40.196"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-15 10:15:21.681"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-15 10:16:41.930"}

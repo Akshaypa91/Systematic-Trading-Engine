@@ -8,6 +8,7 @@ import StockCard     from '../components/StockCard';
 import TradePanel    from '../components/TradePanel';
 import PortfolioCard from '../components/PortfolioCard';
 import CapitalSetup  from '../components/CapitalSetup';
+import TradingChart  from '../components/TradingChart';
 import { marketAPI, manualTradeAPI, signalAPI, simAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 
@@ -232,6 +233,11 @@ export default function Trade() {
                 loading={loading}
                 onRefresh={symbol ? () => fetchStock(symbol) : undefined}
               />
+
+              {/* Live TradingView chart — shown once stock is selected */}
+              {data?.symbol && (
+                <TradingChart symbol={data.symbol} height={460} />
+              )}
 
               {data?.source === 'SIMULATION' && (
                 <div style={{
