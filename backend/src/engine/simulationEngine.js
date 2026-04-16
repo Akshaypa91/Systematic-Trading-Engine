@@ -16,6 +16,7 @@
 'use strict';
 
 const EventEmitter = require('events');
+const signalEngine = require('./signalEngine');
 
 // ── NSE Nifty50 seed prices (approximate, realistic INR values) ───────────────
 const SEED_PRICES = {
@@ -138,9 +139,20 @@ function _bollingerBands(prices, period = 20, stdDev = 2) {
   return { upper: mean + stdDev * sd, middle: mean, lower: mean - stdDev * sd, sd };
 }
 
-// ── Signal generation ─────────────────────────────────────────────────────────
+// ── Signal generation (delegated to signalEngine.js) ─────────────────────────
 
 function _generateSignal(symbol, prices) {
+  const result = signalEngine.computeSignal(symbol, prices);
+  const sma20  = result.sma20;
+  const sma50  = result.sma50;
+  const regime = (sma20 !== null && sma50 !== null)
+    ? (Math.abs(sma20 - sma50) / sma50 > 0.015 ? 'TRENDING' : 'MEAN_REVERTING')
+    : 'UNKNOWN';
+  return { ...result, regime };
+}
+
+// ── DEAD CODE BELOW — kept for reference only, no longer called ───────────────
+function _generateSignal_LEGACY(symbol, prices) {
   const price   = prices[prices.length - 1];
   const rsi     = _rsi(prices);
   const sma20   = _sma(prices, 20);
@@ -220,6 +232,7 @@ function _generateSignal(symbol, prices) {
     timestamp: new Date().toISOString(),
   };
 }
+// ── END LEGACY ─────────────────────────────────────────────────────────────────
 
 // ── Paper trading execution ───────────────────────────────────────────────────
 
