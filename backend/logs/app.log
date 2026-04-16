@@ -2826,3 +2826,42 @@
 {"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-16 12:58:06.445"}
 {"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-16 12:58:06.445"}
 {"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:58:06.445"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 13:00:06.447"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 13:02:06.447"}
+{"level":"info","message":"[Scheduler] Running market scan...","timestamp":"2026-04-16 13:03:06.442"}
+{"level":"info","message":"[Screener] Scanning 20 symbols...","timestamp":"2026-04-16 13:03:06.443"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-16 13:03:06.451"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-16 13:03:06.451"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 0ms — OK","timestamp":"2026-04-16 13:03:06.451"}
+{"level":"debug","message":"[Screener] Skipping ADANIENT: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:06.603"}
+{"level":"debug","message":"[Screener] Skipping BPCL: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:06.764"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 207)","timestamp":"2026-04-16 13:03:06.916"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 205)","timestamp":"2026-04-16 13:03:06.917"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 204)","timestamp":"2026-04-16 13:03:06.917"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 206)","timestamp":"2026-04-16 13:03:06.918"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 208)","timestamp":"2026-04-16 13:03:06.918"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 209)","timestamp":"2026-04-16 13:03:06.921"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 210)","timestamp":"2026-04-16 13:03:06.927"}
+{"level":"debug","message":"[Screener] Skipping BHARTIARTL: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:06.937"}
+{"level":"debug","message":"[Screener] Skipping ASIANPAINT: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.078"}
+{"level":"debug","message":"[Screener] Skipping BAJAJFINSV: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.079"}
+{"level":"debug","message":"[Screener] Skipping AXISBANK: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.080"}
+{"level":"debug","message":"[Screener] Skipping BAJAJ-AUTO: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.081"}
+{"level":"debug","message":"[Screener] Skipping ADANIPORTS: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.081"}
+{"level":"debug","message":"[Screener] Skipping BAJFINANCE: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.087"}
+{"level":"debug","message":"[Screener] Skipping APOLLOHOSP: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.088"}
+{"level":"debug","message":"[Screener] Skipping BRITANNIA: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.100"}
+{"level":"debug","message":"[Screener] Skipping CIPLA: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.232"}
+{"level":"debug","message":"[Screener] Skipping COALINDIA: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.233"}
+{"level":"debug","message":"[Screener] Skipping DRREDDY: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.233"}
+{"level":"debug","message":"[Screener] Skipping EICHERMOT: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.233"}
+{"level":"debug","message":"[Screener] Skipping DIVISLAB: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.234"}
+{"level":"debug","message":"[Screener] Skipping HCLTECH: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.240"}
+{"level":"debug","message":"[Screener] Skipping GRASIM: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.249"}
+{"level":"debug","message":"[Screener] Skipping HDFCBANK: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.268"}
+{"level":"debug","message":"[Screener] Skipping HDFCLIFE: only 0 bars (need 25)","timestamp":"2026-04-16 13:03:07.427"}
+{"level":"warn","message":"[Screener] No symbols could be scored","timestamp":"2026-04-16 13:03:07.427"}
+{"level":"debug","message":"[Scheduler] \"MARKET_SCAN\" completed in 986ms — OK","timestamp":"2026-04-16 13:03:07.427"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 13:04:06.448"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 13:06:06.448"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 13:06:54.742"}
