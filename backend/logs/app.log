@@ -2800,3 +2800,29 @@
 {"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:50:02.623"}
 {"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:50:02.634"}
 {"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:50:06.389"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:51:54.223"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:51:54.353"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:51:54.355"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:51:54.365"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:52:06.389"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:52:12.446"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:52:12.575"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:52:12.577"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:52:12.587"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-16 12:53:06.387"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-16 12:53:06.387"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-16 12:53:06.387"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:53:47.903"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:53:48.039"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:53:48.040"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:53:48.050"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:54:06.445"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:56:06.445"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:57:03.291"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:57:03.424"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-16 12:57:03.426"}
+{"level":"info","message":"[WS] Authenticated client connected (user: lootf131@gmail.com). Total: 1","timestamp":"2026-04-16 12:57:03.437"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-16 12:58:06.444"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-16 12:58:06.445"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-16 12:58:06.445"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-16 12:58:06.445"}

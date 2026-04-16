@@ -8,6 +8,8 @@ const MA         = require('../strategies/maCrossover');
 const RSI        = require('../strategies/rsiStrategy');
 const BB         = require('../strategies/bollingerBands');
 const { detectRegimeWithRouting, resetSmoothing } = require('../engine/regimeDetector');
+const signalEngine = require('../engine/signalEngine');
+const simEngine    = require('../engine/simulationEngine');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
 
@@ -20,11 +22,43 @@ async function getSignal(req, res) {
     const lookback    = parseInt(req.query.lookback || '250', 10);
     const useRegime   = req.query.regime !== 'false';  // default: regime ON
 
-    const bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback);
+    let bars = [];
+    try { bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback); } catch (_) {}
+
+    // ── Sim fallback: DB empty → use simulation engine price history ──────────
     if (!bars || bars.length < 20) {
-      return res.status(422).json({
-        success: false,
-        error:   `Insufficient data for ${symbol}: ${bars?.length ?? 0} bars found`,
+      logger.info(`[SignalCtrl] DB empty for ${symbol} (${bars?.length ?? 0} bars) — falling back to sim engine`);
+
+      // Ensure sim engine has generated history for this symbol
+      simEngine.addSymbol(symbol.toUpperCase());
+      const simPrices = simEngine.getPriceHistory(symbol.toUpperCase());
+
+      if (!simPrices || simPrices.length < 51) {
+        return res.status(422).json({
+          success: false,
+          error:   `Insufficient data for ${symbol}: ${bars?.length ?? 0} bars in DB, sim engine not ready yet — retry in a few seconds`,
+        });
+      }
+
+      // Use signalEngine directly on simulated prices
+      const sig = signalEngine.computeSignal(symbol.toUpperCase(), simPrices);
+      return res.json({
+        success:      true,
+        symbol:       symbol.toUpperCase(),
+        strategy:     'SIM_FALLBACK',
+        signal:       sig.signal,
+        confidence:   sig.confidence,
+        currentPrice: sig.currentPrice,
+        rsiValue:     sig.rsi,
+        maFast:       sig.sma20,
+        maSlow:       sig.sma50,
+        bbUpper:      sig.bbUpper,
+        bbLower:      sig.bbLower,
+        zScore:       null,
+        components:   sig.components,
+        score:        sig.score,
+        simMode:      true,
+        timestamp:    sig.timestamp,
       });
     }
 
