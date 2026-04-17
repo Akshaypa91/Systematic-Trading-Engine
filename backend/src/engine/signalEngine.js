@@ -407,6 +407,79 @@ function getConfig() {
   };
 }
 
+// ── Step 1: Live price integration ────────────────────────────────────────────
+//
+// generateLiveSignal(symbol, priceHistory)
+// ────────────────────────────────────────
+// Fetches real-time price via marketDataService (Twelve Data API → sim fallback).
+// Appends it to the rolling price history, then runs computeSignal.
+//
+// The caller (simulationEngine tick loop) owns the history array.
+// We mutate it in-place (rolling 500-bar window) for efficiency.
+//
+// Returns: { ...signalResult, source: "LIVE" | "SIM" }
+//
+// Price cache: marketDataService already caches 8s. We also check our own
+// signal cache (MIN_RECOMPUTE_MS) to avoid recomputing on every 3s tick
+// when price hasn't moved.
+
+let _marketDataSvc = null;
+
+function _getMarketSvc() {
+  if (!_marketDataSvc) {
+    try {
+      _marketDataSvc = require('../services/marketDataService');
+    } catch (_) {
+      // marketDataService unavailable (e.g. test env) — use null
+    }
+  }
+  return _marketDataSvc;
+}
+
+/**
+ * Fetch live price, append to history, compute signal.
+ *
+ * @param {string}   symbol       NSE ticker
+ * @param {number[]} priceHistory Rolling price array (mutated in-place)
+ * @param {number}   [maxLen=500] Max history length to keep
+ * @returns {Promise<SignalResult & { source: 'LIVE'|'SIM' }>}
+ */
+async function generateLiveSignal(symbol, priceHistory, maxLen = 500) {
+  const svc = _getMarketSvc();
+
+  let livePrice = null;
+  let source    = 'SIM';
+
+  if (svc) {
+    try {
+      const result = await svc.getLivePrice(symbol);
+      livePrice = result.price;
+      source    = result.source === 'API' ? 'LIVE' : 'SIM';
+    } catch (_) {
+      // Fallback: use last known price from history
+    }
+  }
+
+  // If we got a real price, append it to history
+  if (livePrice !== null && isFinite(livePrice) && livePrice > 0) {
+    priceHistory.push(livePrice);
+    if (priceHistory.length > maxLen) priceHistory.shift();
+  }
+
+  // Check signal cache — skip recompute if price unchanged
+  const sym    = symbol.toUpperCase();
+  const cached = _cache.get(sym);
+  const curPrice = priceHistory[priceHistory.length - 1];
+
+  if (cached && cached.lastPrice === curPrice &&
+      Date.now() - cached.computedAt < MIN_RECOMPUTE_MS) {
+    return { ...cached.signal, source };
+  }
+
+  const sig = computeSignal(symbol, priceHistory);
+  return { ...sig, source };
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -419,6 +492,7 @@ module.exports = {
   combineSignals,
   computeSignal,
   computeSignalBatch,
+  generateLiveSignal,
 
   // Cache API
   getSignal,

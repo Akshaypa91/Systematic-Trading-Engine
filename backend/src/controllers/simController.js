@@ -17,8 +17,22 @@ function getLiveSignals(req, res) {
     ? req.query.symbols.split(',').map(s => s.trim().toUpperCase())
     : null;
 
-  const signals = sim.getLatestSignals(symbols);
-  const status  = sim.getStatus();
+  const raw    = sim.getLatestSignals(symbols);
+  const status = sim.getStatus();
+
+  // Normalise each signal: ensure source field + all indicator fields present
+  const signals = raw.map(s => ({
+    ...s,
+    source:   s.source  || 'SIM',          // 'LIVE' | 'SIM'
+    rsi:      s.rsi     ?? null,
+    sma20:    s.sma20   ?? null,
+    sma50:    s.sma50   ?? null,
+    bbUpper:  s.bbUpper ?? null,
+    bbLower:  s.bbLower ?? null,
+    bbMiddle: s.bbMiddle ?? null,
+    score:    s.score   ?? null,
+    components: s.components ?? {},
+  }));
 
   res.json({ success: true, count: signals.length, mode: 'SIMULATION', status, signals });
 }

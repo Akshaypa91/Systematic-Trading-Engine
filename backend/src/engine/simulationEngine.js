@@ -29,7 +29,7 @@ const SEED_PRICES = {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const DEFAULT_SYMBOLS   = Object.keys(SEED_PRICES).slice(0, 10);
-const DEFAULT_INTERVAL  = parseInt(process.env.SIM_INTERVAL_MS || '5000', 10);  // 5s
+const DEFAULT_INTERVAL  = parseInt(process.env.SIM_INTERVAL_MS || '3000', 10);  // 3s real-time loop
 const VOLATILITY        = 0.012;   // daily vol (~1.2%)
 const DRIFT             = 0.0003;  // slight upward drift
 const INITIAL_CAPITAL   = parseFloat(process.env.DEFAULT_CAPITAL || '1000000');
@@ -336,31 +336,45 @@ async function _tick() {
     }
 
     const history = _priceHistory.get(symbol);
-    const regime  = _signalCache.has(symbol) ? _signalCache.get(symbol).regime : 'UNKNOWN';
 
-    // Simulate next price bar
-    const lastPrice = history[history.length - 1];
-    const newPrice  = _nextPrice(lastPrice, regime);
-    history.push(newPrice);
-    if (history.length > 500) history.shift(); // rolling window
+    try {
+      // ── Live price fetch → signal (falls back to sim price on API failure) ──
+      const sig = await signalEngine.generateLiveSignal(symbol, history);
 
-    // Check exits on existing positions
-    _checkExits(symbol, newPrice);
+      // Regime annotation (used by paper trading exit logic)
+      const sma20 = sig.sma20, sma50 = sig.sma50;
+      sig.regime = (sma20 && sma50)
+        ? (Math.abs(sma20 - sma50) / sma50 > 0.015 ? 'TRENDING' : 'MEAN_REVERTING')
+        : 'UNKNOWN';
 
-    // Generate signal
-    const sig = _generateSignal(symbol, history);
-    _signalCache.set(symbol, sig);
-    signals.push(sig);
+      _signalCache.set(symbol, sig);
+      signals.push(sig);
 
-    // Execute paper trade
-    if (sig.signal === 'BUY' && sig.confidence >= MIN_CONFIDENCE && !_portfolio.openPositions[symbol]) {
-      _placeBuy(symbol, newPrice);
-    } else if (sig.signal === 'SELL' && _portfolio.openPositions[symbol]) {
-      _placeSell(symbol, newPrice, 'SIGNAL');
+      const curPrice = history[history.length - 1];
+      _checkExits(symbol, curPrice);
+
+      if (sig.signal === 'BUY' && sig.confidence >= MIN_CONFIDENCE && !_portfolio.openPositions[symbol]) {
+        _placeBuy(symbol, curPrice);
+      } else if (sig.signal === 'SELL' && _portfolio.openPositions[symbol]) {
+        _placeSell(symbol, curPrice, 'SIGNAL');
+      }
+
+    } catch (err) {
+      // Per-symbol error — never crash whole tick; fall back to pure GBM
+      console.error(`[SimEngine] tick error ${symbol}: ${err.message}`);
+      const lastPrice = history[history.length - 1];
+      const newPrice  = _nextPrice(lastPrice, 'UNKNOWN');
+      history.push(newPrice);
+      if (history.length > 500) history.shift();
+
+      const sig = _generateSignal(symbol, history);
+      sig.source = 'SIM';
+      _signalCache.set(symbol, sig);
+      signals.push(sig);
     }
   }
 
-  // Update equity curve (sample every 5 ticks to avoid huge array)
+  // Equity curve — sample every 5 ticks
   if (_tickCount % 5 === 0) {
     const openPnl = Object.entries(_portfolio.openPositions).reduce((sum, [sym, pos]) => {
       const cur = _priceHistory.get(sym);
