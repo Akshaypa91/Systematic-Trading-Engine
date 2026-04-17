@@ -166,7 +166,7 @@ export default function Trade() {
             <div className="trade-left">
               <StockCard data={data} loading={loading} onRefresh={symbol ? () => fetchStock(symbol) : undefined} />
 
-              {data?.symbol && <TradingChart symbol={data.symbol} />}
+              {data?.symbol && <TradingChart symbol={data.symbol} priceSource={data.source} />}
 
               {data?.source === 'SIMULATION' && (
                 <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(255,176,32,0.06)', border: '1px solid rgba(255,176,32,0.20)' }}>

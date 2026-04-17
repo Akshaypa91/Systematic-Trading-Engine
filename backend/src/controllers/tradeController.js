@@ -192,9 +192,9 @@ async function placeManualOrder(req, res) {
     let result;
     try {
       if (normalizedAction === 'BUY') {
-        result = portfolio.executeBuy(sym, quantity, price);
+        result = await portfolio.executeBuy(sym, quantity, price, source);
       } else {
-        result = portfolio.executeSell(sym, quantity, price);
+        result = await portfolio.executeSell(sym, quantity, price, source);
       }
     } catch (execErr) {
       const code = execErr.statusCode || 400;
@@ -206,11 +206,12 @@ async function placeManualOrder(req, res) {
       (result.pnl != null ? ` | P&L: ₹${result.pnl}` : '')
     );
 
+    const updatedState = await portfolio.getState();
     return res.status(201).json({
       success:   true,
       message:   'Trade executed',
       trade:     { ...result.trade, priceSource: source },
-      portfolio: portfolio.getState(),
+      portfolio: updatedState,
     });
 
   } catch (err) {
@@ -225,8 +226,13 @@ async function placeManualOrder(req, res) {
  * Return in-memory portfolio state for the manual trading engine.
  * Mounted in routes/sim.js → GET /api/sim/portfolio
  */
-function getManualPortfolio(req, res) {
-  res.json({ success: true, data: portfolio.getState() });
+async function getManualPortfolio(req, res) {
+  try {
+    const state = await portfolio.getState();
+    res.json({ success: true, data: state });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 }
 
 // ── Alias kept for routes/index.js ───────────────────────────────────────────

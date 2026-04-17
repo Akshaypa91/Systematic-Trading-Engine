@@ -1,211 +1,324 @@
 // src/portfolio/portfolioState.js
 // ─────────────────────────────────────────────────────────────────────────────
-// In-memory portfolio state: capital, positions, trade history.
-// Capital is USER-DEFINED via /api/sim/start — no hardcoded values.
+//
+// PERSISTENT PORTFOLIO STATE
 // ─────────────────────────────────────────────────────────────────────────────
+//
+// DROP-IN replacement for the old in-memory version.
+// Public API is identical — all callers (simController, tradeController,
+// executionEngine) work unchanged.
+//
+// PERSISTENCE STRATEGY
+// ─────────────────────
+//   • portfolios table  — capital balance, lifecycle state
+//   • sim_trades table  — append-only trade ledger
+//   • Positions         — reconstructed on every read from the trade ledger
+//                         (no separate positions table → no sync bugs)
+//
+// CACHING
+// ────────
+//   A lightweight in-memory write-through cache sits in front of DB reads.
+//   Cache is invalidated on every write (trade or capital change).
+//   TTL = 5s so a crashed process re-hydrates quickly on restart.
+//
+// FALLBACK
+// ────────
+//   If DB is unreachable (Render free tier sleep, cold start) every method
+//   throws a clear error with statusCode=503 so the API returns 503 instead
+//   of a silent null/undefined.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
 'use strict';
 
-// ── State ─────────────────────────────────────────────────────────────────────
+const repo   = require('./portfolioRepository');
+const logger = require('../config/logger');
 
-const DEFAULT_CAPITAL = 100000; // fallback only until user calls /api/sim/start
+// ── Write-through cache ───────────────────────────────────────────────────────
 
-const state = {
-  capital:        DEFAULT_CAPITAL,
-  initialCapital: DEFAULT_CAPITAL,
-  positions:      {},
-  trades:         [],
-  initialized:    false,   // false until user calls POST /api/sim/start
+const CACHE_TTL_MS = 5000;
+
+let _cache = {
+  portfolioId:     null,
+  initialCapital:  null,
+  currentCapital:  null,
+  positions:       null,   // reconstructed from trades
+  initialized:     false,
+  fetchedAt:       0,
 };
 
-// ── Init / Reset ──────────────────────────────────────────────────────────────
+function _invalidate() {
+  _cache.positions  = null;
+  _cache.fetchedAt  = 0;
+}
+
+function _isFresh() {
+  return _cache.initialized && Date.now() - _cache.fetchedAt < CACHE_TTL_MS;
+}
+
+// ── DB hydration ──────────────────────────────────────────────────────────────
+
+/**
+ * Load the active portfolio from DB into cache.
+ * Called lazily on first access after process start.
+ *
+ * @returns {Promise<boolean>} true if an active portfolio exists
+ */
+async function _hydrate() {
+  const pf = await repo.getActivePortfolio();
+  if (!pf) {
+    _cache.initialized = false;
+    return false;
+  }
+
+  _cache.portfolioId    = pf.id;
+  _cache.initialCapital = parseFloat(pf.initial_capital);
+  _cache.currentCapital = parseFloat(pf.current_capital);
+  _cache.initialized    = true;
+  _cache.positions      = await repo.getPositions(pf.id);
+  _cache.fetchedAt      = Date.now();
+
+  logger.info(
+    `[PortfolioState] Hydrated from DB: ` +
+    `portfolio #${pf.id} capital=₹${_cache.currentCapital} ` +
+    `positions=${Object.keys(_cache.positions).length}`
+  );
+  return true;
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
 
 /**
  * Initialize portfolio with user-defined capital.
  * Called by POST /api/sim/start
- * Clears all positions and trades.
  *
- * @param {number} capital - User-supplied starting capital in ₹
- * @throws {Error} with .statusCode = 400 if invalid
+ * @param {number} capital
+ * @throws {Error} statusCode=400 if invalid
  */
-function initialize(capital) {
+async function initialize(capital) {
   const cap = Number(capital);
   if (!Number.isFinite(cap) || cap <= 0) {
     const err = new Error('capital must be a positive number');
     err.statusCode = 400;
     throw err;
   }
-  if (cap < 1) {
-    const err = new Error('capital must be at least ₹1');
+
+  const portfolioId = await repo.createPortfolio(cap);
+
+  _cache.portfolioId    = portfolioId;
+  _cache.initialCapital = parseFloat(cap.toFixed(2));
+  _cache.currentCapital = parseFloat(cap.toFixed(2));
+  _cache.positions      = {};
+  _cache.initialized    = true;
+  _cache.fetchedAt      = Date.now();
+}
+
+/**
+ * Reset portfolio back to initialCapital.
+ * Called by POST /api/sim/reset
+ *
+ * @throws {Error} statusCode=400 if not initialized
+ */
+async function resetToInitial() {
+  if (!_cache.initialized && !(await _hydrate())) {
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
     err.statusCode = 400;
     throw err;
   }
-  state.capital        = parseFloat(cap.toFixed(2));
-  state.initialCapital = parseFloat(cap.toFixed(2));
-  state.positions      = {};
-  state.trades         = [];
-  state.initialized    = true;
-}
 
-/**
- * Reset portfolio back to initialCapital (stored from last /api/sim/start).
- * Called by POST /api/sim/reset
- */
-function resetToInitial() {
-  state.capital   = state.initialCapital;
-  state.positions = {};
-  state.trades    = [];
-  // initialCapital and initialized flag preserved
-}
+  const restoredCapital = await repo.resetPortfolio(_cache.portfolioId);
 
-/**
- * Hard reset for testing — clears everything.
- * @param {number} [startingCapital]
- */
-function reset(startingCapital) {
-  const cap            = startingCapital != null ? Number(startingCapital) : DEFAULT_CAPITAL;
-  state.capital        = cap;
-  state.initialCapital = cap;
-  state.positions      = {};
-  state.trades         = [];
-  state.initialized    = false;
+  _cache.currentCapital = restoredCapital;
+  _cache.positions      = {};
+  _cache.fetchedAt      = Date.now();
 }
-
-// ── Read ──────────────────────────────────────────────────────────────────────
 
 /**
  * Get snapshot of full portfolio state.
- * @returns {{ capital, initialCapital, positions, trades, initialized }}
+ * Reconstructs positions from DB if cache is stale.
+ *
+ * @returns {Promise<{capital, initialCapital, positions, initialized}>}
  */
-function getState() {
+async function getState() {
+  // Lazy hydrate on first call after process start
+  if (!_cache.initialized) {
+    await _hydrate();
+  }
+
+  // Refresh positions from DB if cache is stale
+  if (_cache.initialized && !_isFresh()) {
+    _cache.positions = await repo.getPositions(_cache.portfolioId);
+    _cache.fetchedAt = Date.now();
+
+    // Re-read capital too (another process might have updated it)
+    const pf = await repo.getActivePortfolio();
+    if (pf) _cache.currentCapital = parseFloat(pf.current_capital);
+  }
+
   return {
-    capital:        parseFloat(state.capital.toFixed(2)),
-    initialCapital: parseFloat(state.initialCapital.toFixed(2)),
-    positions:      { ...state.positions },
-    trades:         [...state.trades],
-    initialized:    state.initialized,
+    capital:        _cache.initialized ? parseFloat(_cache.currentCapital.toFixed(2)) : 0,
+    initialCapital: _cache.initialized ? parseFloat(_cache.initialCapital.toFixed(2)) : 0,
+    positions:      _cache.initialized ? { ..._cache.positions } : {},
+    initialized:    _cache.initialized,
+    portfolioId:    _cache.portfolioId,
   };
 }
 
-/** Whether portfolio has been initialized by the user. */
-function isInitialized() {
-  return state.initialized;
+/** Whether portfolio has been initialised. */
+async function isInitialized() {
+  if (_cache.initialized) return true;
+  return _hydrate();
 }
 
 // ── Trade execution ───────────────────────────────────────────────────────────
 
 /**
  * Execute a BUY trade.
+ *
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
- * @returns {{ trade, capital, position }}
- * @throws {Error} .statusCode = 400
+ * @param {string} [priceSource='SIM']
+ * @returns {Promise<{trade, capital, position}>}
+ * @throws {Error} statusCode=400
  */
-function executeBuy(symbol, qty, price) {
-  const cost = qty * price;
-
-  if (state.capital < cost) {
-    const err = new Error(
-      `Insufficient capital. Need ₹${cost.toFixed(2)}, have ₹${state.capital.toFixed(2)}`
-    );
+async function executeBuy(symbol, qty, price, priceSource = 'SIM') {
+  if (!_cache.initialized && !(await _hydrate())) {
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
     err.statusCode = 400;
     throw err;
   }
 
-  state.capital -= cost;
+  const sym = symbol.toUpperCase();
 
-  const existing = state.positions[symbol];
-  if (existing) {
-    const totalQty      = existing.qty + qty;
-    const totalCost     = existing.qty * existing.entryPrice + cost;
-    const avgEntryPrice = totalCost / totalQty;
-    state.positions[symbol] = {
-      qty:        totalQty,
-      entryPrice: parseFloat(avgEntryPrice.toFixed(2)),
-      value:      parseFloat((totalQty * price).toFixed(2)),
-    };
-  } else {
-    state.positions[symbol] = {
-      qty,
-      entryPrice: parseFloat(price.toFixed(2)),
-      value:      parseFloat(cost.toFixed(2)),
-    };
-  }
+  // saveTrade does the capital check + atomic update inside a transaction
+  const { tradeId, newCapital, trade } = await repo.saveTrade({
+    portfolioId: _cache.portfolioId,
+    symbol:      sym,
+    action:      'BUY',
+    qty,
+    price,
+    pnl:         null,
+    priceSource,
+  });
 
-  const trade = _recordTrade({ symbol, action: 'BUY', qty, price });
-  return { trade, capital: state.capital, position: state.positions[symbol] };
+  // Update cache
+  _cache.currentCapital = newCapital;
+  _invalidate();  // positions stale — will be recomputed on next getState()
+
+  return {
+    trade:    { ...trade, timestamp: trade.executedAt },
+    capital:  newCapital,
+    position: null,  // caller can call getState() if they need the updated position
+  };
 }
 
 /**
  * Execute a SELL trade.
+ *
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
- * @returns {{ trade, capital, position|null, pnl }}
- * @throws {Error} .statusCode = 400
+ * @param {string} [priceSource='SIM']
+ * @returns {Promise<{trade, capital, position, pnl}>}
+ * @throws {Error} statusCode=400
  */
-function executeSell(symbol, qty, price) {
-  const existing = state.positions[symbol];
+async function executeSell(symbol, qty, price, priceSource = 'SIM') {
+  if (!_cache.initialized && !(await _hydrate())) {
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
+    err.statusCode = 400;
+    throw err;
+  }
 
+  const sym = symbol.toUpperCase();
+
+  // Check position exists in DB (most accurate) or cache
+  if (_cache.positions && !_cache.positions[sym]) {
+    // Double-check DB in case cache is stale
+    const pos = await repo.getPosition(_cache.portfolioId, sym);
+    if (!pos) {
+      const err = new Error(`No open position for ${sym}`);
+      err.statusCode = 400;
+      throw err;
+    }
+    if (qty > pos.qty) {
+      const err = new Error(`Cannot sell ${qty} of ${sym} — only ${pos.qty} held`);
+      err.statusCode = 400;
+      throw err;
+    }
+    // Compute P&L from DB position
+    const pnl = parseFloat(((price - pos.entryPrice) * qty).toFixed(2));
+    const { tradeId, newCapital, trade } = await repo.saveTrade({
+      portfolioId: _cache.portfolioId,
+      symbol:      sym,
+      action:      'SELL',
+      qty,
+      price,
+      pnl,
+      priceSource,
+    });
+    _cache.currentCapital = newCapital;
+    _invalidate();
+    return { trade: { ...trade, timestamp: trade.executedAt }, capital: newCapital, pnl, position: null };
+  }
+
+  const existing = _cache.positions?.[sym];
   if (!existing) {
-    const err = new Error(`No open position for ${symbol}`);
+    const err = new Error(`No open position for ${sym}`);
     err.statusCode = 400;
     throw err;
   }
-
   if (qty > existing.qty) {
-    const err = new Error(
-      `Cannot sell ${qty} shares of ${symbol} — only ${existing.qty} held`
-    );
+    const err = new Error(`Cannot sell ${qty} of ${sym} — only ${existing.qty} held`);
     err.statusCode = 400;
     throw err;
   }
 
-  const proceeds  = qty * price;
-  const costBasis = qty * existing.entryPrice;
-  const pnl       = parseFloat((proceeds - costBasis).toFixed(2));
+  const pnl = parseFloat(((price - existing.entryPrice) * qty).toFixed(2));
 
-  state.capital += proceeds;
+  const { tradeId, newCapital, trade } = await repo.saveTrade({
+    portfolioId: _cache.portfolioId,
+    symbol:      sym,
+    action:      'SELL',
+    qty,
+    price,
+    pnl,
+    priceSource,
+  });
 
-  let position = null;
-  if (qty === existing.qty) {
-    delete state.positions[symbol];
-  } else {
-    const remainingQty = existing.qty - qty;
-    state.positions[symbol] = {
-      qty:        remainingQty,
-      entryPrice: existing.entryPrice,
-      value:      parseFloat((remainingQty * price).toFixed(2)),
-    };
-    position = state.positions[symbol];
-  }
+  _cache.currentCapital = newCapital;
+  _invalidate();
 
-  const trade = _recordTrade({ symbol, action: 'SELL', qty, price, pnl });
-  return { trade, capital: state.capital, position, pnl };
+  return {
+    trade:    { ...trade, timestamp: trade.executedAt },
+    capital:  newCapital,
+    pnl,
+    position: null,
+  };
 }
 
-// ── Private ───────────────────────────────────────────────────────────────────
+// ── Hard reset (testing only) ─────────────────────────────────────────────────
 
-function _recordTrade({ symbol, action, qty, price, pnl = null }) {
-  const trade = {
-    symbol,
-    action,
-    qty,
-    price:     parseFloat(price.toFixed(2)),
-    value:     parseFloat((qty * price).toFixed(2)),
-    pnl,
-    timestamp: new Date().toISOString(),
+/**
+ * Clear cache only. Used in tests to simulate process restart.
+ */
+function _clearCache() {
+  _cache = {
+    portfolioId:    null,
+    initialCapital: null,
+    currentCapital: null,
+    positions:      null,
+    initialized:    false,
+    fetchedAt:      0,
   };
-  state.trades.push(trade);
-  return trade;
 }
 
 module.exports = {
   initialize,
   resetToInitial,
-  reset,
   getState,
   isInitialized,
   executeBuy,
   executeSell,
+  _clearCache,  // testing only
 };

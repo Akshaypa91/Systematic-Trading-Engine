@@ -40,7 +40,7 @@ function getLiveSignals(req, res) {
 // ── GET /api/sim/portfolio ────────────────────────────────────────────────────
 async function getPortfolio(req, res) {
   try {
-    const state   = portfolio.getState();
+    const state   = await portfolio.getState();
     const symbols = Object.keys(state.positions);
 
     // Fetch live prices for open positions (batch + sim fallback)
@@ -100,7 +100,6 @@ function getStatus(req, res) {
   res.json({
     success:   true,
     engine:    sim.getStatus(),
-    portfolio: portfolio.getState(),
     timestamp: new Date().toISOString(),
   });
 }
@@ -142,7 +141,7 @@ function removeFromWatchlist(req, res) {
  *
  * Response: { success, message, portfolio }
  */
-function startWithCapital(req, res) {
+async function startWithCapital(req, res) {
   try {
     const { capital } = req.body || {};
 
@@ -170,14 +169,15 @@ function startWithCapital(req, res) {
       });
     }
 
-    portfolio.initialize(cap);
+    await portfolio.initialize(cap);
 
     logger.info(`[SimCtrl] Portfolio initialized: ₹${cap.toLocaleString('en-IN')}`);
 
+    const state = await portfolio.getState();
     res.status(200).json({
       success:   true,
       message:   `Portfolio initialized with ₹${cap.toLocaleString('en-IN')} capital`,
-      portfolio: portfolio.getState(),
+      portfolio: state,
     });
   } catch (err) {
     const code = err.statusCode || 500;
@@ -193,9 +193,9 @@ function startWithCapital(req, res) {
  *
  * Response: { success, message, portfolio }
  */
-function resetPortfolio(req, res) {
+async function resetPortfolio(req, res) {
   try {
-    const state = portfolio.getState();
+    const state = await portfolio.getState();
 
     if (!state.initialized) {
       return res.status(400).json({
@@ -204,14 +204,15 @@ function resetPortfolio(req, res) {
       });
     }
 
-    portfolio.resetToInitial();
+    await portfolio.resetToInitial();
 
     logger.info(`[SimCtrl] Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`);
 
+    const newState = await portfolio.getState();
     res.status(200).json({
       success:   true,
       message:   `Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`,
-      portfolio: portfolio.getState(),
+      portfolio: newState,
     });
   } catch (err) {
     logger.error(`[SimCtrl] resetPortfolio: ${err.message}`);
@@ -228,7 +229,7 @@ function resetPortfolio(req, res) {
  */
 async function exitAll(req, res) {
   try {
-    const state   = portfolio.getState();
+    const state   = await portfolio.getState();
     const symbols = Object.keys(state.positions);
 
     if (!state.initialized) {
@@ -259,7 +260,7 @@ async function exitAll(req, res) {
       const price = priceMap[sym] ?? pos.entryPrice;
 
       try {
-        const result = portfolio.executeSell(sym, pos.qty, price);
+        const result = await portfolio.executeSell(sym, pos.qty, price, 'API');
         closedTrades.push(result.trade);
         totalProceeds += pos.qty * price;
         totalRealPnL  += result.pnl ?? 0;
@@ -271,13 +272,14 @@ async function exitAll(req, res) {
 
     logger.info(`[SimCtrl] exitAll complete: ${closedTrades.length} positions closed, PnL ₹${totalRealPnL.toFixed(2)}`);
 
+    const finalState = await portfolio.getState();
     res.json({
       success:       true,
       closedCount:   closedTrades.length,
       totalProceeds: parseFloat(totalProceeds.toFixed(2)),
       realizedPnL:   parseFloat(totalRealPnL.toFixed(2)),
       trades:        closedTrades,
-      portfolio:     portfolio.getState(),
+      portfolio:     finalState,
     });
   } catch (err) {
     logger.error(`[SimCtrl] exitAll: ${err.message}`);

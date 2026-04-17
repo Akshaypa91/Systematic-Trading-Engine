@@ -1,31 +1,75 @@
 // src/components/TradingChart.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // TradingView Advanced Chart — NSE symbols, dark theme.
-// Fullscreen toggle. Fixes Apple/Cboe bug by forcing NSE: prefix.
+//
+// Symbol format rule (mirrors backend symbolMap.js):
+//   TradingView requires "NSE:SYMBOL"  e.g. NSE:TCS, NSE:INFY
+//   Without NSE: prefix → TradingView defaults to US listings (AAPL etc.)
+//
+// CRITICAL FIX: script.textContent must be set BEFORE the script tag is
+// appended to the DOM. TradingView reads the config at execution time.
+// Setting innerHTML/textContent after append has no effect.
 // ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useRef, memo, useState, useCallback } from 'react';
 import { BarChart2, Maximize2, Minimize2 } from 'lucide-react';
 
-// Force NSE exchange — prevents TradingView defaulting to US/Cboe listings
+// ── Frontend symbol → TradingView format ──────────────────────────────────────
+// Mirrors backend symbolMap.toTV() without importing Node modules.
+// Any symbol already prefixed is passed through; plain symbols get NSE: added.
+
+const TV_OVERRIDES = {
+  'M&M':    'NSE:MM',
+  'NIFTY':  'NSE:NIFTY',
+  'NIFTY50':'NSE:NIFTY',
+  'SENSEX': 'BSE:SENSEX',
+};
+
 function toTVSymbol(symbol) {
   if (!symbol) return 'NSE:NIFTY';
   const s = symbol.toUpperCase().trim();
-  if (s.includes(':')) return s;
-  if (s === 'NIFTY' || s === 'NIFTY50') return 'NSE:NIFTY';
-  if (s === 'BANKNIFTY')               return 'NSE:BANKNIFTY';
-  if (s === 'SENSEX')                  return 'BSE:SENSEX';
-  return `NSE:${s}`;
+  if (s.includes(':')) return s;                 // already has exchange prefix
+  if (TV_OVERRIDES[s]) return TV_OVERRIDES[s];  // special case mapping
+  return `NSE:${s}`;                             // default: NSE equity
 }
 
 const SCRIPT_SRC = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
 
-function TradingChart({ symbol, height }) {
+function buildWidgetConfig(tvSymbol) {
+  return {
+    autosize:            true,
+    symbol:              tvSymbol,
+    interval:            'D',
+    timezone:            'Asia/Kolkata',
+    theme:               'dark',
+    style:               '1',
+    locale:              'en',
+    backgroundColor:     '#060a12',
+    gridColor:           'rgba(255,255,255,0.04)',
+    hide_top_toolbar:    false,
+    hide_legend:         false,
+    withdateranges:      true,
+    allow_symbol_change: false,
+    save_image:          false,
+    calendar:            false,
+    hide_volume:         false,
+    support_host:        'https://www.tradingview.com',
+    studies:             ['STD;RSI', 'STD;MACD'],
+  };
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+function TradingChart({ symbol, height, priceSource }) {
   const containerRef = useRef(null);
   const [fullscreen, setFullscreen] = useState(false);
+
+  const tvSymbol = toTVSymbol(symbol);
 
   const buildWidget = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
+
     container.innerHTML = '';
 
     const wrapper = document.createElement('div');
@@ -33,59 +77,45 @@ function TradingChart({ symbol, height }) {
     wrapper.style.cssText = 'height:100%;width:100%;';
     container.appendChild(wrapper);
 
-    const script       = document.createElement('script');
-    script.src         = SCRIPT_SRC;
-    script.async       = true;
-    script.type        = 'text/javascript';
-    script.innerHTML   = JSON.stringify({
-      autosize:            true,
-      symbol:              toTVSymbol(symbol),   // ← always NSE:SYMBOL
-      interval:            'D',
-      timezone:            'Asia/Kolkata',
-      theme:               'dark',
-      style:               '1',                  // candlestick
-      locale:              'en',
-      backgroundColor:     '#060a12',
-      gridColor:           'rgba(255,255,255,0.04)',
-      hide_top_toolbar:    false,
-      hide_legend:         false,
-      withdateranges:      true,
-      allow_symbol_change: false,
-      save_image:          false,
-      calendar:            false,
-      hide_volume:         false,
-      support_host:        'https://www.tradingview.com',
-      studies:             ['STD;RSI', 'STD;MACD'],
-    });
-    container.appendChild(script);
-  }, [symbol]);
+    const script  = document.createElement('script');
+    script.type   = 'text/javascript';
+    script.src    = SCRIPT_SRC;
+    script.async  = true;
 
-  // Rebuild widget whenever symbol OR fullscreen changes (height changes need rebuild)
+    // ── CRITICAL: set textContent BEFORE appending to DOM ──────────────────
+    // TradingView reads config at script execution time.
+    // Setting it after append = widget already initialised with no config = AAPL.
+    script.textContent = JSON.stringify(buildWidgetConfig(tvSymbol));
+
+    console.log('[TradingChart] Widget config:', { inputSymbol: symbol, tvSymbol });
+
+    container.appendChild(script);
+  }, [tvSymbol, symbol]);
+
   useEffect(() => {
     buildWidget();
     return () => { if (containerRef.current) containerRef.current.innerHTML = ''; };
   }, [buildWidget, fullscreen]);
 
-  const tvSymbol = toTVSymbol(symbol);
+  // Source badge config
+  const isLive   = priceSource && priceSource.startsWith('LIVE');
+  const badgeLabel = priceSource === 'LIVE_TWELVE'  ? '🟢 TwelveData'
+                   : priceSource === 'LIVE_FINNHUB' ? '🟢 Finnhub'
+                   : priceSource === 'SIM'          ? '🟡 SIM'
+                   : '● NSE';
+  const badgeColor = isLive ? 'var(--green)' : priceSource === 'SIM' ? 'var(--amber)' : 'var(--green)';
+  const badgeBg    = isLive ? 'rgba(0,229,160,0.08)' : priceSource === 'SIM' ? 'rgba(255,167,38,0.08)' : 'rgba(0,229,160,0.08)';
+  const badgeBdr   = isLive ? 'rgba(0,229,160,0.20)' : priceSource === 'SIM' ? 'rgba(255,167,38,0.20)' : 'rgba(0,229,160,0.20)';
 
-  // ── Fullscreen overlay styles ────────────────────────────────────────────────
   const wrapStyle = fullscreen ? {
-    position:   'fixed',
-    inset:      0,
-    zIndex:     9999,
-    background: '#060a12',
-    display:    'flex',
-    flexDirection: 'column',
+    position: 'fixed', inset: 0, zIndex: 9999,
+    background: '#060a12', display: 'flex', flexDirection: 'column',
   } : {
-    borderRadius: 12,
-    overflow: 'hidden',
+    borderRadius: 12, overflow: 'hidden',
     border: '1px solid var(--border)',
     background: 'var(--bg-card)',
-    display: 'flex',
-    flexDirection: 'column',
+    display: 'flex', flexDirection: 'column',
   };
-
-  const chartHeight = fullscreen ? 'calc(100vh - 52px)' : (height || '100%');
 
   return (
     <div style={wrapStyle}>
@@ -114,18 +144,15 @@ function TradingChart({ symbol, height }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* LIVE badge */}
+          {/* Price source badge */}
           <div style={{
             padding: '3px 9px', borderRadius: 6,
             fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-            background: 'rgba(0,229,160,0.08)',
-            border: '1px solid rgba(0,229,160,0.20)',
-            color: 'var(--green)',
+            background: badgeBg, border: `1px solid ${badgeBdr}`, color: badgeColor,
           }}>
-            ● LIVE
+            {badgeLabel}
           </div>
 
-          {/* Fullscreen toggle */}
           <button
             onClick={() => setFullscreen(f => !f)}
             title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
@@ -134,21 +161,12 @@ function TradingChart({ symbol, height }) {
               width: 30, height: 30, borderRadius: 7, border: '1px solid var(--border)',
               background: fullscreen ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
               color: fullscreen ? 'var(--cyan)' : 'var(--text-secondary)',
-              cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0,
+              cursor: 'pointer', transition: 'all 0.15s',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'var(--border-bright)';
-              e.currentTarget.style.color = 'var(--cyan)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'var(--border)';
-              e.currentTarget.style.color = fullscreen ? 'var(--cyan)' : 'var(--text-secondary)';
-            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--cyan)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = fullscreen ? 'var(--cyan)' : 'var(--text-secondary)'; }}
           >
-            {fullscreen
-              ? <Minimize2 size={13} />
-              : <Maximize2 size={13} />
-            }
+            {fullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
           </button>
         </div>
       </div>
@@ -157,21 +175,13 @@ function TradingChart({ symbol, height }) {
       <div
         ref={containerRef}
         className="tradingview-widget-container"
-        style={{ width: '100%', height: fullscreen ? chartHeight : undefined, minHeight: fullscreen ? undefined : 360, flex: fullscreen ? 1 : undefined }}
+        style={{
+          width: '100%',
+          height: fullscreen ? 'calc(100vh - 52px)' : undefined,
+          minHeight: fullscreen ? undefined : 360,
+          flex: fullscreen ? 1 : undefined,
+        }}
       />
-
-      {/* ESC hint in fullscreen */}
-      {fullscreen && (
-        <div
-          onClick={() => setFullscreen(false)}
-          style={{
-            position: 'absolute', top: 14, right: 58,
-            fontFamily: 'var(--font-mono)', fontSize: 10,
-            color: 'var(--text-dim)', cursor: 'pointer',
-            pointerEvents: 'none',
-          }}
-        />
-      )}
     </div>
   );
 }
