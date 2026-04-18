@@ -40,44 +40,100 @@ function getLiveSignals(req, res) {
 // ── GET /api/sim/portfolio ────────────────────────────────────────────────────
 async function getPortfolio(req, res) {
   try {
-    const state   = await portfolio.getState();
+    const state = await portfolio.getState();
+
+    // If not initialized yet return empty safe structure — don't 500
+    if (!state.initialized) {
+      return res.json({
+        success: true,
+        data: {
+          capital:        0,
+          initialCapital: 0,
+          positions:      {},
+          trades:         [],
+          initialized:    false,
+          unrealizedPnL:  0,
+          realizedPnL:    0,
+          totalPnL:       0,
+          totalPnLPct:    0,
+          totalValue:     0,
+          positionsValue: 0,
+          biggestGainer:  null,
+          biggestLoser:   null,
+          pricesAt:       new Date().toISOString(),
+        },
+      });
+    }
+
     const symbols = Object.keys(state.positions);
 
-    // Fetch live prices for open positions (batch + sim fallback)
+    // Fetch live prices (batch) — fall back to entry prices on error
     let priceMap = {};
     if (symbols.length > 0) {
       try {
         const priceResults = await marketDataSvc.getBatchPrices(symbols);
-        for (const { symbol, price } of priceResults) priceMap[symbol] = price;
+        for (const { symbol, price } of priceResults) {
+          priceMap[symbol] = parseFloat(price) || 0;
+        }
       } catch (priceErr) {
         logger.warn(`[SimCtrl] price fetch failed: ${priceErr.message} — using entry prices`);
-        for (const [sym, pos] of Object.entries(state.positions)) priceMap[sym] = pos.entryPrice;
+        for (const [sym, pos] of Object.entries(state.positions)) {
+          priceMap[sym] = parseFloat(pos.entryPrice) || 0;
+        }
       }
     }
 
+    // Enrich positions — pnlCalc expects numeric values; positions already coerced in repo
     const enrichedPositions = pnlCalc.enrichPositionsWithPnL(state.positions, priceMap);
+
+    // Fetch trade history from DB for realized PnL calculation
+    let trades = [];
+    try {
+      if (state.portfolioId) {
+        const repo = require('../portfolio/portfolioRepository');
+        trades = await repo.getTrades(state.portfolioId, 50);
+      }
+    } catch (tradeErr) {
+      logger.warn(`[SimCtrl] trade fetch failed: ${tradeErr.message}`);
+    }
+
+    // Normalize trade pnl fields to numbers
+    const normalizedTrades = trades.map(t => ({
+      ...t,
+      price: parseFloat(t.price) || 0,
+      value: parseFloat(t.value) || 0,
+      pnl:   t.pnl !== null && t.pnl !== undefined ? parseFloat(t.pnl) : null,
+    }));
+
     const summary = pnlCalc.calcPortfolioSummary(
-      enrichedPositions, state.capital, state.initialCapital, state.trades
+      enrichedPositions,
+      parseFloat(state.capital)        || 0,
+      parseFloat(state.initialCapital) || 0,
+      normalizedTrades
     );
 
     res.json({
       success: true,
       data: {
-        ...state,
+        capital:        parseFloat(state.capital)        || 0,
+        initialCapital: parseFloat(state.initialCapital) || 0,
+        portfolioId:    state.portfolioId,
+        initialized:    state.initialized,
         positions:      enrichedPositions,
-        unrealizedPnL:  summary.unrealizedPnL,
-        realizedPnL:    summary.realizedPnL,
-        totalPnL:       summary.totalPnL,
-        totalPnLPct:    summary.totalPnLPct,
-        totalValue:     summary.totalValue,
-        positionsValue: summary.positionsValue,
+        trades:         normalizedTrades,
+        unrealizedPnL:  parseFloat(summary.unrealizedPnL)  || 0,
+        realizedPnL:    parseFloat(summary.realizedPnL)    || 0,
+        totalPnL:       parseFloat(summary.totalPnL)       || 0,
+        totalPnLPct:    parseFloat(summary.totalPnLPct)    || 0,
+        totalValue:     parseFloat(summary.totalValue)     || 0,
+        positionsValue: parseFloat(summary.positionsValue) || 0,
         biggestGainer:  summary.biggestGainer,
         biggestLoser:   summary.biggestLoser,
         pricesAt:       new Date().toISOString(),
       },
     });
   } catch (err) {
-    logger.error(`[SimCtrl] getPortfolio: ${err.message}`);
+    logger.error(`[SimCtrl] getPortfolio: ${err.message}\n${err.stack}`);
     res.status(500).json({ success: false, error: err.message });
   }
 }

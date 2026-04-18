@@ -1,30 +1,43 @@
 // src/components/PortfolioCard.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Portfolio state display: capital · PnL · positions table · trade history.
-// Now shows: unrealized PnL, realized PnL, total PnL, % return, total value.
-// Auto-refreshes every 15s when positions are open.
+// Portfolio display — safe against null/string/undefined numeric values.
+// Every numeric display goes through n() which coerces to finite number.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Wallet, TrendingUp, TrendingDown, RefreshCw,
-  BarChart2, Loader2, Package, RotateCcw, AlertTriangle, Activity, XCircle,
+  BarChart2, Loader2, Package, RotateCcw, AlertTriangle,
+  Activity, XCircle, AlertCircle,
 } from 'lucide-react';
 import { simAPI } from '../services/api';
 import PositionsTable from './PositionsTable';
 
-const fmt = (n, dec = 0) =>
-  Number(n).toLocaleString('en-IN', {
+// ── Safe numeric helpers ──────────────────────────────────────────────────────
+// n()  → always returns a finite JS number (never NaN, never string)
+// fmt  → locale-formatted string
+// fmtSign → signed ₹ string
+
+const n = (v, fallback = 0) => {
+  const parsed = parseFloat(v);
+  return isFinite(parsed) ? parsed : fallback;
+};
+
+const fmt = (v, dec = 0) =>
+  n(v).toLocaleString('en-IN', {
     minimumFractionDigits: dec,
     maximumFractionDigits: dec,
   });
 
-const fmtSign = (n, dec = 0) =>
-  `${n >= 0 ? '+' : '−'}₹${fmt(Math.abs(n), dec)}`;
+const fmtSign = (v, dec = 0) => {
+  const num = n(v);
+  return `${num >= 0 ? '+' : '−'}₹${fmt(Math.abs(num), dec)}`;
+};
 
 const pnlColor = (v) =>
-  v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : 'var(--text-muted)';
+  n(v) > 0 ? 'var(--green)' : n(v) < 0 ? 'var(--red)' : 'var(--text-muted)';
 
-// ── Stat tile ─────────────────────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────────
+
 function Tile({ label, value, color, sub, highlight }) {
   return (
     <div style={{
@@ -50,11 +63,11 @@ function Tile({ label, value, color, sub, highlight }) {
   );
 }
 
-// ── PnL Tile ──────────────────────────────────────────────────────────────────
 function PnLTile({ label, value, pct }) {
-  const pos    = value > 0;
-  const neg    = value < 0;
-  const color  = pnlColor(value);
+  const num    = n(value);
+  const pos    = num > 0;
+  const neg    = num < 0;
+  const color  = pnlColor(num);
   const bg     = pos ? 'rgba(0,229,160,0.06)' : neg ? 'rgba(255,77,106,0.06)' : 'var(--bg-base)';
   const border = pos ? 'rgba(0,229,160,0.18)' : neg ? 'rgba(255,77,106,0.18)' : 'var(--border)';
   const Icon   = pos ? TrendingUp : neg ? TrendingDown : Activity;
@@ -65,21 +78,23 @@ function PnLTile({ label, value, pct }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
         <Icon size={11} style={{ color, flexShrink: 0 }} />
         <div className="font-mono" style={{ fontSize: 13, fontWeight: 700, color, lineHeight: 1 }}>
-          {fmtSign(value)}
+          {fmtSign(num)}
         </div>
       </div>
       {pct !== undefined && pct !== null && (
         <div className="font-mono" style={{ fontSize: 10, color, marginTop: 3, opacity: 0.8 }}>
-          {pct >= 0 ? '+' : ''}{fmt(pct, 2)}% return
+          {n(pct) >= 0 ? '+' : ''}{fmt(pct, 2)}% return
         </div>
       )}
     </div>
   );
 }
 
-// ── Trade row ─────────────────────────────────────────────────────────────────
 function TradeRow({ trade }) {
   const isBuy = trade.action === 'BUY';
+  const price = n(trade.price);
+  const pnl   = trade.pnl !== null && trade.pnl !== undefined ? n(trade.pnl) : null;
+
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -105,14 +120,14 @@ function TradeRow({ trade }) {
       </div>
       <div style={{ textAlign: 'right' }}>
         <div className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-          ₹{fmt(trade.price, 2)}
+          ₹{fmt(price, 2)}
         </div>
-        {trade.pnl != null && trade.action === 'SELL' && (
+        {pnl !== null && trade.action === 'SELL' && (
           <div className="font-mono" style={{
             fontSize: 10, fontWeight: 600,
-            color: trade.pnl >= 0 ? 'var(--green)' : 'var(--red)',
+            color: pnl >= 0 ? 'var(--green)' : 'var(--red)',
           }}>
-            {trade.pnl >= 0 ? '+' : ''}₹{Math.abs(trade.pnl).toFixed(0)}
+            {pnl >= 0 ? '+' : '−'}₹{fmt(Math.abs(pnl), 0)}
           </div>
         )}
       </div>
@@ -120,7 +135,6 @@ function TradeRow({ trade }) {
   );
 }
 
-// ── Reset confirm modal ───────────────────────────────────────────────────────
 function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
   return (
     <div style={{
@@ -143,9 +157,9 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
           </div>
         </div>
         <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 20 }}>
-          All open positions and trade history will be cleared.
-          Capital will be restored to{' '}
-          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>₹{fmt(initialCapital)}</span>.
+          All positions and trade history cleared.
+          Capital restored to{' '}
+          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>₹{fmt(n(initialCapital))}</span>.
         </p>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={onCancel} disabled={busy} className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: '9px 0' }}>
@@ -157,7 +171,7 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
             background: 'rgba(255,176,32,0.10)', cursor: busy ? 'wait' : 'pointer',
             fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--amber)',
           }}>
-            {busy ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={12} />}
+            {busy ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
             {busy ? 'Resetting…' : 'Reset'}
           </button>
         </div>
@@ -167,25 +181,35 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
+
 const AUTO_REFRESH_MS = 15_000;
 
 export default function PortfolioCard({ refreshTrigger, onReset }) {
   const [data,        setData]        = useState(null);
   const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState(null);
   const [resetBusy,   setResetBusy]   = useState(false);
   const [exitBusy,    setExitBusy]    = useState(false);
-  const [exitResult,  setExitResult]  = useState(null); // { pnl, count }
+  const [exitResult,  setExitResult]  = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [tab,         setTab]         = useState('positions');
   const timerRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await simAPI.getPortfolio();
-      setData(res.data?.data ?? res.data ?? null);
-    } catch { /* silently fail */ }
-    finally { setLoading(false); }
+      // Defensive: handle both { data } and { data: { data } } shapes
+      const payload = res.data?.data ?? res.data ?? null;
+      setData(payload);
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Failed to load portfolio';
+      setError(msg);
+      console.error('[PortfolioCard] load error:', msg);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load, refreshTrigger]);
@@ -202,9 +226,10 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
     setResetBusy(true);
     try {
       const res  = await simAPI.reset();
-      const port = res.data?.portfolio ?? null;
+      const port = res.data?.portfolio ?? res.data?.data ?? null;
       setData(port);
       setShowConfirm(false);
+      setError(null);
       if (onReset) onReset(port);
     } catch (err) {
       console.error('Reset failed:', err.response?.data?.error || err.message);
@@ -215,40 +240,42 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
     setExitBusy(true);
     setExitResult(null);
     try {
-      const res  = await simAPI.exitAll();
-      const d    = res.data;
+      const res = await simAPI.exitAll();
+      const d   = res.data;
       setData(d.portfolio ?? null);
-      setExitResult({ pnl: d.realizedPnL, count: d.closedCount });
+      setExitResult({
+        pnl:   n(d.realizedPnL),
+        count: d.closedCount ?? 0,
+      });
       setTimeout(() => setExitResult(null), 5000);
       if (onReset) onReset(d.portfolio);
     } catch (err) {
       console.error('Exit all failed:', err.response?.data?.error || err.message);
-    } finally {
-      setExitBusy(false);
-    }
+    } finally { setExitBusy(false); }
   }
 
-  // Derived
+  // ── Safe derived values — all coerced through n() ─────────────────────────
   const positions      = data?.positions      ?? {};
-  const trades         = data?.trades         ?? [];
-  const capital        = data?.capital        ?? null;
-  const initCapital    = data?.initialCapital ?? null;
-  const totalValue     = data?.totalValue     ?? null;
-  const unrealizedPnL  = data?.unrealizedPnL  ?? 0;
-  const realizedPnL    = data?.realizedPnL    ?? 0;
-  const totalPnL       = data?.totalPnL       ?? 0;
-  const totalPnLPct    = data?.totalPnLPct    ?? 0;
-  const positionsValue = data?.positionsValue ?? 0;
-  const biggestGainer  = data?.biggestGainer  ?? null;
-  const biggestLoser   = data?.biggestLoser   ?? null;
+  const trades         = Array.isArray(data?.trades) ? data.trades : [];
+  const capital        = n(data?.capital);
+  const initCapital    = n(data?.initialCapital);
+  const totalValue     = n(data?.totalValue);
+  const unrealizedPnL  = n(data?.unrealizedPnL);
+  const realizedPnL    = n(data?.realizedPnL);
+  const totalPnL       = n(data?.totalPnL);
+  const totalPnLPct    = n(data?.totalPnLPct);
+  const positionsValue = n(data?.positionsValue);
+  const biggestGainer  = data?.biggestGainer ?? null;
+  const biggestLoser   = data?.biggestLoser  ?? null;
   const posCount       = Object.keys(positions).length;
   const recentTrades   = [...trades].reverse().slice(0, 15);
+  const isInitialized  = data?.initialized ?? false;
 
   return (
     <>
       {showConfirm && (
         <ResetModal
-          initialCapital={initCapital ?? capital}
+          initialCapital={initCapital || capital}
           onConfirm={handleReset}
           onCancel={() => setShowConfirm(false)}
           busy={resetBusy}
@@ -272,7 +299,7 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
             </div>
             <div>
               <div className="section-label" style={{ marginBottom: 1 }}>Portfolio</div>
-              {initCapital && (
+              {initCapital > 0 && (
                 <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                   Started ₹{fmt(initCapital)}
                   {posCount > 0 && <span style={{ color: 'var(--text-dim)', marginLeft: 6 }}>· live PnL</span>}
@@ -281,7 +308,6 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            {/* Exit All — only when positions open */}
             {posCount > 0 && (
               <button
                 onClick={handleExitAll}
@@ -294,127 +320,154 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
                   background: 'rgba(255,77,106,0.08)',
                   cursor: exitBusy || loading ? 'wait' : 'pointer',
                   fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
-                  color: 'var(--red)', transition: 'all 0.15s',
-                  opacity: exitBusy || loading ? 0.5 : 1,
+                  color: 'var(--red)', opacity: exitBusy || loading ? 0.5 : 1,
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,77,106,0.55)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,77,106,0.30)'}
               >
-                {exitBusy
-                  ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
-                  : <XCircle size={10} />
-                }
+                {exitBusy ? <Loader2 size={10} className="animate-spin" /> : <XCircle size={10} />}
                 {exitBusy ? 'Closing…' : 'Exit All'}
               </button>
             )}
-
             <button onClick={() => setShowConfirm(true)} disabled={loading || resetBusy} style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,176,32,0.22)',
               background: 'rgba(255,176,32,0.06)', cursor: 'pointer',
               fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
               color: 'var(--amber)', opacity: loading || resetBusy ? 0.5 : 1,
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,176,32,0.45)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,176,32,0.22)'}>
+            }}>
               <RotateCcw size={10} />Reset
             </button>
             <button onClick={load} disabled={loading} className="btn btn-ghost" style={{ padding: '5px 9px', fontSize: 10 }}>
-              {loading ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={10} />}
+              {loading ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
             </button>
           </div>
         </div>
 
         <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-          {/* Row 1: Capital · Invested · Total Value */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            <Tile label="💰 Capital" value={capital != null ? `₹${fmt(capital)}` : null} color="var(--cyan)" highlight />
-            <Tile label="📊 Invested" value={`₹${fmt(positionsValue)}`} color="var(--text-primary)" sub={`${posCount} position${posCount !== 1 ? 's' : ''}`} />
-            <Tile label="💎 Total Value" value={totalValue != null ? `₹${fmt(totalValue)}` : null} color="var(--text-primary)" sub={initCapital ? `of ₹${fmt(initCapital)} start` : undefined} />
-          </div>
-
-          {/* Row 2: Unrealized · Realized · Total PnL */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            <PnLTile label="📈 Unrealized" value={unrealizedPnL} />
-            <PnLTile label="✅ Realized" value={realizedPnL} />
-            <PnLTile label="🎯 Total PnL" value={totalPnL} pct={totalPnLPct} />
-          </div>
-
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--bg-base)', borderRadius: 8, border: '1px solid var(--border)' }}>
-            {[
-              ['positions', BarChart2,  `Positions (${posCount})`],
-              ['trades',    TrendingUp, `History (${trades.length})`],
-            ].map(([key, Icon, label]) => (
-              <button key={key} onClick={() => setTab(key)} style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                padding: '6px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
-                background: tab === key ? 'var(--bg-elevated)' : 'none',
-                color: tab === key ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}>
-                <Icon size={10} />{label}
-              </button>
-            ))}
-          </div>
-
-          {/* Content */}
-          <div style={{ minHeight: 80 }}>
-            {loading && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
-                <Loader2 size={16} style={{ color: 'var(--text-muted)', animation: 'spin 1s linear infinite' }} />
-              </div>
-            )}
-
-            {!loading && tab === 'positions' && (
-              posCount === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 0', gap: 8 }}>
-                  <Package size={18} style={{ color: 'var(--text-dim)' }} />
-                  <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>No open positions</p>
-                </div>
-              ) : (
-                <PositionsTable positions={positions} biggestGainer={biggestGainer} biggestLoser={biggestLoser} />
-              )
-            )}
-
-            {!loading && tab === 'trades' && (
-              recentTrades.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 0', gap: 8 }}>
-                  <TrendingDown size={18} style={{ color: 'var(--text-dim)' }} />
-                  <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>No trades yet</p>
-                </div>
-              ) : (
-                <div>{recentTrades.map((t, i) => <TradeRow key={i} trade={t} />)}</div>
-              )
-            )}
-          </div>
-
-          {/* Exit All result flash */}
-          {exitResult && (
+          {/* Error banner */}
+          {error && (
             <div style={{
-              padding: '8px 12px', borderRadius: 8, animation: 'fadeUp 0.2s ease-out',
-              background: exitResult.pnl >= 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,106,0.08)',
-              border: `1px solid ${exitResult.pnl >= 0 ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 12px', borderRadius: 8,
+              background: 'rgba(255,77,106,0.06)', border: '1px solid rgba(255,77,106,0.20)',
             }}>
-              <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                ✓ Closed {exitResult.count} position{exitResult.count !== 1 ? 's' : ''}
+              <AlertCircle size={13} style={{ color: 'var(--red)', flexShrink: 0 }} />
+              <span className="font-mono" style={{ fontSize: 11, color: 'var(--red)' }}>
+                {error}
               </span>
-              <span className="font-mono" style={{
-                fontSize: 12, fontWeight: 700,
-                color: exitResult.pnl >= 0 ? 'var(--green)' : 'var(--red)',
-              }}>
-                {exitResult.pnl >= 0 ? '+' : ''}₹{Math.abs(exitResult.pnl).toLocaleString('en-IN', { maximumFractionDigits: 0 })} PnL
-              </span>
+              <button onClick={load} style={{
+                marginLeft: 'auto', padding: '2px 8px', borderRadius: 5,
+                border: '1px solid rgba(255,77,106,0.30)', background: 'transparent',
+                fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--red)', cursor: 'pointer',
+              }}>Retry</button>
             </div>
           )}
 
-          {/* Price timestamp */}
-          {data?.pricesAt && posCount > 0 && (
-            <div className="font-mono" style={{ fontSize: 9, color: 'var(--text-dim)', textAlign: 'right' }}>
-              Prices at {new Date(data.pricesAt).toLocaleTimeString('en-IN')}
+          {/* Not initialized prompt */}
+          {!loading && !error && !isInitialized && (
+            <div style={{
+              padding: '16px', borderRadius: 9, textAlign: 'center',
+              background: 'var(--bg-base)', border: '1px solid var(--border)',
+            }}>
+              <Package size={20} style={{ color: 'var(--text-dim)', margin: '0 auto 8px' }} />
+              <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                No portfolio yet — set capital above to start
+              </p>
             </div>
+          )}
+
+          {/* Stats — only when initialized */}
+          {isInitialized && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <Tile label="💰 Capital"    value={`₹${fmt(capital)}`}        color="var(--cyan)" highlight />
+                <Tile label="📊 Invested"   value={`₹${fmt(positionsValue)}`} color="var(--text-primary)"
+                      sub={`${posCount} position${posCount !== 1 ? 's' : ''}`} />
+                <Tile label="💎 Total Value" value={`₹${fmt(totalValue)}`}    color="var(--text-primary)"
+                      sub={initCapital > 0 ? `of ₹${fmt(initCapital)} start` : undefined} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <PnLTile label="📈 Unrealized" value={unrealizedPnL} />
+                <PnLTile label="✅ Realized"   value={realizedPnL} />
+                <PnLTile label="🎯 Total PnL"  value={totalPnL} pct={totalPnLPct} />
+              </div>
+
+              {/* Tabs */}
+              <div style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--bg-base)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                {[
+                  ['positions', BarChart2,  `Positions (${posCount})`],
+                  ['trades',    TrendingUp, `History (${trades.length})`],
+                ].map(([key, Icon, label]) => (
+                  <button key={key} onClick={() => setTab(key)} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    padding: '6px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
+                    background: tab === key ? 'var(--bg-elevated)' : 'none',
+                    color: tab === key ? 'var(--text-primary)' : 'var(--text-muted)',
+                  }}>
+                    <Icon size={10} />{label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content */}
+              <div style={{ minHeight: 80 }}>
+                {loading && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
+                    <Loader2 size={16} style={{ color: 'var(--text-muted)', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {!loading && tab === 'positions' && (
+                  posCount === 0
+                    ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 8 }}>
+                        <Package size={18} style={{ color: 'var(--text-dim)' }} />
+                        <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>No open positions</p>
+                      </div>
+                    )
+                    : <PositionsTable positions={positions} biggestGainer={biggestGainer} biggestLoser={biggestLoser} />
+                )}
+
+                {!loading && tab === 'trades' && (
+                  recentTrades.length === 0
+                    ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 8 }}>
+                        <TrendingDown size={18} style={{ color: 'var(--text-dim)' }} />
+                        <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>No trades yet</p>
+                      </div>
+                    )
+                    : <div>{recentTrades.map((t, i) => <TradeRow key={i} trade={t} />)}</div>
+                )}
+              </div>
+
+              {/* Exit result flash */}
+              {exitResult && (
+                <div style={{
+                  padding: '8px 12px', borderRadius: 8, animation: 'fadeUp 0.2s ease-out',
+                  background: n(exitResult.pnl) >= 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,106,0.08)',
+                  border: `1px solid ${n(exitResult.pnl) >= 0 ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                    ✓ Closed {exitResult.count} position{exitResult.count !== 1 ? 's' : ''}
+                  </span>
+                  <span className="font-mono" style={{
+                    fontSize: 12, fontWeight: 700,
+                    color: n(exitResult.pnl) >= 0 ? 'var(--green)' : 'var(--red)',
+                  }}>
+                    {n(exitResult.pnl) >= 0 ? '+' : '−'}₹{fmt(Math.abs(n(exitResult.pnl)), 0)} PnL
+                  </span>
+                </div>
+              )}
+
+              {data?.pricesAt && posCount > 0 && (
+                <div className="font-mono" style={{ fontSize: 9, color: 'var(--text-dim)', textAlign: 'right' }}>
+                  Prices at {new Date(data.pricesAt).toLocaleTimeString('en-IN')}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

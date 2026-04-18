@@ -83,7 +83,13 @@ async function getActivePortfolio(userId = null) {
      LIMIT 1`,
     [userId, userId]
   );
-  return rows[0] || null;
+  if (!rows[0]) return null;
+  const r = rows[0];
+  return {
+    ...r,
+    initial_capital: parseFloat(r.initial_capital) || 0,
+    current_capital: parseFloat(r.current_capital) || 0,
+  };
 }
 
 /**
@@ -256,16 +262,21 @@ async function getPositions(portfolioId) {
 
   const positions = {};
   for (const row of rows) {
-    const netQty   = parseInt(row.net_qty, 10);
-    const avgCost  = row.total_buy_qty > 0
-      ? parseFloat((row.total_buy_value / row.total_buy_qty).toFixed(4))
+    // MySQL returns DECIMAL/SUM fields as strings — coerce all to numbers first
+    const netQty        = parseInt(row.net_qty, 10);
+    const totalBuyValue = parseFloat(row.total_buy_value) || 0;
+    const totalBuyQty   = parseFloat(row.total_buy_qty)   || 0;
+    const realisedPnl   = parseFloat(row.realised_pnl)    || 0;
+
+    const avgCost = totalBuyQty > 0
+      ? parseFloat((totalBuyValue / totalBuyQty).toFixed(4))
       : 0;
 
     positions[row.symbol] = {
-      qty:          netQty,
-      entryPrice:   parseFloat(avgCost.toFixed(2)),
-      totalCost:    parseFloat(row.total_buy_value.toFixed(2)),
-      realisedPnl:  parseFloat(row.realised_pnl.toFixed(2)),
+      qty:         netQty,
+      entryPrice:  parseFloat(avgCost.toFixed(2)),
+      totalCost:   parseFloat(totalBuyValue.toFixed(2)),
+      realisedPnl: parseFloat(realisedPnl.toFixed(2)),
     };
   }
 
@@ -294,15 +305,18 @@ async function getPosition(portfolioId, symbol) {
 
   if (!rows[0] || parseInt(rows[0].net_qty, 10) <= 0) return null;
 
-  const netQty  = parseInt(rows[0].net_qty, 10);
-  const avgCost = rows[0].total_buy_qty > 0
-    ? parseFloat((rows[0].total_buy_value / rows[0].total_buy_qty).toFixed(4))
+  const netQty        = parseInt(rows[0].net_qty, 10);
+  const totalBuyValue = parseFloat(rows[0].total_buy_value) || 0;
+  const totalBuyQty   = parseFloat(rows[0].total_buy_qty)   || 0;
+
+  const avgCost = totalBuyQty > 0
+    ? parseFloat((totalBuyValue / totalBuyQty).toFixed(4))
     : 0;
 
   return {
     qty:        netQty,
     entryPrice: parseFloat(avgCost.toFixed(2)),
-    totalCost:  parseFloat(rows[0].total_buy_value.toFixed(2)),
+    totalCost:  parseFloat(totalBuyValue.toFixed(2)),
   };
 }
 
