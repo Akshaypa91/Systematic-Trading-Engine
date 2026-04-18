@@ -25,7 +25,7 @@ const screenerRoutes = require('./routes/screener');
 const authRoutes     = require('./routes/auth');
 const allRoutes      = require('./routes/index');
 const simRoutes      = require('./routes/sim');
-const liveRoutes     = require('./routes/live');  // FIX: was imported but never mounted
+const liveRoutes     = require('./routes/live');
 
 const liveDataFeed    = require('./data/liveDataFeed');
 const scheduler       = require('./engine/scheduler');
@@ -51,7 +51,6 @@ function validateEnv() {
 const app    = express();
 const server = http.createServer(app);
 
-// ── Trust proxy (for correct IP behind nginx/load balancer) ──────────────────
 if (C.NODE_ENV === 'production') app.set('trust proxy', 1);
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
@@ -65,14 +64,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// ── Body parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// ── HTTP request logging ──────────────────────────────────────────────────────
 app.use(morgan(C.NODE_ENV === 'production' ? 'combined' : 'dev', {
   stream: { write: msg => logger.http(msg.trim()) },
-  skip:   (req) => req.path === '/health',  // don't log health check spam
+  skip:   (req) => req.path === '/health',
 }));
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
@@ -93,9 +90,9 @@ app.get('/health', async (req, res) => {
     dbStatus = 'disconnected';
   }
 
-  const uptime      = Math.round((Date.now() - _startTime) / 1000);
-  const memUsage    = process.memoryUsage();
-  const isHealthy   = dbStatus === 'connected';
+  const uptime    = Math.round((Date.now() - _startTime) / 1000);
+  const memUsage  = process.memoryUsage();
+  const isHealthy = dbStatus === 'connected';
 
   res.status(isHealthy ? 200 : 503).json({
     status:    isHealthy ? 'healthy' : 'degraded',
@@ -120,6 +117,12 @@ app.get('/health', async (req, res) => {
   });
 });
 
+// ── DEBUG: lightweight probe to confirm auth router is reachable ─────────────
+// Hit GET /__debug/auth-ping — if this 404s, your auth router isn't mounted.
+app.get('/__debug/auth-ping', (req, res) => {
+  res.json({ ok: true, msg: 'app.js is reachable; check auth router separately' });
+});
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',     authRoutes);
 app.use('/api/data',     dataRoutes);
@@ -128,12 +131,32 @@ app.use('/api/backtest', backtestRoutes);
 app.use('/api/trade',    tradeRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
-app.use('/api/live',     liveRoutes);   // FIX Bug 10: was required but never mounted
+app.use('/api/live',     liveRoutes);
 app.use('/api',          allRoutes);
 
 // ── Error handling (must be last) ────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
+
+// ── DEBUG: print every registered route at boot ──────────────────────────────
+function dumpRoutes(appInstance) {
+  const out = [];
+  const walk = (stack, prefix = '') => {
+    stack.forEach((layer) => {
+      if (layer.route) {
+        const methods = Object.keys(layer.route.methods).join(',').toUpperCase();
+        out.push(`${methods.padEnd(8)} ${prefix}${layer.route.path}`);
+      } else if (layer.name === 'router' && layer.handle.stack) {
+        // Extract mount path from regexp (best-effort)
+        const match = layer.regexp?.toString().match(/\^\\?\/([^\\?]+)/);
+        const mount = match ? '/' + match[1].replace(/\\\//g, '/') : '';
+        walk(layer.handle.stack, prefix + mount);
+      }
+    });
+  };
+  walk(appInstance._router.stack);
+  logger.info('\n==== Registered Routes ====\n' + out.join('\n') + '\n===========================');
+}
 
 // ── Startup ───────────────────────────────────────────────────────────────────
 async function start() {
@@ -142,12 +165,9 @@ async function start() {
     logger.error('[App] Critical config warnings in production — review above');
   }
 
-  // DB connection (non-fatal: run in offline mode if DB unavailable)
   try {
     await db.testConnection();
     logger.info('[App] ✅ Database connected');
-
-    // Auto-create tables on every startup (IF NOT EXISTS — safe to repeat)
     const { failed } = await initDB();
     if (failed.length > 0) {
       logger.warn(`[App] ⚠️  Some tables failed to initialise: ${failed.join(', ')}`);
@@ -159,8 +179,6 @@ async function start() {
   liveDataFeed.attach(server);
   scheduler.start();
 
-  // ── Auto-connect Upstox WebSocket if token already set ───────────────────
-  // Token can be pre-set via UPSTOX_ACCESS_TOKEN env var for cold starts
   try {
     const upstoxWS   = require('./ws/upstoxWS');
     const upstoxAuth = require('./services/upstoxAuth');
@@ -177,7 +195,6 @@ async function start() {
     logger.warn(`[App] Upstox init skipped: ${upstoxErr.message}`);
   }
 
-  // ── Auto-start simulation engine (no DB/NSE required) ───────────────────
   simEngine.start({
     watchlist: ['RELIANCE','INFY','TCS','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK','BAJFINANCE','MARUTI'],
     intervalMs: parseInt(process.env.SIM_INTERVAL_MS || '5000', 10),
@@ -189,10 +206,9 @@ async function start() {
     logger.info(`[App] 🔗 Health:  http://localhost:${C.PORT}/health`);
     logger.info(`[App] 🔗 API:     http://localhost:${C.PORT}/api/info`);
     logger.info(`[App] 🔗 WS:      ws://localhost:${C.PORT}/ws`);
-    logger.info(`[App] 🔗 Live:    http://localhost:${C.PORT}/api/sim/signals`);
+    dumpRoutes(app);   // 👈 print all routes after server starts
   });
 
-  // ── Graceful shutdown ────────────────────────────────────────────────────
   const shutdown = async (sig) => {
     logger.info(`[App] ${sig} — shutting down gracefully`);
     server.close(async () => {
@@ -208,7 +224,6 @@ async function start() {
         process.exit(1);
       }
     });
-    // Force kill after 15s if graceful shutdown hangs
     setTimeout(() => {
       logger.error('[App] Forced shutdown after 15s timeout');
       process.exit(1);

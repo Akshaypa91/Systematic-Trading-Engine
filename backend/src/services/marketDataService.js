@@ -4,12 +4,14 @@
 // MARKET DATA SERVICE — Multi-API fallback price feed
 //
 // PRIORITY CHAIN (per symbol, per request):
-//   0. Upstox WS cache (real-time tick, <1s latency) → source: "LIVE_UPSTOX"
-//   1. TwelveData REST (free tier: ~8 req/min)        → source: "LIVE_TWELVE"
-//   2. Finnhub REST    (free tier: 60 req/min)        → source: "LIVE_FINNHUB"
-//   3. Simulation      (GBM random walk)              → source: "SIM"
+//   0. Upstox WS cache  (real-time tick, <1s latency) → source: "LIVE_UPSTOX"
+//   1. NSE India REST   (free, ~1 req/s safe rate)    → source: "LIVE_NSE"
+//   2. TwelveData REST  (free tier: ~8 req/min)       → source: "LIVE_TWELVE"
+//   3. Finnhub REST     (free tier: NSE paid only)    → source: "LIVE_FINNHUB"
+//   4. Simulation       (GBM random walk)             → source: "SIM"
 //
-// Upstox requires OAuth — falls through to TwelveData if not authenticated.
+// TwelveData & Finnhub have circuit breakers — auto-skipped after repeated
+// failures to stop wasting calls & log noise.
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -19,7 +21,7 @@ const axios     = require('axios');
 const symbolMap = require('../config/symbolMap');
 const logger    = require('../config/logger');
 
-// Upstox WS cache — lazy require to avoid circular dep at module load time
+// Upstox WS cache — lazy require to avoid circular dep
 let _upstoxWS = null;
 function _getUpstoxWS() {
   if (!_upstoxWS) {
@@ -35,10 +37,54 @@ const FINNHUB_KEY     = process.env.FINNHUB_API_KEY     || '';
 
 const TWELVEDATA_URL  = 'https://api.twelvedata.com';
 const FINNHUB_URL     = 'https://finnhub.io/api/v1';
+const NSE_BASE_URL    = 'https://www.nseindia.com';
 
 const CACHE_TTL_MS    = parseInt(process.env.MARKET_DATA_CACHE_TTL_MS || '8000',  10);
-const TIMEOUT_MS      = parseInt(process.env.MARKET_DATA_TIMEOUT_MS   || '6000',  10);
-const BATCH_CHUNK     = 5;  // max symbols per TwelveData batch call
+const TIMEOUT_MS      = parseInt(process.env.MARKET_DATA_TIMEOUT_MS   || '8000',  10);
+const BATCH_CHUNK     = 5;
+
+// Circuit breaker config
+const CB_FAIL_THRESHOLD = 3;                 // consecutive failures to trip
+const CB_COOLDOWN_MS    = 15 * 60 * 1000;    // 15 min cooldown
+
+// ── Circuit breakers (per provider) ───────────────────────────────────────────
+
+const _breakers = {
+  twelvedata: { failures: 0, openedAt: 0 },
+  finnhub:    { failures: 0, openedAt: 0 },
+  nse:        { failures: 0, openedAt: 0 },
+};
+
+function _cbOpen(name) {
+  const b = _breakers[name];
+  if (!b) return false;
+  if (b.failures < CB_FAIL_THRESHOLD) return false;
+  if (Date.now() - b.openedAt > CB_COOLDOWN_MS) {
+    // Cooldown done — reset & try again
+    b.failures = 0;
+    b.openedAt = 0;
+    logger.info(`[MarketData] Circuit breaker RESET for ${name}`);
+    return false;
+  }
+  return true;
+}
+
+function _cbRecordFail(name) {
+  const b = _breakers[name];
+  if (!b) return;
+  b.failures += 1;
+  if (b.failures === CB_FAIL_THRESHOLD) {
+    b.openedAt = Date.now();
+    logger.warn(`[MarketData] Circuit breaker OPEN for ${name} — cooling down ${CB_COOLDOWN_MS/1000}s`);
+  }
+}
+
+function _cbRecordSuccess(name) {
+  const b = _breakers[name];
+  if (!b) return;
+  b.failures = 0;
+  b.openedAt = 0;
+}
 
 // ── Seed prices (INR baseline for simulation) ─────────────────────────────────
 
@@ -56,11 +102,9 @@ const SEED_PRICES = {
   BHARTIARTL: 1780, LTIM: 5800, 'BAJAJ-AUTO': 9200, 'M&M': 2900,
 };
 
-// ── In-memory price cache ─────────────────────────────────────────────────────
+// ── In-memory cache ───────────────────────────────────────────────────────────
 
-// symbol (base) → { price, source, timestamp, expiresAt }
-const _cache    = new Map();
-// per-symbol floating sim price
+const _cache     = new Map();  // base → { price, source, timestamp, expiresAt }
 const _simPrices = new Map();
 
 function _cacheGet(base) {
@@ -90,17 +134,8 @@ function _simPrice(base) {
   return next;
 }
 
-// ── Provider 0: Upstox WebSocket cache ───────────────────────────────────────
+// ── Provider 0: Upstox WS cache ───────────────────────────────────────────────
 
-/**
- * Read the latest price from the Upstox WS cache.
- * No network call — uses tick data already received on the WS connection.
- * Fast (<1ms), zero API quota used.
- *
- * @param {string} base  Canonical base symbol
- * @returns {number}     INR price
- * @throws if no cached price available
- */
 function _fetchUpstox(base) {
   const ws = _getUpstoxWS();
   if (!ws) throw new Error('Upstox WS module unavailable');
@@ -115,18 +150,79 @@ function _fetchUpstox(base) {
   return price;
 }
 
-// ── Provider 1: TwelveData ────────────────────────────────────────────────────
+// ── Provider 1: NSE India ─────────────────────────────────────────────────────
+
+const _nseClient = axios.create({
+  baseURL: NSE_BASE_URL,
+  timeout: TIMEOUT_MS,
+  headers: {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept':          'application/json, text/plain, */*',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Referer':         'https://www.nseindia.com/get-quotes/equity',
+  },
+});
+
+let _nseCookieJar    = '';
+let _nseCookieExpiry = 0;
+
+/** Prime NSE session cookies by hitting homepage (needed for /api/* calls). */
+async function _primeNseCookies() {
+  if (Date.now() < _nseCookieExpiry && _nseCookieJar) return;
+  try {
+    const res = await _nseClient.get('/', { timeout: TIMEOUT_MS });
+    const setCookie = res.headers['set-cookie'];
+    if (setCookie && setCookie.length) {
+      _nseCookieJar = setCookie.map(c => c.split(';')[0]).join('; ');
+      _nseCookieExpiry = Date.now() + 10 * 60 * 1000;  // 10 min
+      logger.debug(`[MarketData] NSE cookies primed (${setCookie.length} cookies)`);
+    }
+  } catch (err) {
+    logger.debug(`[MarketData] NSE cookie prime failed (non-fatal): ${err.message}`);
+  }
+}
 
 /**
- * Fetch a single price from Twelve Data.
- * Symbol format: SYMBOL:NSE  (e.g. TCS:NSE)
- *
- * @param {string} base  Canonical base symbol
+ * Fetch a single price from NSE India unofficial API.
+ * @param {string} base  Canonical base symbol (e.g. "RELIANCE")
  * @returns {Promise<number>}  INR price
- * @throws on any API error or invalid response
  */
+async function _fetchNSE(base) {
+  if (_cbOpen('nse')) throw new Error('NSE circuit breaker open');
+
+  await _primeNseCookies();
+
+  const url = `/api/quote-equity?symbol=${encodeURIComponent(base.toUpperCase())}`;
+  logger.info(`[MarketData] NSE | ${base} | url="${url}"`);
+
+  const response = await _nseClient.get(url, {
+    headers: _nseCookieJar ? { Cookie: _nseCookieJar } : {},
+  });
+
+  const data = response.data;
+  if (!data || !data.priceInfo) {
+    _cbRecordFail('nse');
+    throw new Error(`NSE: no priceInfo for ${base}`);
+  }
+
+  const price = parseFloat(data.priceInfo.lastPrice);
+  if (!isFinite(price) || price <= 0) {
+    _cbRecordFail('nse');
+    throw new Error(`NSE invalid price for ${base}: "${data.priceInfo.lastPrice}"`);
+  }
+
+  _cbRecordSuccess('nse');
+  logger.info(`[MarketData] ✅ NSE | ${base} = ₹${price} (LIVE_NSE)`);
+  return price;
+}
+
+// ── Provider 2: TwelveData ────────────────────────────────────────────────────
+
 async function _fetchTwelve(base) {
   if (!TWELVEDATA_KEY) throw new Error('TWELVEDATA_API_KEY not set');
+  if (_cbOpen('twelvedata')) throw new Error('TwelveData circuit breaker open');
 
   const apiSymbol = symbolMap.toTwelve(base);
   logger.info(`[MarketData] TwelveData | ${base} | apiSymbol="${apiSymbol}"`);
@@ -139,38 +235,31 @@ async function _fetchTwelve(base) {
   const data = response.data;
   logger.debug(`[MarketData] TwelveData raw response for ${base}: ${JSON.stringify(data)}`);
 
-  // Error detection: valid response has no "code" field
-  // data.code = 400/401/429 etc are errors; code = 0 is also an error (falsy — use !== undefined)
   if (data.code !== undefined || data.status === 'error') {
+    _cbRecordFail('twelvedata');
     throw new Error(`TwelveData error for ${apiSymbol}: ${data.message || JSON.stringify(data)}`);
   }
 
   const price = parseFloat(data.price);
   if (!isFinite(price) || price <= 0) {
+    _cbRecordFail('twelvedata');
     throw new Error(`TwelveData invalid price for ${apiSymbol}: "${data.price}"`);
   }
-  // Sanity: NSE INR prices > ₹10; reject if it looks like a USD ADR
   if (price < 10) {
+    _cbRecordFail('twelvedata');
     throw new Error(`TwelveData price ₹${price} for ${apiSymbol} looks like USD ADR`);
   }
 
+  _cbRecordSuccess('twelvedata');
   logger.info(`[MarketData] ✅ TwelveData | ${base} = ₹${price} (LIVE_TWELVE)`);
   return price;
 }
 
-// ── Provider 2: Finnhub ───────────────────────────────────────────────────────
+// ── Provider 3: Finnhub ───────────────────────────────────────────────────────
 
-/**
- * Fetch a single price from Finnhub /quote endpoint.
- * Symbol format: NSE:SYMBOL  (e.g. NSE:TCS)
- * Uses field "c" (current price) from Finnhub quote response.
- *
- * @param {string} base  Canonical base symbol
- * @returns {Promise<number>}  INR price
- * @throws on any API error or invalid response
- */
 async function _fetchFinnhub(base) {
   if (!FINNHUB_KEY) throw new Error('FINNHUB_API_KEY not set');
+  if (_cbOpen('finnhub')) throw new Error('Finnhub circuit breaker open');
 
   const apiSymbol = symbolMap.toFinnhub(base);
   logger.info(`[MarketData] Finnhub | ${base} | apiSymbol="${apiSymbol}"`);
@@ -180,19 +269,26 @@ async function _fetchFinnhub(base) {
     timeout: TIMEOUT_MS,
   });
 
-  const data  = response.data;
+  const data = response.data;
   logger.debug(`[MarketData] Finnhub raw response for ${base}: ${JSON.stringify(data)}`);
 
-  // Finnhub returns { c: currentPrice, h, l, o, pc, t }
-  // c = 0 means no data (market closed or symbol not found)
+  // Finnhub returns { error: "..." } when free tier doesn't cover NSE
+  if (data.error) {
+    _cbRecordFail('finnhub');
+    throw new Error(`Finnhub: ${data.error}`);
+  }
+
   const price = parseFloat(data.c);
   if (!isFinite(price) || price <= 0) {
+    _cbRecordFail('finnhub');
     throw new Error(`Finnhub no price for ${apiSymbol}: c="${data.c}"`);
   }
   if (price < 10) {
+    _cbRecordFail('finnhub');
     throw new Error(`Finnhub price ₹${price} for ${apiSymbol} looks like USD`);
   }
 
+  _cbRecordSuccess('finnhub');
   logger.info(`[MarketData] ✅ Finnhub | ${base} = ₹${price} (LIVE_FINNHUB)`);
   return price;
 }
@@ -201,12 +297,8 @@ async function _fetchFinnhub(base) {
 
 /**
  * Get the latest price for a single symbol.
- * Tries TwelveData → Finnhub → Simulation in order.
+ * Chain: Upstox → NSE → TwelveData → Finnhub → SIM.
  * Never throws — always returns a price.
- *
- * @param {string} symbol  Any format (TCS, NSE:TCS, TCS:NSE, etc.)
- * @returns {Promise<{ symbol, price, source, timestamp }>}
- *   source: "LIVE_TWELVE" | "LIVE_FINNHUB" | "SIM"
  */
 async function getLivePrice(symbol) {
   const base = symbolMap.toBase(symbol);
@@ -218,36 +310,44 @@ async function getLivePrice(symbol) {
     return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp };
   }
 
-  // ── Provider 0: Upstox WS cache (real-time, zero network cost) ───────────
+  // ── 0. Upstox WS ────────────────────────────────────────────────────────
   try {
     const price = _fetchUpstox(base);
     _cacheSet(base, price, 'LIVE_UPSTOX');
     logger.info(`[MarketData] ✅ Upstox | ${base} = ₹${price}`);
     return { symbol: base, price, source: 'LIVE_UPSTOX', timestamp: new Date().toISOString() };
-  } catch (err0) {
-    // Not authenticated or symbol not subscribed — fall through silently
-    logger.debug(`[MarketData] Upstox skip for ${base}: ${err0.message}`);
+  } catch (err) {
+    logger.debug(`[MarketData] Upstox skip for ${base}: ${err.message}`);
   }
 
-  // ── Provider 1: TwelveData ───────────────────────────────────────────────
+  // ── 1. NSE India ────────────────────────────────────────────────────────
+  try {
+    const price = await _fetchNSE(base);
+    _cacheSet(base, price, 'LIVE_NSE');
+    return { symbol: base, price, source: 'LIVE_NSE', timestamp: new Date().toISOString() };
+  } catch (err) {
+    logger.warn(`[MarketData] NSE failed for ${base}: ${err.message}`);
+  }
+
+  // ── 2. TwelveData ───────────────────────────────────────────────────────
   try {
     const price = await _fetchTwelve(base);
     _cacheSet(base, price, 'LIVE_TWELVE');
     return { symbol: base, price, source: 'LIVE_TWELVE', timestamp: new Date().toISOString() };
-  } catch (err1) {
-    logger.warn(`[MarketData] TwelveData failed for ${base}: ${err1.message}`);
+  } catch (err) {
+    logger.warn(`[MarketData] TwelveData failed for ${base}: ${err.message}`);
   }
 
-  // ── Provider 2: Finnhub ──────────────────────────────────────────────────
+  // ── 3. Finnhub ──────────────────────────────────────────────────────────
   try {
     const price = await _fetchFinnhub(base);
     _cacheSet(base, price, 'LIVE_FINNHUB');
     return { symbol: base, price, source: 'LIVE_FINNHUB', timestamp: new Date().toISOString() };
-  } catch (err2) {
-    logger.warn(`[MarketData] Finnhub failed for ${base}: ${err2.message}`);
+  } catch (err) {
+    logger.warn(`[MarketData] Finnhub failed for ${base}: ${err.message}`);
   }
 
-  // ── Provider 3: Simulation fallback ────────────────────────────────────
+  // ── 4. Simulation ───────────────────────────────────────────────────────
   const price = _simPrice(base);
   _cacheSet(base, price, 'SIM');
   logger.info(`[MarketData] SIM fallback | ${base} = ₹${price}`);
@@ -255,21 +355,16 @@ async function getLivePrice(symbol) {
 }
 
 /**
- * Get prices for multiple symbols efficiently.
- * Uses TwelveData batch endpoint for uncached symbols, then falls back
- * per-symbol through the full chain.
- *
- * @param {string[]} symbols  Any formats
- * @returns {Promise<Array<{ symbol, price, source, timestamp }>>}
+ * Batch prices — tries TwelveData batch first (if available),
+ * then falls back per-symbol through full chain.
  */
 async function getBatchPrices(symbols) {
   if (!Array.isArray(symbols) || symbols.length === 0) return [];
 
-  const bases   = symbols.map(s => symbolMap.toBase(s));
-  const results = [];
+  const bases    = symbols.map(s => symbolMap.toBase(s));
+  const results  = [];
   const uncached = [];
 
-  // Serve cache hits immediately
   for (const base of bases) {
     const cached = _cacheGet(base);
     if (cached) {
@@ -281,10 +376,10 @@ async function getBatchPrices(symbols) {
 
   if (uncached.length === 0) return results;
 
-  // Try TwelveData batch for uncached symbols
   const remaining = [...uncached];
 
-  if (TWELVEDATA_KEY) {
+  // TwelveData batch — only if key exists AND breaker closed
+  if (TWELVEDATA_KEY && !_cbOpen('twelvedata')) {
     for (let i = 0; i < uncached.length; i += BATCH_CHUNK) {
       const chunk      = uncached.slice(i, i + BATCH_CHUNK);
       const apiSymbols = chunk.map(b => symbolMap.toTwelve(b));
@@ -300,60 +395,82 @@ async function getBatchPrices(symbols) {
 
         const data = response.data;
 
+        // If top-level error, trip breaker and bail out
+        if (data.code !== undefined || data.status === 'error') {
+          _cbRecordFail('twelvedata');
+          logger.warn(`[MarketData] TwelveData batch error: ${data.message || JSON.stringify(data)}`);
+          break;
+        }
+
         for (let j = 0; j < chunk.length; j++) {
           const base      = chunk[j];
           const apiSymbol = apiSymbols[j];
-
-          // Single-symbol response: { price: "..." }
-          // Multi-symbol response:  { "TCS:NSE": { price: "..." }, ... }
-          const item = chunk.length === 1 ? data : data[apiSymbol];
+          const item      = chunk.length === 1 ? data : data[apiSymbol];
 
           if (item && item.code === undefined && item.status !== 'error') {
             const price = parseFloat(item.price ?? item);
             if (isFinite(price) && price > 10) {
               _cacheSet(base, price, 'LIVE_TWELVE');
               results.push({ symbol: base, price, source: 'LIVE_TWELVE', timestamp: new Date().toISOString() });
-              remaining.splice(remaining.indexOf(base), 1);
+              const idx = remaining.indexOf(base);
+              if (idx >= 0) remaining.splice(idx, 1);
               logger.info(`[MarketData] ✅ TwelveData batch | ${base} = ₹${price}`);
-            } else {
-              logger.warn(`[MarketData] TwelveData batch invalid price for ${base}: "${item.price}"`);
             }
-          } else {
-            logger.warn(`[MarketData] TwelveData batch error for ${base}:`, item);
           }
         }
+        _cbRecordSuccess('twelvedata');
       } catch (batchErr) {
+        _cbRecordFail('twelvedata');
         logger.warn(`[MarketData] TwelveData batch failed: ${batchErr.message}`);
       }
     }
+  } else if (_cbOpen('twelvedata')) {
+    logger.debug('[MarketData] TwelveData batch skipped — circuit breaker open');
   }
 
-  // Any still-uncached: fall through getLivePrice chain (Finnhub → SIM)
+  // Fall through per-symbol (Upstox → NSE → TwelveData → Finnhub → SIM)
   for (const base of remaining) {
     const result = await getLivePrice(base);
     results.push(result);
   }
 
-  const liveTwelve  = results.filter(r => r.source === 'LIVE_TWELVE').length;
-  const liveFinnhub = results.filter(r => r.source === 'LIVE_FINNHUB').length;
-  const sim         = results.filter(r => r.source === 'SIM').length;
-  logger.info(
-    `[MarketData] Batch complete: ${liveTwelve} LIVE_TWELVE, ${liveFinnhub} LIVE_FINNHUB, ${sim} SIM`
-  );
+  const counts = results.reduce((acc, r) => { acc[r.source] = (acc[r.source] || 0) + 1; return acc; }, {});
+  logger.info(`[MarketData] Batch complete: ${JSON.stringify(counts)}`);
 
   return results;
 }
 
 // ── Health check ──────────────────────────────────────────────────────────────
 
-/**
- * Check connectivity of all configured providers.
- * @returns {Promise<{ twelvedata, finnhub, overall }>}
- */
 async function healthCheck() {
-  const result = { twelvedata: { ok: false }, finnhub: { ok: false }, overall: false };
+  const result = {
+    upstox:     { ok: false },
+    nse:        { ok: false },
+    twelvedata: { ok: false },
+    finnhub:    { ok: false },
+    overall:    false,
+  };
 
-  // Test TwelveData with INFY
+  // Upstox
+  try {
+    const price = _fetchUpstox('INFY');
+    result.upstox = { ok: true, price, message: `INFY = ₹${price}` };
+  } catch (err) {
+    result.upstox = { ok: false, message: err.message };
+  }
+
+  // NSE
+  {
+    const start = Date.now();
+    try {
+      const price = await _fetchNSE('INFY');
+      result.nse = { ok: true, latencyMs: Date.now() - start, price, message: `INFY = ₹${price}` };
+    } catch (err) {
+      result.nse = { ok: false, latencyMs: Date.now() - start, message: err.message };
+    }
+  }
+
+  // TwelveData
   if (TWELVEDATA_KEY) {
     const start = Date.now();
     try {
@@ -366,7 +483,7 @@ async function healthCheck() {
     result.twelvedata = { ok: false, message: 'TWELVEDATA_API_KEY not set' };
   }
 
-  // Test Finnhub with INFY
+  // Finnhub
   if (FINNHUB_KEY) {
     const start = Date.now();
     try {
@@ -379,7 +496,7 @@ async function healthCheck() {
     result.finnhub = { ok: false, message: 'FINNHUB_API_KEY not set' };
   }
 
-  result.overall = result.twelvedata.ok || result.finnhub.ok;
+  result.overall = result.upstox.ok || result.nse.ok || result.twelvedata.ok || result.finnhub.ok;
   return result;
 }
 
@@ -396,13 +513,20 @@ function getCacheStats() {
   return {
     size:          entries.length,
     liveUpstox:    entries.filter(e => e.source === 'LIVE_UPSTOX').length,
+    liveNSE:       entries.filter(e => e.source === 'LIVE_NSE').length,
     liveTwelve:    entries.filter(e => e.source === 'LIVE_TWELVE').length,
     liveFinnhub:   entries.filter(e => e.source === 'LIVE_FINNHUB').length,
     sim:           entries.filter(e => e.source === 'SIM').length,
     ttlMs:         CACHE_TTL_MS,
     upstoxWS:      ws ? ws.getStatus() : { connected: false },
+    nseCookies:    !!_nseCookieJar,
     twelvedataKey: !!TWELVEDATA_KEY,
     finnhubKey:    !!FINNHUB_KEY,
+    breakers:      {
+      twelvedata: { ..._breakers.twelvedata, open: _cbOpen('twelvedata') },
+      finnhub:    { ..._breakers.finnhub,    open: _cbOpen('finnhub')    },
+      nse:        { ..._breakers.nse,        open: _cbOpen('nse')        },
+    },
   };
 }
 
