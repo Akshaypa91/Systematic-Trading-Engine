@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWS }   from '../context/WSContext';
 import { LogOut, Zap, RefreshCw, WifiOff, Menu, X } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 function LiveClock() {
   const [time, setTime] = useState('');
@@ -34,7 +35,14 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center px-4 gap-3"
-      style={{ height:'var(--navbar-h)', background:'rgba(9,14,26,0.96)', backdropFilter:'blur(14px)', borderBottom:'1px solid var(--border)' }}>
+      style={{
+        height: 'var(--navbar-h)',
+        background: 'var(--navbar-bg, rgba(9,14,26,0.96))',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        borderBottom: '1px solid var(--navbar-border, var(--border))',
+        boxShadow: '0 1px 0 var(--navbar-border, var(--border))',
+      }}>
 
       {/* Hamburger — mobile only */}
       <button onClick={onMenuToggle}
@@ -72,6 +80,8 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
             {new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}
           </span>
         </div>
+
+        <ThemeToggle />
 
         {user && (
           <div className="flex items-center gap-2">

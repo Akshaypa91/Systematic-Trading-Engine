@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, memo, useState, useCallback } from 'react';
 import { BarChart2, Maximize2, Minimize2 } from 'lucide-react';
+import { useThemeContext } from '../context/ThemeContext';
 
 // ── Frontend symbol → TradingView format ──────────────────────────────────────
 // Mirrors backend symbolMap.toTV() without importing Node modules.
@@ -35,17 +36,17 @@ function toTVSymbol(symbol) {
 
 const SCRIPT_SRC = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
 
-function buildWidgetConfig(tvSymbol) {
+function buildWidgetConfig(tvSymbol, isDark) {
   return {
     autosize:            true,
     symbol:              tvSymbol,
     interval:            'D',
     timezone:            'Asia/Kolkata',
-    theme:               'dark',
+    theme:               isDark ? 'dark' : 'light',
     style:               '1',
     locale:              'en',
-    backgroundColor:     '#060a12',
-    gridColor:           'rgba(255,255,255,0.04)',
+    backgroundColor:     isDark ? '#060a12' : '#ffffff',
+    gridColor:           isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
     hide_top_toolbar:    false,
     hide_legend:         false,
     withdateranges:      true,
@@ -63,6 +64,7 @@ function buildWidgetConfig(tvSymbol) {
 function TradingChart({ symbol, height, priceSource }) {
   const containerRef = useRef(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const { isDark } = useThemeContext();
 
   const tvSymbol = toTVSymbol(symbol);
 
@@ -81,21 +83,17 @@ function TradingChart({ symbol, height, priceSource }) {
     script.type   = 'text/javascript';
     script.src    = SCRIPT_SRC;
     script.async  = true;
+    script.textContent = JSON.stringify(buildWidgetConfig(tvSymbol, isDark));
 
-    // ── CRITICAL: set textContent BEFORE appending to DOM ──────────────────
-    // TradingView reads config at script execution time.
-    // Setting it after append = widget already initialised with no config = AAPL.
-    script.textContent = JSON.stringify(buildWidgetConfig(tvSymbol));
-
-    console.log('[TradingChart] Widget config:', { inputSymbol: symbol, tvSymbol });
+    console.log('[TradingChart] Widget config:', { inputSymbol: symbol, tvSymbol, theme: isDark ? 'dark' : 'light' });
 
     container.appendChild(script);
-  }, [tvSymbol, symbol]);
+  }, [tvSymbol, symbol, isDark]);
 
   useEffect(() => {
     buildWidget();
     return () => { if (containerRef.current) containerRef.current.innerHTML = ''; };
-  }, [buildWidget, fullscreen]);
+  }, [buildWidget, fullscreen, isDark]);
 
   // Source badge config
   const isLive   = priceSource && priceSource.startsWith('LIVE');
@@ -124,7 +122,7 @@ function TradingChart({ symbol, height, priceSource }) {
         padding: '10px 16px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid var(--border)',
-        background: fullscreen ? '#0a0f1e' : undefined,
+        background: fullscreen ? (isDark ? '#0a0f1e' : '#f0f4fa') : undefined,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{

@@ -40,8 +40,242 @@
   --sidebar-w: 220px;
   --navbar-h:  56px;
 
+  /* Navbar-specific tokens */
+  --navbar-bg:     rgba(9,14,26,0.96);
+  --navbar-border: rgba(255,255,255,0.06);
+
   --font-ui:   'DM Sans', sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+}
+
+/* ── Light theme — premium palette ─────────────────────────────────────────── */
+/*                                                                              */
+/*  Design intent: clean fintech light UI — Bloomberg / Robinhood feel.        */
+/*  High contrast text, white cards, cool-grey backgrounds, vivid accents.     */
+/*  Every component uses var(--*) so all updates cascade automatically.        */
+/*                                                                              */
+[data-theme="light"] {
+
+  /* Backgrounds — layered cool white → grey */
+  --bg-base:     #f4f6f9;   /* page background: cool off-white        */
+  --bg-surface:  #eef1f6;   /* sidebar, secondary surfaces            */
+  --bg-card:     #ffffff;   /* card faces: pure white                 */
+  --bg-elevated: #f0f3f8;   /* inputs, pills, hover fills             */
+  --bg-hover:    #e8ecf4;   /* hover states                           */
+
+  /* Borders — slate-tinted, high enough contrast to read at a glance */
+  --border:        rgba(15,23,42,0.09);
+  --border-bright: rgba(15,23,42,0.18);
+  --border-accent: rgba(37,99,235,0.40);
+
+  /* Typography — deep navy-slate for maximum legibility on white */
+  --text-primary:   #0f172a;  /* slate-900  */
+  --text-secondary: #334155;  /* slate-700  */
+  --text-muted:     #64748b;  /* slate-500  */
+  --text-dim:       #94a3b8;  /* slate-400  */
+
+  /* Navbar-specific tokens — used in Navbar.jsx */
+  --navbar-bg:     rgba(255,255,255,0.90);
+  --navbar-border: rgba(15,23,42,0.09);
+
+  /* Accent colours — vivid, adjusted for white backgrounds */
+  --cyan:    #2563eb;   /* blue-600   — replaces neon cyan  */
+  --green:   #16a34a;   /* green-600                        */
+  --red:     #dc2626;   /* red-600                          */
+  --amber:   #d97706;   /* amber-600                        */
+  --purple:  #7c3aed;   /* violet-600                       */
+
+  --accent-cyan:   #2563eb;
+  --accent-green:  #16a34a;
+  --accent-red:    #dc2626;
+  --accent-amber:  #d97706;
+  --accent-purple: #7c3aed;
+
+  /* Glows — subtler on white */
+  --glow-cyan:   0 2px 12px rgba(37,99,235,0.14),  0 0 32px rgba(37,99,235,0.06);
+  --glow-green:  0 2px 12px rgba(22,163,74,0.14),  0 0 32px rgba(22,163,74,0.06);
+  --glow-red:    0 2px 12px rgba(220,38,38,0.14),  0 0 32px rgba(220,38,38,0.06);
+  --glow-amber:  0 2px 12px rgba(217,119,6,0.14),  0 0 32px rgba(217,119,6,0.06);
+}
+
+/* ── Light: component-level overrides ──────────────────────────────────────── */
+/* These supplement the token overrides above for elements that need           */
+/* specific light-mode treatment beyond just colour swaps.                      */
+
+/* Scrollbar — visible on white backgrounds */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(15,23,42,0.14);
+}
+
+/* Cards — white, real shadow, no glow borders */
+[data-theme="light"] .card {
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+}
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.05);
+}
+[data-theme="light"] .card-elevated {
+  box-shadow: 0 1px 2px rgba(15,23,42,0.05);
+}
+
+/* Skeleton shimmer — dark-on-light */
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg,
+    rgba(15,23,42,0.04) 25%,
+    rgba(15,23,42,0.09) 50%,
+    rgba(15,23,42,0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Confidence track — visible on white */
+[data-theme="light"] .conf-track {
+  background: rgba(15,23,42,0.08);
+}
+
+/* Trade row hover */
+[data-theme="light"] .trade-row:hover {
+  background: rgba(15,23,42,0.025);
+}
+
+/* Grid bg — very subtle on light */
+[data-theme="light"] .grid-bg {
+  background-image:
+    linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px);
+}
+
+/* Nav item */
+[data-theme="light"] .nav-item:hover {
+  background: rgba(15,23,42,0.04);
+  color: var(--text-secondary);
+}
+[data-theme="light"] .nav-item.active {
+  background: rgba(37,99,235,0.08);
+  border-color: rgba(37,99,235,0.20);
+  color: #2563eb;
+}
+
+/* Buttons — solid fills in light mode for visual weight */
+[data-theme="light"] .btn-cyan {
+  background: rgba(37,99,235,0.10);
+  border-color: rgba(37,99,235,0.30);
+  color: #2563eb;
+}
+[data-theme="light"] .btn-cyan:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.28);
+}
+[data-theme="light"] .btn-green {
+  background: rgba(22,163,74,0.10);
+  border-color: rgba(22,163,74,0.30);
+  color: #16a34a;
+}
+[data-theme="light"] .btn-green:hover {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+  box-shadow: 0 4px 12px rgba(22,163,74,0.28);
+}
+[data-theme="light"] .btn-red {
+  background: rgba(220,38,38,0.10);
+  border-color: rgba(220,38,38,0.30);
+  color: #dc2626;
+}
+[data-theme="light"] .btn-red:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+[data-theme="light"] .btn-ghost {
+  background: rgba(15,23,42,0.04);
+  border-color: rgba(15,23,42,0.10);
+  color: var(--text-secondary);
+}
+[data-theme="light"] .btn-ghost:hover {
+  background: rgba(15,23,42,0.08);
+  border-color: rgba(15,23,42,0.18);
+  color: var(--text-primary);
+}
+
+/* Input — clean white with blue focus ring */
+[data-theme="light"] .input {
+  background: #ffffff;
+  border-color: rgba(15,23,42,0.14);
+  color: var(--text-primary);
+}
+[data-theme="light"] .input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+[data-theme="light"] .input::placeholder {
+  color: var(--text-dim);
+}
+
+/* Badges — higher contrast fills */
+[data-theme="light"] .badge-buy  {
+  background: rgba(22,163,74,0.10);
+  border-color: rgba(22,163,74,0.28);
+  color: #16a34a;
+}
+[data-theme="light"] .badge-sell {
+  background: rgba(220,38,38,0.10);
+  border-color: rgba(220,38,38,0.28);
+  color: #dc2626;
+}
+[data-theme="light"] .badge-hold {
+  background: rgba(217,119,6,0.10);
+  border-color: rgba(217,119,6,0.28);
+  color: #d97706;
+}
+
+/* WS pill */
+[data-theme="light"] .ws-pill.connected {
+  background: rgba(22,163,74,0.08);
+  border-color: rgba(22,163,74,0.25);
+  color: #16a34a;
+}
+[data-theme="light"] .ws-pill.connecting {
+  background: rgba(217,119,6,0.08);
+  border-color: rgba(217,119,6,0.25);
+  color: #d97706;
+}
+[data-theme="light"] .ws-pill.disconnected {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.25);
+  color: #dc2626;
+}
+
+/* Scan overlay — invisible in light mode */
+[data-theme="light"] .scan-overlay::after { display: none; }
+
+/* Section label — darker in light */
+[data-theme="light"] .section-label { color: #64748b; }
+
+/* ── Global transition — smooth theme switch ────────────────────────────────── */
+/* Only transitions properties affected by theme; excludes transform/opacity   */
+/* so animations don't get a 300ms lag.                                         */
+html {
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
+}
+*, *::before, *::after {
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease,
+    box-shadow 300ms ease;
+}
+/* Opt-out: elements that should not transition (chart, animations, transforms) */
+.notransition,
+.tradingview-widget-container,
+.tradingview-widget-container *,
+[class*="animate-"],
+canvas {
+  transition: none !important;
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
@@ -76,8 +310,9 @@ body {
 .page-content { padding: 24px 28px; max-width: 1600px; }
 
 /* ── Cards ─────────────────────────────────────────────────────────────────── */
-.card          { background: var(--bg-card);     border: 1px solid var(--border); border-radius: 12px; }
+.card          { background: var(--bg-card);     border: 1px solid var(--border); border-radius: 14px; transition: box-shadow 200ms ease; }
 .card-elevated { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; }
+.card:hover    { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .grid-bg {
   background-image:
     linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
