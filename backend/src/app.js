@@ -11,6 +11,7 @@ const os       = require('os');
 
 const logger   = require('./config/logger');
 const db       = require('./config/database');
+const { initDB } = require('./config/initDB');
 const C        = require('./config/constants');
 
 const { apiLimiter, nseProxyLimiter, authLimiter, backtestLimiter } = require('./middleware/rateLimiter');
@@ -145,6 +146,12 @@ async function start() {
   try {
     await db.testConnection();
     logger.info('[App] ✅ Database connected');
+
+    // Auto-create tables on every startup (IF NOT EXISTS — safe to repeat)
+    const { failed } = await initDB();
+    if (failed.length > 0) {
+      logger.warn(`[App] ⚠️  Some tables failed to initialise: ${failed.join(', ')}`);
+    }
   } catch (err) {
     logger.warn(`[App] ⚠️  DB unavailable: ${err.message} — starting in offline mode`);
   }
