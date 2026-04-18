@@ -159,6 +159,24 @@ async function start() {
   liveDataFeed.attach(server);
   scheduler.start();
 
+  // ── Auto-connect Upstox WebSocket if token already set ───────────────────
+  // Token can be pre-set via UPSTOX_ACCESS_TOKEN env var for cold starts
+  try {
+    const upstoxWS   = require('./ws/upstoxWS');
+    const upstoxAuth = require('./services/upstoxAuth');
+    if (upstoxAuth.isAuthenticated()) {
+      upstoxWS.connect().then(() => {
+        logger.info('[App] ✅ Upstox WebSocket connected (pre-set token)');
+      }).catch(err => {
+        logger.warn(`[App] Upstox WS connect failed: ${err.message} — prices fall back to TwelveData/SIM`);
+      });
+    } else {
+      logger.info('[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect');
+    }
+  } catch (upstoxErr) {
+    logger.warn(`[App] Upstox init skipped: ${upstoxErr.message}`);
+  }
+
   // ── Auto-start simulation engine (no DB/NSE required) ───────────────────
   simEngine.start({
     watchlist: ['RELIANCE','INFY','TCS','HDFCBANK','ICICIBANK','WIPRO','SBIN','AXISBANK','BAJFINANCE','MARUTI'],
@@ -181,6 +199,7 @@ async function start() {
       try {
         simEngine.stop();
         scheduler.stop();
+        try { require('./ws/upstoxWS').disconnect(); } catch (_) {}
         await db.closePool();
         logger.info('[App] Clean shutdown complete');
         process.exit(0);

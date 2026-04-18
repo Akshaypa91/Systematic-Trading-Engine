@@ -4,25 +4,12 @@
 // MARKET DATA SERVICE — Multi-API fallback price feed
 //
 // PRIORITY CHAIN (per symbol, per request):
-//   1. TwelveData  (free tier: ~8 req/min)   → source: "LIVE_TWELVE"
-//   2. Finnhub     (free tier: 60 req/min)   → source: "LIVE_FINNHUB"
-//   3. Simulation  (GBM random walk)         → source: "SIM"
+//   0. Upstox WS cache (real-time tick, <1s latency) → source: "LIVE_UPSTOX"
+//   1. TwelveData REST (free tier: ~8 req/min)        → source: "LIVE_TWELVE"
+//   2. Finnhub REST    (free tier: 60 req/min)        → source: "LIVE_FINNHUB"
+//   3. Simulation      (GBM random walk)              → source: "SIM"
 //
-// Each level is only tried if the previous one throws or returns invalid data.
-// A price from any LIVE_ source is considered real market data.
-//
-// SYMBOL FORMATS  (via symbolMap.js — single source of truth)
-//   TwelveData:  SYMBOL:NSE   e.g. TCS:NSE
-//   Finnhub:     NSE:SYMBOL   e.g. NSE:TCS
-//   TradingView: NSE:SYMBOL   e.g. NSE:TCS  (used by frontend, not here)
-//
-// CACHING
-//   TTL = CACHE_TTL_MS (default 8s).  Write-through: every live fetch populates
-//   cache so the next caller within TTL gets instant response.
-//
-// LOGGING
-//   Every attempt (success or failure) is logged with:
-//   [MarketData] symbol | api | apiSymbol | result / error
+// Upstox requires OAuth — falls through to TwelveData if not authenticated.
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -31,6 +18,15 @@
 const axios     = require('axios');
 const symbolMap = require('../config/symbolMap');
 const logger    = require('../config/logger');
+
+// Upstox WS cache — lazy require to avoid circular dep at module load time
+let _upstoxWS = null;
+function _getUpstoxWS() {
+  if (!_upstoxWS) {
+    try { _upstoxWS = require('../ws/upstoxWS'); } catch (_) {}
+  }
+  return _upstoxWS;
+}
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +88,31 @@ function _simPrice(base) {
   const next   = parseFloat((prev + change).toFixed(2));
   _simPrices.set(base, next);
   return next;
+}
+
+// ── Provider 0: Upstox WebSocket cache ───────────────────────────────────────
+
+/**
+ * Read the latest price from the Upstox WS cache.
+ * No network call — uses tick data already received on the WS connection.
+ * Fast (<1ms), zero API quota used.
+ *
+ * @param {string} base  Canonical base symbol
+ * @returns {number}     INR price
+ * @throws if no cached price available
+ */
+function _fetchUpstox(base) {
+  const ws = _getUpstoxWS();
+  if (!ws) throw new Error('Upstox WS module unavailable');
+
+  const cached = ws.getCachedPrice(base);
+  if (!cached) throw new Error(`No Upstox tick cached for ${base}`);
+
+  const price = parseFloat(cached.price);
+  if (!isFinite(price) || price <= 0) throw new Error(`Upstox cached price invalid: ${cached.price}`);
+
+  logger.debug(`[MarketData] Upstox cache hit: ${base} = ₹${price}`);
+  return price;
 }
 
 // ── Provider 1: TwelveData ────────────────────────────────────────────────────
@@ -195,6 +216,17 @@ async function getLivePrice(symbol) {
   if (cached) {
     logger.debug(`[MarketData] Cache hit | ${base} = ₹${cached.price} (${cached.source})`);
     return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp };
+  }
+
+  // ── Provider 0: Upstox WS cache (real-time, zero network cost) ───────────
+  try {
+    const price = _fetchUpstox(base);
+    _cacheSet(base, price, 'LIVE_UPSTOX');
+    logger.info(`[MarketData] ✅ Upstox | ${base} = ₹${price}`);
+    return { symbol: base, price, source: 'LIVE_UPSTOX', timestamp: new Date().toISOString() };
+  } catch (err0) {
+    // Not authenticated or symbol not subscribed — fall through silently
+    logger.debug(`[MarketData] Upstox skip for ${base}: ${err0.message}`);
   }
 
   // ── Provider 1: TwelveData ───────────────────────────────────────────────
@@ -360,12 +392,15 @@ function clearCache(symbol = null) {
 
 function getCacheStats() {
   const entries = [..._cache.values()];
+  const ws      = _getUpstoxWS();
   return {
     size:          entries.length,
+    liveUpstox:    entries.filter(e => e.source === 'LIVE_UPSTOX').length,
     liveTwelve:    entries.filter(e => e.source === 'LIVE_TWELVE').length,
     liveFinnhub:   entries.filter(e => e.source === 'LIVE_FINNHUB').length,
     sim:           entries.filter(e => e.source === 'SIM').length,
     ttlMs:         CACHE_TTL_MS,
+    upstoxWS:      ws ? ws.getStatus() : { connected: false },
     twelvedataKey: !!TWELVEDATA_KEY,
     finnhubKey:    !!FINNHUB_KEY,
   };
