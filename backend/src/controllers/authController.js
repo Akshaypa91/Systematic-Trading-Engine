@@ -194,4 +194,4 @@ function me(req, res) {
   }
 }
 
-module.exports = { signup, login, me, verifyJWT };
+module.exports = { signup, login, me, verifyJWT, signJWT };

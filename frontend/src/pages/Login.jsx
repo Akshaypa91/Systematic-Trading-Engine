@@ -1,28 +1,42 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+function Divider() {
+  return (
+    <div className="flex items-center gap-3 my-5">
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>or</span>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+    </div>
+  );
+}
 
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
+  const [gLoading, setGLoading] = useState(false);
   const [error, setError]       = useState('');
   const { login } = useAuth();
   const navigate  = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) { setError('Email and password are required'); return; }
+    if (!email || !password) { setError('Email and password required'); return; }
     setLoading(true); setError('');
     try {
-      const res  = await authAPI.login(email, password);
-      const data = res.data;
+      const res   = await authAPI.login(email, password);
+      const data  = res.data;
       const token = data.token || data.accessToken || data.jwt;
       const user  = data.user || { email };
-      if (!token) throw new Error('No token received from server');
+      if (!token) throw new Error('No token received');
       login(token, user);
       navigate('/');
     } catch (err) {
@@ -32,9 +46,25 @@ export default function Login() {
     }
   }
 
-  return (
+  const handleGoogle = useCallback(async (credentialResponse) => {
+    setGLoading(true); setError('');
+    try {
+      const res   = await authAPI.googleAuth(credentialResponse.credential);
+      const data  = res.data;
+      const token = data.token;
+      const user  = data.user;
+      if (!token) throw new Error('No token received');
+      login(token, user);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Google login failed');
+    } finally {
+      setGLoading(false);
+    }
+  }, [login, navigate]);
+
+  const inner = (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden grid-bg">
-      {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06), transparent)' }} />
 
@@ -51,7 +81,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl p-8"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Sign In</h1>
@@ -65,48 +94,46 @@ export default function Login() {
             </div>
           )}
 
+          {/* Google button */}
+          {GOOGLE_CLIENT_ID && (
+            <div style={{ opacity: gLoading ? 0.6 : 1, pointerEvents: gLoading ? 'none' : 'auto' }}>
+              <GoogleLogin
+                onSuccess={handleGoogle}
+                onError={() => setError('Google sign-in failed')}
+                theme="filled_black"
+                shape="rectangular"
+                size="large"
+                width="100%"
+                text="continue_with"
+              />
+            </div>
+          )}
+
+          <Divider />
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-mono uppercase tracking-wider block mb-1.5"
                 style={{ color: 'var(--text-muted)' }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="trader@example.com"
-                autoComplete="email"
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="trader@example.com" autoComplete="email"
                 className="w-full px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
-                style={{
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-mono), monospace',
-                }}
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
                 onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--border)'}
-              />
+                onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
             </div>
 
             <div>
               <label className="text-xs font-mono uppercase tracking-wider block mb-1.5"
                 style={{ color: 'var(--text-muted)' }}>Password</label>
               <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                <input type={showPw ? 'text' : 'password'} value={password}
+                  onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                   autoComplete="current-password"
                   className="w-full px-4 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all"
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'var(--font-mono), monospace',
-                  }}
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
                   onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
-                  onBlur={e  => e.target.style.borderColor = 'var(--border)'}
-                />
+                  onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   style={{ color: 'var(--text-muted)' }}>
@@ -117,11 +144,7 @@ export default function Login() {
 
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-lg text-sm font-semibold tracking-wide transition-all disabled:opacity-60"
-              style={{
-                background: loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)',
-                border: '1px solid rgba(0,212,255,0.4)',
-                color: 'var(--cyan)',
-              }}
+              style={{ background: loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}
               onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(0,212,255,0.2)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)'; }}>
               {loading ? 'Authenticating...' : 'Sign In →'}
@@ -130,12 +153,7 @@ export default function Login() {
 
           <p className="text-center text-xs mt-5" style={{ color: 'var(--text-muted)' }}>
             No account?{' '}
-            <Link to="/signup" className="transition-colors"
-              style={{ color: 'var(--cyan)' }}
-              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-              onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
-              Create one
-            </Link>
+            <Link to="/signup" style={{ color: 'var(--cyan)' }}>Create one</Link>
           </p>
         </div>
 
@@ -145,4 +163,8 @@ export default function Login() {
       </div>
     </div>
   );
+
+  return GOOGLE_CLIENT_ID
+    ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{inner}</GoogleOAuthProvider>
+    : inner;
 }

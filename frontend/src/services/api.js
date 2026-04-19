@@ -31,8 +31,9 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  login:  (email, password) => api.post('/auth/login',  { email, password }),
-  signup: (email, password) => api.post('/auth/signup', { email, password }),
+  login:      (email, password) => api.post('/auth/login',  { email, password }),
+  signup:     (email, password) => api.post('/auth/signup', { email, password }),
+  googleAuth: (credential)      => api.post('/auth/google', { credential }),
 };
 
 export const backtestAPI = {
