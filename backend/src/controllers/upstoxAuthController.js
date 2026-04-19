@@ -1,17 +1,4 @@
-// src/controllers/upstoxAuthController.js
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// UPSTOX OAUTH CONTROLLER
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Routes (mounted in routes/auth.js):
-//   GET  /api/auth/upstox/login     → redirect browser to Upstox OAuth page
-//   GET  /api/auth/upstox/callback  → receive code, exchange for token
-//   GET  /api/auth/upstox/status    → token status (no token value exposed)
-//   POST /api/auth/upstox/logout    → clear token
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
+// src/controllers/upstoxAuthController.js — HARDENED
 'use strict';
 
 const upstoxAuth = require('../services/upstoxAuth');
@@ -21,64 +8,54 @@ const logger     = require('../config/logger');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // ── GET /api/auth/upstox/login ────────────────────────────────────────────────
-
-/**
- * Redirect user to Upstox OAuth authorization page.
- * Browser hits this URL; we 302 to Upstox.
- */
 function login(req, res) {
+  logger.info('[UpstoxCtrl] login hit');
   try {
+    if (!process.env.UPSTOX_API_KEY)      return res.status(500).json({ success: false, error: 'UPSTOX_API_KEY not set' });
+    if (!process.env.UPSTOX_REDIRECT_URI) return res.status(500).json({ success: false, error: 'UPSTOX_REDIRECT_URI not set' });
     const url = upstoxAuth.getAuthorizationUrl();
-    logger.info('[UpstoxCtrl] Redirecting to Upstox OAuth');
+    logger.info(`[UpstoxCtrl] Redirecting → ${url}`);
     return res.redirect(302, url);
   } catch (err) {
     logger.error(`[UpstoxCtrl] login error: ${err.message}`);
-    return res.status(500).json({
-      success: false,
-      error:   err.message,
-      hint:    'Ensure UPSTOX_API_KEY and UPSTOX_REDIRECT_URI are set in .env',
-    });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
 // ── GET /api/auth/upstox/callback ─────────────────────────────────────────────
-
-/**
- * Upstox redirects here after user logs in.
- * Exchange the auth code for an access token, then redirect to frontend.
- *
- * Query params from Upstox:
- *   ?code=<auth_code>   on success
- *   ?error=<message>    on denial / error
- */
 async function callback(req, res) {
-  const { code, error } = req.query;
+  logger.info(`[UpstoxCtrl] callback hit — method=${req.method} url=${req.originalUrl}`);
+  logger.info(`[UpstoxCtrl] query: ${JSON.stringify(req.query)}`);
+
+  const { code, error, error_description } = req.query;
 
   if (error) {
-    logger.warn(`[UpstoxCtrl] OAuth denied: ${error}`);
-    return res.redirect(`${FRONTEND_URL}?upstox=error&reason=${encodeURIComponent(error)}`);
+    const reason = error_description || error;
+    logger.warn(`[UpstoxCtrl] OAuth denied: ${reason}`);
+    return res.redirect(`${FRONTEND_URL}?upstox=error&reason=${encodeURIComponent(reason)}`);
   }
 
   if (!code) {
-    logger.warn('[UpstoxCtrl] Callback received with no code');
+    logger.warn('[UpstoxCtrl] No code in callback — redirect_uri mismatch?');
     return res.redirect(`${FRONTEND_URL}?upstox=error&reason=no_code`);
   }
 
   try {
+    logger.info(`[UpstoxCtrl] Exchanging code len=${code.length}`);
     await upstoxAuth.exchangeCodeForToken(code);
+    logger.info('[UpstoxCtrl] Token exchange OK');
 
-    // Start WebSocket connection now that we have a token
-    // Non-fatal if it fails — prices fall back to TwelveData/SIM
     try {
-      await upstoxWS.connect();
-      logger.info('[UpstoxCtrl] Upstox WebSocket connected after OAuth');
+      const s = upstoxWS.getStatus();
+      if (!s.connected) {
+        await upstoxWS.connect();
+        logger.info('[UpstoxCtrl] WS connected post-OAuth');
+      }
     } catch (wsErr) {
-      logger.warn(`[UpstoxCtrl] WS connect failed (non-fatal): ${wsErr.message}`);
+      logger.warn(`[UpstoxCtrl] WS connect non-fatal: ${wsErr.message}`);
     }
 
-    // Redirect back to frontend with success flag
     return res.redirect(`${FRONTEND_URL}?upstox=connected`);
-
   } catch (err) {
     logger.error(`[UpstoxCtrl] Token exchange failed: ${err.message}`);
     return res.redirect(`${FRONTEND_URL}?upstox=error&reason=${encodeURIComponent(err.message)}`);
@@ -86,32 +63,31 @@ async function callback(req, res) {
 }
 
 // ── GET /api/auth/upstox/status ───────────────────────────────────────────────
-
-/**
- * Returns Upstox auth status.
- * Never exposes the actual token value.
- */
 function status(req, res) {
-  const tokenStatus = upstoxAuth.getTokenStatus();
-  const wsStatus    = upstoxWS.getStatus();
-
   return res.json({
     success: true,
     upstox: {
       authenticated: upstoxAuth.isAuthenticated(),
-      token:         tokenStatus,
-      websocket:     wsStatus,
+      token:         upstoxAuth.getTokenStatus(),
+      websocket:     upstoxWS.getStatus(),
     },
   });
 }
 
 // ── POST /api/auth/upstox/logout ──────────────────────────────────────────────
-
 function logout(req, res) {
   upstoxAuth.clearToken();
   upstoxWS.disconnect();
-  logger.info('[UpstoxCtrl] Logged out from Upstox');
   return res.json({ success: true, message: 'Upstox session cleared' });
 }
 
-module.exports = { login, callback, status, logout };
+// ── POST /api/auth/upstox/token ─── manual token injection ───────────────────
+function setToken(req, res) {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ success: false, error: 'token required' });
+  upstoxAuth.setAccessToken(token);
+  upstoxWS.connect().catch(e => logger.warn(`[UpstoxCtrl] WS: ${e.message}`));
+  return res.json({ success: true, message: 'Token set, WS connecting' });
+}
+
+module.exports = { login, callback, status, logout, setToken };

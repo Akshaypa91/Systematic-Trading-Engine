@@ -1,26 +1,48 @@
-// src/context/WSContext.jsx
-// Provides a single persistent WebSocket connection to the entire app.
-// Components subscribe via useWS() and get live data without polling.
+// src/context/WSContext.jsx — HARDENED
+// Single persistent WebSocket connection for the whole app.
+// Never crashes on malformed messages.
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 
 const WSContext = createContext(null);
 
-const WS_BASE    = (import.meta.env.VITE_WS_URL  || 'ws://localhost:3000') + '/ws';
-// FIX Bug 19: Append JWT token to WS URL so the server can authenticate the connection.
+const WS_BASE      = (import.meta.env.VITE_WS_URL || 'ws://localhost:3000') + '/ws';
+const RECONNECT_MS = 3000;
+const MAX_TRADES   = 100;
+const CLOSE_BAD_TOKEN = 4001;
+
 function getWsUrl() {
   const token = localStorage.getItem('token');
-  return token ? WS_BASE + '?token=' + encodeURIComponent(token) : WS_BASE;
+  return token ? `${WS_BASE}?token=${encodeURIComponent(token)}` : WS_BASE;
 }
-const RECONNECT_MS = 3000;
-const MAX_TRADE_HISTORY = 100;
+
+// Safe number helper
+const n = (v, fb = 0) => (isFinite(Number(v)) ? Number(v) : fb);
+
+// Normalise portfolio from either sim or legacy shape
+function normalisePortfolio(raw) {
+  if (!raw) return null;
+  return {
+    equity:           n(raw.equity ?? raw.capital ?? raw.totalValue),
+    capital:          n(raw.capital ?? raw.equity ?? raw.totalValue),
+    initialCapital:   n(raw.initialCapital ?? raw.initial_capital, 1000000),
+    totalReturn:      n(raw.totalReturn ?? raw.totalReturnPct ?? raw.total_return_pct),
+    totalPnl:         n(raw.totalPnl ?? raw.totalPnL ?? raw.realized_pnl),
+    openPnl:          n(raw.openPnl ?? raw.unrealizedPnL ?? raw.open_pnl),
+    openPositionCount:n(raw.openPositionCount ?? (raw.openPositions ? Object.keys(raw.openPositions).length : 0)),
+    openPositions:    raw.openPositions ?? raw.positions ?? {},
+    initialized:      raw.initialized !== false,
+    source:           raw.source ?? 'SIM',
+  };
+}
 
 export function WSProvider({ children }) {
-  const [status,    setStatus]    = useState('connecting'); // connecting | connected | disconnected
+  const [status,    setStatus]    = useState('connecting');
   const [signals,   setSignals]   = useState([]);
   const [portfolio, setPortfolio] = useState(null);
-  const [trades,    setTrades]    = useState([]);           // most-recent trade events (ring buffer)
-  const [lastTick,  setLastTick]  = useState(null);         // ISO timestamp of last SIM_TICK
-  const [newTrade,  setNewTrade]  = useState(null);         // latest trade for flash animation
+  const [trades,    setTrades]    = useState([]);
+  const [lastTick,  setLastTick]  = useState(null);
+  const [newTrade,  setNewTrade]  = useState(null);
+  const [prices,    setPrices]    = useState({});  // symbol → { price, source, ts }
 
   const wsRef      = useRef(null);
   const timerRef   = useRef(null);
@@ -31,7 +53,14 @@ export function WSProvider({ children }) {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     setStatus('connecting');
-    const ws = new WebSocket(getWsUrl());
+    let ws;
+    try {
+      ws = new WebSocket(getWsUrl());
+    } catch (e) {
+      console.warn('[WS] Failed to create WebSocket:', e.message);
+      timerRef.current = setTimeout(connect, RECONNECT_MS);
+      return;
+    }
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -42,46 +71,66 @@ export function WSProvider({ children }) {
 
     ws.onmessage = (evt) => {
       if (!mountedRef.current) return;
+      let msg;
+      try { msg = JSON.parse(evt.data); } catch { return; }
+
       try {
-        const msg = JSON.parse(evt.data);
-
-        if (msg.type === 'SIM_TICK') {
-          const { signals: sigs, portfolio: port } = msg.data || {};
-          if (sigs)  setSignals(sigs);
-          if (port)  setPortfolio(port);
-          setLastTick(new Date(msg.ts).toISOString());
+        switch (msg.type) {
+          case 'TOKEN_INVALID': {
+            // Server rejected our JWT (wrong secret / expired signature)
+            // Clear it and reconnect once without a token — don't keep looping
+            console.warn('[WS] Server: token invalid — clearing and reconnecting anonymously');
+            localStorage.removeItem('token');
+            // Close current connection and let onclose trigger a clean reconnect
+            ws.close();
+            break;
+          }
+          case 'SIM_TICK': {
+            const { signals: sigs, portfolio: port } = msg.data || {};
+            if (Array.isArray(sigs)) setSignals(sigs);
+            if (port) setPortfolio(normalisePortfolio(port));
+            setLastTick(msg.ts ? new Date(msg.ts).toISOString() : new Date().toISOString());
+            break;
+          }
+          case 'SIM_TRADE': {
+            const trade = msg.data;
+            if (!trade) break;
+            setNewTrade(trade);
+            setTrades(prev => [trade, ...prev].slice(0, MAX_TRADES));
+            break;
+          }
+          case 'LIVE_SIGNAL': {
+            const sig = msg.data;
+            if (!sig?.symbol) break;
+            setSignals(prev => {
+              const idx = prev.findIndex(s => s.symbol === sig.symbol);
+              if (idx === -1) return [sig, ...prev];
+              const next = [...prev]; next[idx] = sig; return next;
+            });
+            break;
+          }
+          case 'PRICE': {
+            const { symbol, price, source, ts } = msg;
+            if (symbol && isFinite(Number(price))) {
+              setPrices(prev => ({ ...prev, [symbol]: { price: Number(price), source, ts } }));
+            }
+            break;
+          }
+          default: break;
         }
-
-        if (msg.type === 'SIM_TRADE') {
-          const trade = msg.data;
-          setNewTrade(trade);
-          setTrades(prev => {
-            const next = [trade, ...prev];
-            return next.slice(0, MAX_TRADE_HISTORY);
-          });
-        }
-
-        // Legacy live signal engine messages
-        if (msg.type === 'LIVE_SIGNAL') {
-          setSignals(prev => {
-            const idx = prev.findIndex(s => s.symbol === msg.data.symbol);
-            if (idx === -1) return [msg.data, ...prev];
-            const next = [...prev];
-            next[idx] = msg.data;
-            return next;
-          });
-        }
-
-      } catch (_) {}
+      } catch (e) {
+        console.warn('[WS] Handler error:', e.message);
+      }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (_evt) => {
       if (!mountedRef.current) return;
       setStatus('disconnected');
       timerRef.current = setTimeout(connect, RECONNECT_MS);
     };
 
     ws.onerror = () => {
+      // onclose fires after onerror — let it handle reconnect
       ws.close();
     };
   }, []);
@@ -92,18 +141,23 @@ export function WSProvider({ children }) {
     return () => {
       mountedRef.current = false;
       clearTimeout(timerRef.current);
-      wsRef.current?.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null;  // prevent reconnect on unmount
+        wsRef.current.close();
+      }
     };
   }, [connect]);
 
-  // Manual reconnect
   const reconnect = useCallback(() => {
-    wsRef.current?.close();
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current.close();
+    }
     setTimeout(connect, 100);
   }, [connect]);
 
   return (
-    <WSContext.Provider value={{ status, signals, portfolio, trades, lastTick, newTrade, reconnect }}>
+    <WSContext.Provider value={{ status, signals, portfolio, trades, lastTick, newTrade, prices, reconnect }}>
       {children}
     </WSContext.Provider>
   );
@@ -111,6 +165,6 @@ export function WSProvider({ children }) {
 
 export function useWS() {
   const ctx = useContext(WSContext);
-  if (!ctx) throw new Error('useWS must be used inside WSProvider');
+  if (!ctx) throw new Error('useWS must be inside WSProvider');
   return ctx;
 }

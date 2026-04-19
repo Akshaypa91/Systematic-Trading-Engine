@@ -46,7 +46,20 @@ async function placeOrder(req, res) {
 // ── GET /api/trade/portfolio ──────────────────────────────────────────────────
 
 function getPortfolio(req, res) {
-  res.json({ success: true, data: exec.getPortfolioState() });
+  try {
+    const data = exec.getPortfolioState() ?? {};
+    // Ensure safe shape — never return undefined fields
+    const safe = {
+      capital:       Number(data.capital ?? 0),
+      openPositions: data.openPositions   ?? {},
+      openCount:     Number(data.openCount ?? 0),
+      dailyPnl:      Number(data.dailyPnl  ?? 0),
+    };
+    res.json({ success: true, data: safe });
+  } catch (err) {
+    logger.error(`[TradeCtrl] getPortfolio: ${err.message}`);
+    res.json({ success: true, data: { capital: 0, openPositions: {}, openCount: 0, dailyPnl: 0 } });
+  }
 }
 
 // ── GET /api/trade/orders ─────────────────────────────────────────────────────

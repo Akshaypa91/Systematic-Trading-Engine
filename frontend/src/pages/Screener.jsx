@@ -12,7 +12,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 const FILTERS = ['ALL', 'BUY_CANDIDATES', 'SELL_CANDIDATES', 'NEUTRAL'];
 
 function ScoreBadge({ score }) {
-  const pct   = (score * 100).toFixed(1);
+  const pct   = (Number(score || 0) * 100).toFixed(1);
   const color = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
   return (
     <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function Screener() {
           {showWeights && (
             <div className="rounded-xl p-4 mb-4 fade-in" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               <div className="text-xs font-mono mb-3 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                Factor Weights · sum: {(weights.wMomentum + weights.wVolatility + weights.wMR).toFixed(2)}
+                Factor Weights · sum: {(Number(weights.wMomentum||0) + Number(weights.wVolatility||0) + Number(weights.wMR||0)).toFixed(2)}
               </div>
               <div className="grid grid-cols-3 gap-4">
                 {[['wMomentum', 'Momentum'], ['wVolatility', 'Volatility'], ['wMR', 'Mean Reversion']].map(([k, l]) => (

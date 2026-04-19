@@ -61,11 +61,12 @@ function ConnectionBadge({ wsStatus, usingPoll }) {
   );
 }
 
-function SummaryBar({ signals }) {
-  const buys  = signals.filter(s=>s.signal==='BUY').length;
-  const sells = signals.filter(s=>s.signal==='SELL').length;
-  const holds = signals.filter(s=>s.signal==='HOLD').length;
-  const liveCount = signals.filter(s=>s.source==='LIVE').length;
+function SummaryBar({ signals = [] }) {
+  const safe = Array.isArray(signals) ? signals : [];
+  const buys  = safe.filter(s=>s.signal==='BUY').length;
+  const sells = safe.filter(s=>s.signal==='SELL').length;
+  const holds = safe.filter(s=>s.signal==='HOLD').length;
+  const liveCount = safe.filter(s=>s.source==='LIVE').length;
 
   return (
     <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>

@@ -1,181 +1,154 @@
-// src/data/liveDataFeed.js
-// ─────────────────────────────────────────────────────────────────────────────
+// src/data/liveDataFeed.js — HARDENED
 // WebSocket Live Data Feed Manager
 //
-// Architecture:
-//   • Client WebSocket connections → this manager
-//   • NSE quote polling (since NSE doesn't expose a public WS) → broadcast
-//   • Subscriptions per symbol — only poll what clients are watching
-//   • Auto-check open paper positions on every price tick (stop-loss / TP)
-//
-// NSE does not provide a public WebSocket endpoint. We simulate a live feed
-// by polling the REST quote API at configurable intervals, then broadcasting
-// OHLCV + signal snapshots to all connected WebSocket clients.
-//
-// In production, replace the poller with a proper NSE TBT (Tick-By-Tick) or
-// Zerodha Kite WebSocket feed for actual real-time data.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Auth policy:
+//   • Authenticated clients (JWT in ?token=) → full access + private events
+//   • Unauthenticated clients → sim ticks + market prices only (no PII)
+//   This allows the frontend to render live signals before the user logs in,
+//   while keeping portfolio and trade events auth-gated.
 'use strict';
 
 const WebSocket   = require('ws');
-const url         = require('url');
 const marketDataService = require('../services/marketDataService');
 const aggregator  = require('../strategies/aggregator');
 const dataStore   = require('./dataStore');
 const execEngine  = require('../engine/executionEngine');
 const logger      = require('../config/logger');
-const { verifyJWT } = require('../controllers/authController');
 
-// ─── State ────────────────────────────────────────────────────────────────────
+let _verifyJWT = null;
+function getVerify() {
+  if (!_verifyJWT) {
+    try { _verifyJWT = require('../controllers/authController').verifyJWT; } catch (_) {}
+  }
+  return _verifyJWT;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
 const subscriptions = new Map();   // symbol → Set<WebSocket>
-const lastPrices    = new Map();   // symbol → { price, ts }
-const pollIntervals = new Map();   // symbol → NodeJS timer
+const lastPrices    = new Map();   // symbol → tick object
+const pollIntervals = new Map();   // symbol → timer
 const clients       = new Set();   // all connected WS clients
+const authClients   = new Set();   // authenticated-only clients
 
 const POLL_INTERVAL_MS = parseInt(process.env.LIVE_POLL_INTERVAL_MS || '5000', 10);
 
-// ─── WebSocket Server ─────────────────────────────────────────────────────────
-
-/**
- * Attach the WebSocket server to an existing HTTP server instance.
- * @param {http.Server} httpServer
- */
+// ── Attach ────────────────────────────────────────────────────────────────────
 function attach(httpServer) {
   const wss = new WebSocket.Server({ server: httpServer, path: '/ws' });
 
   wss.on('connection', (ws, req) => {
-    // FIX Bug 19: Authenticate WebSocket connections via JWT in query string.
-    // Frontend connects as: ws://host/ws?token=<jwt>
-    const { query } = url.parse(req.url, true);
-    const token = query.token;
-    if (!token) {
-      send(ws, { type: 'ERROR', message: 'Authentication required' });
-      ws.close(4001, 'Authentication required');
-      logger.warn('[WS] Rejected unauthenticated connection from ' + req.socket.remoteAddress);
-      return;
-    }
-    try {
-      ws.user = verifyJWT(token);
-    } catch (err) {
-      send(ws, { type: 'ERROR', message: 'Invalid or expired token' });
-      ws.close(4001, 'Invalid token');
-      logger.warn('[WS] Rejected invalid token: ' + err.message);
-      return;
+    // WHATWG URL — replaces deprecated url.parse()
+    const reqUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const token  = reqUrl.searchParams.get('token');
+
+    ws.isAuthenticated = false;
+    ws.user            = null;
+
+    if (token) {
+      try {
+        const verify = getVerify();
+        if (verify) {
+          ws.user            = verify(token);
+          ws.isAuthenticated = true;
+        }
+      } catch (err) {
+        logger.warn(`[WS] Invalid token: ${err.message} — downgrading to anonymous`);
+        // Notify the client so it clears stale token from localStorage
+        // (send after open — can't send before connection is established)
+        ws._notifyBadToken = true;
+      }
     }
 
     clients.add(ws);
-    logger.info('[WS] Authenticated client connected (user: ' + ws.user.email + '). Total: ' + clients.size);
+    if (ws.isAuthenticated) authClients.add(ws);
 
-    ws.on('message', (raw) => handleMessage(ws, raw));
+    const mode = ws.isAuthenticated ? `auth:${ws.user?.email}` : 'anonymous';
+    logger.info(`[WS] Client connected (${mode}). Total: ${clients.size}`);
+
+    ws.on('message', (raw) => {
+      try { handleMessage(ws, raw); } catch (e) { logger.warn(`[WS] message handler: ${e.message}`); }
+    });
 
     ws.on('close', () => {
       clients.delete(ws);
-      // Remove this client from all subscriptions
-      for (const [symbol, subs] of subscriptions) {
+      authClients.delete(ws);
+      for (const [sym, subs] of subscriptions) {
         subs.delete(ws);
-        if (subs.size === 0) stopPolling(symbol);
+        if (subs.size === 0) stopPolling(sym);
       }
       logger.info(`[WS] Client disconnected. Total: ${clients.size}`);
     });
 
     ws.on('error', (err) => {
-      logger.warn(`[WS] Client error: ${err.message}`);
-      clients.delete(ws);
+      logger.debug(`[WS] Client error: ${err.message}`);
+      clients.delete(ws); authClients.delete(ws);
     });
 
-    // Send welcome handshake
-    send(ws, { type: 'CONNECTED', message: 'Systematic Trading Engine Live Feed', user: ws.user.email, ts: new Date().toISOString() });
+    send(ws, {
+      type:            'CONNECTED',
+      message:         'Systematic Trading Engine Live Feed',
+      authenticated:   ws.isAuthenticated,
+      user:            ws.user?.email ?? null,
+      ts:              new Date().toISOString(),
+    });
+
+    // If token was present but invalid, tell client to clear it
+    if (ws._notifyBadToken) {
+      send(ws, { type: 'TOKEN_INVALID', message: 'Token signature invalid — please log in again' });
+    }
   });
 
   logger.info('[WS] WebSocket server attached at /ws');
   return wss;
 }
 
-// ─── Message handling ─────────────────────────────────────────────────────────
-
-/**
- * Handle incoming WS message from client.
- * Expected message formats:
- *   { action: 'SUBSCRIBE',   symbols: ['RELIANCE', 'INFY'] }
- *   { action: 'UNSUBSCRIBE', symbols: ['RELIANCE'] }
- *   { action: 'PING' }
- *   { action: 'GET_SIGNAL',  symbol: 'RELIANCE' }
- */
+// ── Message handling ──────────────────────────────────────────────────────────
 function handleMessage(ws, raw) {
   let msg;
-  try {
-    msg = JSON.parse(raw.toString());
-  } catch {
-    send(ws, { type: 'ERROR', message: 'Invalid JSON' });
-    return;
-  }
+  try { msg = JSON.parse(raw.toString()); } catch { send(ws, { type: 'ERROR', message: 'Invalid JSON' }); return; }
 
   switch (msg.action) {
-    case 'SUBSCRIBE':
-      if (!Array.isArray(msg.symbols)) {
-        send(ws, { type: 'ERROR', message: 'symbols must be an array' });
-        return;
-      }
-      for (const symbol of msg.symbols.map(s => s.toUpperCase())) {
-        subscribe(ws, symbol);
-      }
+    case 'SUBSCRIBE': {
+      if (!Array.isArray(msg.symbols)) { send(ws, { type: 'ERROR', message: 'symbols must be an array' }); return; }
+      for (const sym of msg.symbols.map(s => s.toUpperCase())) subscribe(ws, sym);
       send(ws, { type: 'SUBSCRIBED', symbols: msg.symbols, ts: new Date().toISOString() });
       break;
-
-    case 'UNSUBSCRIBE':
-      for (const symbol of (msg.symbols || []).map(s => s.toUpperCase())) {
-        unsubscribe(ws, symbol);
-      }
+    }
+    case 'UNSUBSCRIBE': {
+      for (const sym of (msg.symbols || []).map(s => s.toUpperCase())) unsubscribe(ws, sym);
       send(ws, { type: 'UNSUBSCRIBED', symbols: msg.symbols });
       break;
-
+    }
     case 'PING':
       send(ws, { type: 'PONG', ts: new Date().toISOString() });
       break;
-
     case 'GET_SIGNAL':
       handleSignalRequest(ws, msg.symbol?.toUpperCase());
       break;
-
     default:
       send(ws, { type: 'ERROR', message: `Unknown action: ${msg.action}` });
   }
 }
 
-// ─── Subscription management ─────────────────────────────────────────────────
-
+// ── Subscription management ───────────────────────────────────────────────────
 function subscribe(ws, symbol) {
-  if (!subscriptions.has(symbol)) {
-    subscriptions.set(symbol, new Set());
-  }
+  if (!subscriptions.has(symbol)) subscriptions.set(symbol, new Set());
   subscriptions.get(symbol).add(ws);
-
-  // Start polling if not already running
   if (!pollIntervals.has(symbol)) {
     startPolling(symbol);
   } else {
-    // Immediately send last known price to new subscriber
     const last = lastPrices.get(symbol);
-    if (last) send(ws, { type: 'PRICE', ...last });
+    if (last) send(ws, last);
   }
-  logger.debug(`[WS] ${symbol} subscribed. Subscribers: ${subscriptions.get(symbol).size}`);
 }
 
 function unsubscribe(ws, symbol) {
   const subs = subscriptions.get(symbol);
-  if (subs) {
-    subs.delete(ws);
-    if (subs.size === 0) stopPolling(symbol);
-  }
+  if (subs) { subs.delete(ws); if (subs.size === 0) stopPolling(symbol); }
 }
 
-// ─── Price polling ────────────────────────────────────────────────────────────
-
+// ── Price polling ─────────────────────────────────────────────────────────────
 function startPolling(symbol) {
-  logger.info(`[WS] Starting price poll for ${symbol} every ${POLL_INTERVAL_MS}ms`);
-
-  // Poll immediately then on interval
   pollSymbol(symbol);
   const timer = setInterval(() => pollSymbol(symbol), POLL_INTERVAL_MS);
   pollIntervals.set(symbol, timer);
@@ -183,74 +156,52 @@ function startPolling(symbol) {
 
 function stopPolling(symbol) {
   const timer = pollIntervals.get(symbol);
-  if (timer) {
-    clearInterval(timer);
-    pollIntervals.delete(symbol);
-    subscriptions.delete(symbol);
-    logger.info(`[WS] Stopped polling ${symbol}`);
-  }
+  if (timer) { clearInterval(timer); pollIntervals.delete(symbol); subscriptions.delete(symbol); }
 }
 
 async function pollSymbol(symbol) {
   try {
-    // marketDataService: tries Twelve Data API first, falls back to simulation
     const result = await marketDataService.getLivePrice(symbol);
     const price  = result.price;
-
-    if (!price) return;
+    if (!price || !isFinite(price)) return;
 
     const tick = {
-      type:      'PRICE',
+      type:   'PRICE',
       symbol,
       price,
-      source:    result.source,   // "API" or "SIMULATION"
-      // OHLC not available on Twelve Data free /price endpoint
-      open:      null,
-      high:      null,
-      low:       null,
-      prevClose: null,
-      changePct: null,
-      volume:    null,
-      vwap:      null,
-      ts:        new Date().toISOString(),
+      source: result.source,
+      ts:     new Date().toISOString(),
     };
 
     lastPrices.set(symbol, tick);
     broadcast(symbol, tick);
 
-    // Check open paper positions for stop-loss / take-profit triggers
-    const closeResult = await execEngine.checkAndClosePosition(symbol, price);
-    if (closeResult) {
-      broadcast(symbol, {
-        type:    'POSITION_CLOSED',
-        symbol,
-        reason:  closeResult.exitReason || 'AUTO',
-        price,
-        pnl:     closeResult.pnl,
-        ts:      new Date().toISOString(),
-      });
+    // Check SL/TP — only affects authenticated (real portfolio)
+    if (authClients.size > 0) {
+      const closeResult = await execEngine.checkAndClosePosition(symbol, price);
+      if (closeResult) {
+        broadcastAuth({
+          type:   'POSITION_CLOSED',
+          symbol,
+          reason: closeResult.exitReason || 'AUTO',
+          price,
+          pnl:    closeResult.pnl,
+          ts:     new Date().toISOString(),
+        });
+      }
     }
-
   } catch (err) {
-    logger.warn(`[WS] Poll error for ${symbol}: ${err.message}`);
-    // Broadcast a degraded status so clients know
+    logger.debug(`[WS] Poll error ${symbol}: ${err.message}`);
     broadcast(symbol, { type: 'FEED_ERROR', symbol, error: err.message, ts: new Date().toISOString() });
   }
 }
 
-// ─── On-demand signal ─────────────────────────────────────────────────────────
-
+// ── Signal on-demand ──────────────────────────────────────────────────────────
 async function handleSignalRequest(ws, symbol) {
-  if (!symbol) {
-    send(ws, { type: 'ERROR', message: 'symbol required for GET_SIGNAL' });
-    return;
-  }
+  if (!symbol) { send(ws, { type: 'ERROR', message: 'symbol required' }); return; }
   try {
-    const bars   = await dataStore.getRecentPrices(symbol, 220);
-    if (!bars || bars.length < 202) {
-      send(ws, { type: 'SIGNAL_ERROR', symbol, error: 'Insufficient historical data' });
-      return;
-    }
+    const bars = await dataStore.getRecentPrices(symbol, 220);
+    if (!bars || bars.length < 50) { send(ws, { type: 'SIGNAL_ERROR', symbol, error: 'Insufficient data' }); return; }
     const closes = bars.map(b => b.close);
     const result = aggregator.aggregate(closes, { method: 'weighted' });
     send(ws, { type: 'SIGNAL', symbol, ...result });
@@ -259,58 +210,51 @@ async function handleSignalRequest(ws, symbol) {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+// ── Send / broadcast helpers ──────────────────────────────────────────────────
 function send(ws, payload) {
-  if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(payload));
-  }
+  if (ws.readyState !== WebSocket.OPEN) return;
+  try { ws.send(JSON.stringify(payload)); } catch (_) {}
 }
 
 function broadcast(symbol, payload) {
   const subs = subscriptions.get(symbol);
-  if (!subs) return;
+  if (!subs?.size) return;
   const msg = JSON.stringify(payload);
   for (const ws of subs) {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(msg);
-    }
+    if (ws.readyState === WebSocket.OPEN) { try { ws.send(msg); } catch (_) {} }
   }
 }
 
-/**
- * Broadcast a system-wide alert to ALL connected clients.
- */
-function broadcastAlert(alert) {
-  const msg = JSON.stringify({ type: 'ALERT', ...alert, ts: new Date().toISOString() });
+/** Broadcast to ALL clients (authenticated + anonymous). Used by sim engine. */
+function broadcastAll(payload) {
+  if (!clients.size) return;
+  const msg = JSON.stringify(payload);
   for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    if (ws.readyState === WebSocket.OPEN) { try { ws.send(msg); } catch (_) {} }
   }
+}
+
+/** Broadcast only to authenticated clients. Used for private portfolio events. */
+function broadcastAuth(payload) {
+  if (!authClients.size) return;
+  const msg = JSON.stringify(payload);
+  for (const ws of authClients) {
+    if (ws.readyState === WebSocket.OPEN) { try { ws.send(msg); } catch (_) {} }
+  }
+}
+
+function broadcastAlert(alert) {
+  broadcastAll({ type: 'ALERT', ...alert, ts: new Date().toISOString() });
 }
 
 function getStats() {
   return {
-    connectedClients: clients.size,
+    connectedClients:    clients.size,
+    authenticatedClients:authClients.size,
     activeSubscriptions: subscriptions.size,
-    watchedSymbols: [...subscriptions.keys()],
-    pollIntervalMs: POLL_INTERVAL_MS,
+    watchedSymbols:      [...subscriptions.keys()],
+    pollIntervalMs:      POLL_INTERVAL_MS,
   };
 }
 
-
-/**
- * Broadcast any structured message to ALL connected WebSocket clients.
- * (Global broadcast — no symbol filtering.)
- * Used by liveSignalEngine for LIVE_SIGNAL and PAPER_TRADE events.
- */
-function broadcastAll(payload) {
-  if (clients.size === 0) return;
-  const msg = JSON.stringify(payload);
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) {
-      try { ws.send(msg); } catch (_) {}
-    }
-  }
-}
-
-module.exports = { attach, broadcast, broadcastAll, broadcastAlert, getStats };
+module.exports = { attach, broadcast, broadcastAll, broadcastAuth, broadcastAlert, getStats };

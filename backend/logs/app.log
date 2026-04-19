@@ -26519,3 +26519,546 @@
 {"level":"debug","message":"[MarketData] NSE cookie prime failed (non-fatal): Request failed with status code 403","timestamp":"2026-04-19 01:09:11.696"}
 {"level":"info","message":"[MarketData] NSE | MARUTI | url=\"/api/quote-equity?symbol=MARUTI\"","timestamp":"2026-04-19 01:09:11.696"}
 {"level":"info","message":"[MarketData] ✅ NSE | MARUTI = ₹13474 (LIVE_NSE)","timestamp":"2026-04-19 01:09:11.744"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 10:27:19.754"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 323)","timestamp":"2026-04-19 10:27:19.975"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 10:27:20.041"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 10:27:20.042"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 10:27:20.043"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 10:27:20.169"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 10:27:20.294"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 10:27:20.420"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 10:27:20.544"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 10:27:20.676"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 10:27:20.801"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 10:27:20.926"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 10:27:21.050"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 10:27:21.175"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 10:27:21.298"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 10:27:21.434"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 10:27:21.557"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 10:27:21.557"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 10:27:21.558"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 10:27:21.558"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 10:27:21.558"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 10:27:21.558"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 10:27:21.558"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 10:27:21.559"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 10:27:21.559"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 10:27:21.559"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 10:27:21.581"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 10:27:21.585"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 10:27:21.585"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 10:27:21.585"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 10:27:21.585"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 10:27:21.585"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:21.742"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:21.830"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:21.930"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.027"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.123"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.237"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.326"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.440"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.578"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:22.713"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:30.666"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:30.801"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:32.229"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:32.329"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.549"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.642"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.692"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.759"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.867"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.922"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:33.963"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:34.312"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:39.653"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:42.621"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:27:42.748"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 1","timestamp":"2026-04-19 10:27:42.748"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-19 10:27:42.755"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:27:42.761"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 1","timestamp":"2026-04-19 10:27:42.761"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:42.809"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:42.957"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.099"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.216"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.316"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.409"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.502"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:43.686"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:48.638"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:51.622"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:51.764"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:51.871"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:51.983"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:52.153"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:52.320"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:52.464"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:52.685"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:52.812"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:27:57.626"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:00.624"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:00.709"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:00.805"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:00.893"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:00.986"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:01.165"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:01.264"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:01.357"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:01.505"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:06.709"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:09.702"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:09.845"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.028"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.242"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.359"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.537"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.631"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.812"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:10.946"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:15.629"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:18.626"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:18.720"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:18.803"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.215"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.313"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.482"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.574"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.675"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:19.785"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:24.634"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:27.664"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:27.755"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:27.865"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.027"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.141"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.246"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.376"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.471"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:28.562"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:33.636"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:36.640"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:36.744"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:36.869"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:36.989"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:37.155"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:37.307"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:37.408"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:37.536"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:37.720"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:42.640"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:45.639"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:45.731"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:45.850"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:45.943"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:46.133"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:46.261"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:46.357"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:46.513"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:46.627"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:51.649"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:54.647"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:54.792"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:54.922"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.035"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.161"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.364"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.468"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.597"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:28:55.759"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:00.658"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:03.653"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:03.793"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:03.910"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:04.033"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:04.359"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:04.485"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:04.612"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:04.917"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:05.051"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:09.645"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:12.655"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:12.747"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:12.859"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:12.964"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:13.049"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:13.156"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:13.260"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:13.392"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:13.583"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:18.654"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:21.656"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:21.804"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:21.908"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.041"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.229"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.400"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.506"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.602"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:22.777"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:27.663"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:30.673"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:30.798"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:30.900"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.036"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.182"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.334"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.525"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.634"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:31.736"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:36.662"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:39.661"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:39.753"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:39.863"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:39.957"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:40.094"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:40.219"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:40.324"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:40.482"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:40.643"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:45.665"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:48.669"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:48.799"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:48.902"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.033"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.120"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.255"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.379"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.485"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:49.582"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:54.658"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:57.674"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:57.788"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:57.960"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.068"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.270"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.456"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.622"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.723"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:29:58.866"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:03.663"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:06.670"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:06.820"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:06.950"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.241"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.415"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.537"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.774"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.870"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:07.995"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:12.672"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:15.679"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:15.810"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:15.911"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.022"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.369"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.473"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.663"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.790"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:16.972"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:21.673"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:24.679"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:24.790"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:24.903"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.043"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.252"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.466"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.591"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.723"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:25.879"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:30.683"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:33.681"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:33.833"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.056"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.167"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.290"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.436"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.562"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.696"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:34.902"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:39.685"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:42.678"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:42.824"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.032"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.190"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.319"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.420"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.587"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.745"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:43.927"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:48.685"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:51.688"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:51.837"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:51.935"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.146"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.235"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.369"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.464"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.570"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:52.733"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:30:57.693"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:00.681"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:00.851"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:01.050"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:01.250"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:01.365"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:01.588"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:02.011"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:02.190"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:02.306"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:06.687"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:09.697"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:09.807"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:09.899"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:10.101"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:10.266"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:10.436"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:10.548"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:11.252"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:11.457"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:15.774"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:18.690"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:18.825"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:18.967"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.100"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.286"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.400"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.602"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.701"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:19.819"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:24.696"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:27.695"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:27.786"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:27.900"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.091"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.253"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.356"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.605"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.719"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:28.919"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:33.709"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:36.707"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:36.825"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:36.952"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:37.065"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:37.195"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:37.324"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:37.463"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:38.617"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:39.720"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:42.823"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:45.705"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:45.820"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:45.933"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:46.138"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:46.251"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:46.465"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:47.691"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:48.700"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:48.810"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:51.705"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:54.702"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:54.810"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:55.051"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:55.200"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:55.286"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:57.708"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:57.873"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:57.969"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:31:58.185"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:00.727"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:03.716"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:03.934"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:04.089"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:04.218"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:04.318"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:06.717"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:06.832"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:07.001"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:07.373"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:09.710"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:12.718"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:12.856"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:13.012"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:13.233"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:14.475"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:15.687"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:15.814"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:15.944"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:16.023"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:16.208"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:18.713"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:21.711"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:21.842"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:21.930"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:24.839"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:24.965"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:26.108"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:26.221"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:26.365"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:26.475"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:27.716"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:30.720"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:30.963"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:31.092"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:33.722"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:36.725"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:36.821"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:36.987"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:37.114"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:37.228"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:37.346"}
+{"level":"info","message":"[WS] Client disconnected. Total: 0","timestamp":"2026-04-19 10:32:37.738"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:32:37.739"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 1","timestamp":"2026-04-19 10:32:37.739"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:39.726"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:39.842"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:39.938"}
+{"level":"debug","message":"[MarketData] NSE prime failed: Request failed with status code 403","timestamp":"2026-04-19 10:32:42.714"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 10:32:48.629"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 325)","timestamp":"2026-04-19 10:32:48.852"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 10:32:48.940"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 10:32:48.940"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 10:32:48.941"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 10:32:49.077"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 10:32:49.212"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 10:32:49.346"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 10:32:49.480"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 10:32:49.612"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 10:32:49.745"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 10:32:49.879"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 10:32:50.008"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 10:32:50.136"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 10:32:50.268"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 10:32:50.405"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 10:32:50.537"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 10:33:06.348"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 326)","timestamp":"2026-04-19 10:33:06.556"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 10:33:06.627"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 10:33:06.627"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 10:33:06.627"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 10:33:06.772"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 10:33:06.899"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 10:33:07.030"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 10:33:07.158"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 10:33:07.287"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 10:33:07.416"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 10:33:07.547"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 10:33:07.683"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 10:33:07.809"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 10:33:07.939"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 10:33:08.066"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 10:33:08.195"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 10:33:08.195"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 10:33:08.196"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 10:33:08.196"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 10:33:08.196"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 10:33:08.196"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 10:33:08.196"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 10:33:08.197"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 10:33:08.197"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 10:33:08.197"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 10:33:08.214"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 10:33:08.217"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 10:33:08.217"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 10:33:08.217"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 10:33:08.217"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 10:33:08.217"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 10:33:08.381"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:33:10.693"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 1","timestamp":"2026-04-19 10:33:10.693"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:33:34.139"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:33:34.139"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-19 10:33:34.148"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:33:34.149"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:33:34.150"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 10:33:44.291"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-19 10:34:27.257"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:34:27.396"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:34:27.396"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-19 10:34:27.400"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:34:27.407"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:34:27.407"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 10:34:50.321"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-19 10:36:56.371"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-19 10:37:31.724"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:37:31.726"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:37:31.726"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 10:38:56.602"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 327)","timestamp":"2026-04-19 10:38:56.819"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 10:38:56.889"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 10:38:56.889"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 10:38:56.890"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 10:38:57.015"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 10:38:57.141"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 10:38:57.264"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 10:38:57.386"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 10:38:57.510"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 10:38:57.633"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 10:38:57.755"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 10:38:57.961"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 10:38:58.088"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 10:38:58.212"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 10:38:58.342"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 10:38:58.465"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 10:38:58.465"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 10:38:58.466"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 10:38:58.467"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 10:38:58.486"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 10:38:58.489"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 10:38:58.489"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 10:38:58.489"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 10:38:58.490"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 10:38:58.490"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 10:38:58.588"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:38:59.695"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 1","timestamp":"2026-04-19 10:38:59.695"}
+{"level":"warn","message":"[WS] Invalid token: Invalid token signature — downgrading to anonymous","timestamp":"2026-04-19 10:39:00.692"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:39:00.692"}
+{"level":"info","message":"[WS] Client disconnected. Total: 1","timestamp":"2026-04-19 10:39:00.715"}
+{"level":"info","message":"[WS] Client connected (anonymous). Total: 2","timestamp":"2026-04-19 10:39:04.691"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 10:39:28.665"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 10:40:28.746"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 10:41:27.385"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 328)","timestamp":"2026-04-19 10:41:27.590"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 10:41:27.658"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 10:41:27.659"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 10:41:27.659"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 10:41:27.786"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 10:41:27.911"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 10:41:28.039"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 10:41:28.164"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 10:41:28.304"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 10:41:28.428"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 10:41:28.553"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 10:41:28.684"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 10:41:28.813"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 10:41:28.937"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 10:41:29.062"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 10:41:29.205"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 10:41:29.205"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 10:41:29.206"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 10:41:29.207"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 10:41:29.207"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 10:41:29.207"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 10:41:29.207"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 10:41:29.207"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 10:41:29.208"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 10:41:29.208"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 10:41:29.235"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 10:41:29.239"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 10:41:29.239"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 10:41:29.239"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 10:41:29.239"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 10:41:29.240"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 10:41:29.377"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 10:42:05.301"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 10:43:08.319"}
