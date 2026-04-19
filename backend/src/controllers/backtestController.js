@@ -6,6 +6,13 @@ const backtester = require('../engine/backtester');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
 
+// Lazy-load to avoid circular deps
+let _marketData = null;
+function getMarketData() {
+  if (!_marketData) _marketData = require('../services/marketDataService');
+  return _marketData;
+}
+
 /**
  * POST /api/backtest
  * Body: { symbol, strategy, startDate, endDate, initialCapital,
@@ -27,16 +34,59 @@ async function runBacktest(req, res) {
 
     if (!symbol) return res.status(400).json({ success: false, error: 'symbol is required' });
 
-    const prices = await dataStore.getDailyPrices(symbol.toUpperCase(), {
+    let prices = await dataStore.getDailyPrices(symbol.toUpperCase(), {
       startDate: startDate || null,
       endDate:   endDate   || null,
     });
 
     if (!prices || prices.length < 201) {
-      return res.status(422).json({
-        success: false,
-        error: `Need at least 201 price bars, found ${prices?.length ?? 0} for ${symbol}`,
-      });
+      // Try to fetch historical data automatically before giving up
+      logger.info(`[Backtest] Insufficient data for ${symbol} (${prices?.length ?? 0} bars) — attempting auto-fetch`);
+      try {
+        const twelveKey = process.env.TWELVEDATA_API_KEY;
+        if (!twelveKey) throw new Error('No TWELVEDATA_API_KEY');
+
+        const axios = require('axios');
+        const sym   = `${symbol}:NSE`;
+        const res   = await axios.get('https://api.twelvedata.com/time_series', {
+          params: { symbol: sym, interval: '1day', outputsize: 5000, apikey: twelveKey },
+          timeout: 15000,
+        });
+
+        const values = res.data?.values;
+        if (Array.isArray(values) && values.length > 0) {
+          // Save to DB
+          const rows = values.map(v => ({
+            symbol: symbol.toUpperCase(),
+            date:   v.datetime,
+            open:   parseFloat(v.open),
+            high:   parseFloat(v.high),
+            low:    parseFloat(v.low),
+            close:  parseFloat(v.close),
+            volume: parseInt(v.volume || 0, 10),
+          }));
+          await dataStore.saveDailyPrices(rows);
+          logger.info(`[Backtest] Auto-fetched ${rows.length} bars for ${symbol}`);
+
+          // Re-query
+          prices = await dataStore.getDailyPrices(symbol.toUpperCase(), {
+            startDate: startDate || null,
+            endDate:   endDate   || null,
+          });
+        }
+      } catch (fetchErr) {
+        logger.warn(`[Backtest] Auto-fetch failed for ${symbol}: ${fetchErr.message}`);
+      }
+
+      // Still not enough — return clear error
+      if (!prices || prices.length < 201) {
+        return res.status(422).json({
+          success: false,
+          error:   `Not enough price history for ${symbol}. Found ${prices?.length ?? 0} bars, need 201+. ` +
+                   `Use POST /api/data/fetch-and-store/${symbol} to seed data first.`,
+          hint:    `POST /api/data/fetch-and-store/${symbol}`,
+        });
+      }
     }
 
     const { summary, trades, equityCurve } = backtester.runBacktest({

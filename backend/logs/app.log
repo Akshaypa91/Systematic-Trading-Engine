@@ -27062,3 +27062,323 @@
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 10:41:29.377"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 10:42:05.301"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 10:43:08.319"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 14:39:32.904"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 343)","timestamp":"2026-04-19 14:39:33.198"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 14:39:33.268"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 14:39:33.268"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 14:39:33.269"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 14:39:33.402"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 14:39:33.549"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 14:39:33.715"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 14:39:33.840"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 14:39:33.964"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 14:39:34.240"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 14:39:34.366"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 14:39:34.490"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 14:39:34.614"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 14:39:34.823"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 14:39:35.028"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 14:39:35.166"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 14:39:35.166"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 14:39:35.167"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 14:39:35.168"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 14:39:35.168"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 14:39:35.168"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 14:39:35.169"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 14:39:35.169"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 14:39:35.169"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 14:39:35.169"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 14:39:35.196"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 14:39:35.201"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 14:39:35.201"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 14:39:35.201"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 14:39:35.201"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 14:39:35.202"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 14:39:35.492"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 14:40:11.275"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 14:41:14.290"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-19 14:43:20.408"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 14:45:48.510"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 344)","timestamp":"2026-04-19 14:45:48.802"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 14:45:48.865"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 14:45:48.865"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 14:45:48.866"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 14:45:49.055"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 14:45:49.248"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 14:45:49.372"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 14:45:49.576"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 14:45:49.772"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 14:45:49.892"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 14:45:50.099"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 14:45:50.619"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 14:45:51.475"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 14:45:51.672"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 14:45:51.872"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 14:45:52.002"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 14:46:20.833"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 345)","timestamp":"2026-04-19 14:46:21.051"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 14:46:21.122"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 14:46:21.122"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 14:46:21.123"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 14:46:21.349"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 14:46:21.483"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 14:46:21.612"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 14:46:21.744"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 14:46:21.876"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 14:46:22.011"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 14:46:22.138"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 14:46:22.274"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 14:46:22.401"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 14:46:22.537"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 14:46:22.664"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 14:46:22.794"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 14:46:22.794"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 14:46:22.795"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 14:46:22.796"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 14:46:22.796"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 14:46:22.796"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 14:46:22.797"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 14:46:22.797"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 14:46:22.797"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 14:46:22.798"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 14:46:22.824"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 14:46:22.828"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 14:46:22.828"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 14:46:22.828"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 14:46:22.828"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 14:46:22.829"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 14:46:22.951"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 14:46:58.977"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 14:48:01.911"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-19 14:50:07.975"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-19 14:50:53.626"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 346)","timestamp":"2026-04-19 14:50:53.879"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-19 14:50:54.002"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-19 14:50:54.003"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-19 14:50:54.003"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-19 14:50:54.195"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-19 14:50:54.330"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-19 14:50:54.522"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-19 14:50:54.721"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-19 14:50:54.846"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-19 14:50:55.046"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-19 14:50:55.245"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-19 14:50:55.384"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-19 14:50:55.573"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-19 14:50:55.768"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-19 14:50:55.903"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-19 14:50:56.097"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-19 14:50:56.098"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-19 14:50:56.099"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-19 14:50:56.100"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-19 14:50:56.100"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-19 14:50:56.100"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-19 14:50:56.100"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-19 14:50:56.101"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-19 14:50:56.101"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-19 14:50:56.101"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-19 14:50:56.128"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-19 14:50:56.132"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-19 14:50:56.132"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-19 14:50:56.132"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-19 14:50:56.132"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-19 14:50:56.133"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-19 14:50:56.325"}
+{"level":"warn","message":"[Auth] Invalid token from ::1: Invalid token signature","timestamp":"2026-04-19 14:51:07.899"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/RELIANCE \u001b[33m401\u001b[0m 1.403 ms - 74\u001b[0m","timestamp":"2026-04-19 14:51:07.900"}
+{"level":"warn","message":"[Auth] Invalid token from ::1: Invalid token signature","timestamp":"2026-04-19 14:51:10.933"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TCS \u001b[33m401\u001b[0m 1.180 ms - 74\u001b[0m","timestamp":"2026-04-19 14:51:10.933"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-19 14:51:32.207"}
+{"level":"warn","message":"[Auth] Invalid token from ::1: Invalid token signature","timestamp":"2026-04-19 14:52:12.903"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/RELIANCE \u001b[33m401\u001b[0m 0.570 ms - 74\u001b[0m","timestamp":"2026-04-19 14:52:12.904"}
+{"level":"warn","message":"[Auth] Invalid token from ::1: Invalid token signature","timestamp":"2026-04-19 14:52:15.935"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TCS \u001b[33m401\u001b[0m 0.796 ms - 74\u001b[0m","timestamp":"2026-04-19 14:52:15.936"}
+{"level":"warn","message":"[Auth] Invalid token from ::1: Invalid token signature","timestamp":"2026-04-19 14:52:18.958"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/INFY \u001b[33m401\u001b[0m 0.466 ms - 74\u001b[0m","timestamp":"2026-04-19 14:52:18.958"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-19 14:52:35.220"}
+{"level":"debug","message":"[AuthRouter] POST /api/auth/login","timestamp":"2026-04-19 14:52:44.603"}
+{"level":"info","message":"[Auth] Login: lootf131@gmail.com","timestamp":"2026-04-19 14:52:44.780"}
+{"level":"http","message":"\u001b[0mPOST /api/auth/login \u001b[32m200\u001b[0m 177.064 ms - 305\u001b[0m","timestamp":"2026-04-19 14:52:44.780"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for RELIANCE from Yahoo Finance","timestamp":"2026-04-19 14:53:12.126"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for RELIANCE","timestamp":"2026-04-19 14:53:12.696"}
+{"level":"info","message":"[DataCtrl] ✅ RELIANCE: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:12.697"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/RELIANCE \u001b[32m200\u001b[0m 571.947 ms - 127\u001b[0m","timestamp":"2026-04-19 14:53:12.698"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for TCS from Yahoo Finance","timestamp":"2026-04-19 14:53:15.732"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for TCS","timestamp":"2026-04-19 14:53:16.072"}
+{"level":"info","message":"[DataCtrl] ✅ TCS: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:16.073"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TCS \u001b[32m200\u001b[0m 341.411 ms - 122\u001b[0m","timestamp":"2026-04-19 14:53:16.074"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for INFY from Yahoo Finance","timestamp":"2026-04-19 14:53:19.107"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for INFY","timestamp":"2026-04-19 14:53:19.425"}
+{"level":"info","message":"[DataCtrl] ✅ INFY: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:19.425"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/INFY \u001b[32m200\u001b[0m 319.215 ms - 123\u001b[0m","timestamp":"2026-04-19 14:53:19.426"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for HDFCBANK from Yahoo Finance","timestamp":"2026-04-19 14:53:22.465"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for HDFCBANK","timestamp":"2026-04-19 14:53:22.816"}
+{"level":"info","message":"[DataCtrl] ✅ HDFCBANK: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:22.816"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/HDFCBANK \u001b[32m200\u001b[0m 352.644 ms - 127\u001b[0m","timestamp":"2026-04-19 14:53:22.818"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ICICIBANK from Yahoo Finance","timestamp":"2026-04-19 14:53:25.850"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ICICIBANK","timestamp":"2026-04-19 14:53:26.169"}
+{"level":"info","message":"[DataCtrl] ✅ ICICIBANK: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:26.169"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ICICIBANK \u001b[32m200\u001b[0m 319.337 ms - 128\u001b[0m","timestamp":"2026-04-19 14:53:26.170"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for WIPRO from Yahoo Finance","timestamp":"2026-04-19 14:53:29.203"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for WIPRO","timestamp":"2026-04-19 14:53:29.780"}
+{"level":"info","message":"[DataCtrl] ✅ WIPRO: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:29.780"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/WIPRO \u001b[32m200\u001b[0m 578.297 ms - 124\u001b[0m","timestamp":"2026-04-19 14:53:29.781"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for SBIN from Yahoo Finance","timestamp":"2026-04-19 14:53:32.811"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for SBIN","timestamp":"2026-04-19 14:53:33.143"}
+{"level":"info","message":"[DataCtrl] ✅ SBIN: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:33.143"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/SBIN \u001b[32m200\u001b[0m 333.439 ms - 123\u001b[0m","timestamp":"2026-04-19 14:53:33.144"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for AXISBANK from Yahoo Finance","timestamp":"2026-04-19 14:53:36.181"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for AXISBANK","timestamp":"2026-04-19 14:53:36.597"}
+{"level":"info","message":"[DataCtrl] ✅ AXISBANK: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:36.597"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/AXISBANK \u001b[32m200\u001b[0m 417.590 ms - 127\u001b[0m","timestamp":"2026-04-19 14:53:36.598"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for BAJFINANCE from Yahoo Finance","timestamp":"2026-04-19 14:53:39.635"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for BAJFINANCE","timestamp":"2026-04-19 14:53:39.904"}
+{"level":"info","message":"[DataCtrl] ✅ BAJFINANCE: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:39.905"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/BAJFINANCE \u001b[32m200\u001b[0m 270.822 ms - 129\u001b[0m","timestamp":"2026-04-19 14:53:39.905"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for KOTAKBANK from Yahoo Finance","timestamp":"2026-04-19 14:53:42.947"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for KOTAKBANK","timestamp":"2026-04-19 14:53:43.283"}
+{"level":"info","message":"[DataCtrl] ✅ KOTAKBANK: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:53:43.283"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/KOTAKBANK \u001b[32m200\u001b[0m 336.622 ms - 128\u001b[0m","timestamp":"2026-04-19 14:53:43.283"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for BHARTIARTL from Yahoo Finance","timestamp":"2026-04-19 14:54:08.643"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for BHARTIARTL","timestamp":"2026-04-19 14:54:08.970"}
+{"level":"info","message":"[DataCtrl] ✅ BHARTIARTL: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:08.971"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/BHARTIARTL \u001b[32m200\u001b[0m 328.163 ms - 129\u001b[0m","timestamp":"2026-04-19 14:54:08.971"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for HCLTECH from Yahoo Finance","timestamp":"2026-04-19 14:54:12.001"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for HCLTECH","timestamp":"2026-04-19 14:54:12.253"}
+{"level":"info","message":"[DataCtrl] ✅ HCLTECH: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:12.254"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/HCLTECH \u001b[32m200\u001b[0m 253.093 ms - 126\u001b[0m","timestamp":"2026-04-19 14:54:12.255"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for LTIM from Yahoo Finance","timestamp":"2026-04-19 14:54:15.287"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for LTIM","timestamp":"2026-04-19 14:54:15.533"}
+{"level":"info","message":"[DataCtrl] ✅ LTIM: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:15.533"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/LTIM \u001b[32m200\u001b[0m 247.350 ms - 123\u001b[0m","timestamp":"2026-04-19 14:54:15.535"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for MARUTI from Yahoo Finance","timestamp":"2026-04-19 14:54:18.570"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for MARUTI","timestamp":"2026-04-19 14:54:18.850"}
+{"level":"info","message":"[DataCtrl] ✅ MARUTI: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:18.851"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/MARUTI \u001b[32m200\u001b[0m 281.093 ms - 125\u001b[0m","timestamp":"2026-04-19 14:54:18.852"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for TITAN from Yahoo Finance","timestamp":"2026-04-19 14:54:21.886"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for TITAN","timestamp":"2026-04-19 14:54:22.149"}
+{"level":"info","message":"[DataCtrl] ✅ TITAN: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:22.149"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TITAN \u001b[32m200\u001b[0m 263.977 ms - 124\u001b[0m","timestamp":"2026-04-19 14:54:22.150"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for SUNPHARMA from Yahoo Finance","timestamp":"2026-04-19 14:54:25.186"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for SUNPHARMA","timestamp":"2026-04-19 14:54:25.528"}
+{"level":"info","message":"[DataCtrl] ✅ SUNPHARMA: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:25.528"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/SUNPHARMA \u001b[32m200\u001b[0m 343.176 ms - 128\u001b[0m","timestamp":"2026-04-19 14:54:25.529"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for BAJAJFINSV from Yahoo Finance","timestamp":"2026-04-19 14:54:28.565"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for BAJAJFINSV","timestamp":"2026-04-19 14:54:28.858"}
+{"level":"info","message":"[DataCtrl] ✅ BAJAJFINSV: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:28.858"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/BAJAJFINSV \u001b[32m200\u001b[0m 293.921 ms - 129\u001b[0m","timestamp":"2026-04-19 14:54:28.859"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for NESTLEIND from Yahoo Finance","timestamp":"2026-04-19 14:54:31.892"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for NESTLEIND","timestamp":"2026-04-19 14:54:32.161"}
+{"level":"info","message":"[DataCtrl] ✅ NESTLEIND: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:32.161"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/NESTLEIND \u001b[32m200\u001b[0m 269.916 ms - 128\u001b[0m","timestamp":"2026-04-19 14:54:32.162"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for TATAMOTORS from Yahoo Finance","timestamp":"2026-04-19 14:54:35.192"}
+{"level":"warn","message":"[DataCtrl] Yahoo Finance failed for TATAMOTORS: Request failed with status code 404 — falling back to current price","timestamp":"2026-04-19 14:54:35.268"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-19 14:54:35.311"}
+{"level":"warn","message":"[MarketData] NSE TATAMOTORS: NSE no priceInfo for TATAMOTORS","timestamp":"2026-04-19 14:54:35.416"}
+{"level":"warn","message":"[MarketData] TwelveData TATAMOTORS: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-04-19 14:54:35.777"}
+{"level":"warn","message":"[MarketData] Finnhub TATAMOTORS: Finnhub bad price 0","timestamp":"2026-04-19 14:54:36.208"}
+{"level":"info","message":"[DataStore] Upserted 1 price rows for TATAMOTORS","timestamp":"2026-04-19 14:54:36.273"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TATAMOTORS \u001b[32m200\u001b[0m 1081.704 ms - 223\u001b[0m","timestamp":"2026-04-19 14:54:36.274"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for TATASTEEL from Yahoo Finance","timestamp":"2026-04-19 14:54:39.310"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for TATASTEEL","timestamp":"2026-04-19 14:54:39.579"}
+{"level":"info","message":"[DataCtrl] ✅ TATASTEEL: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:39.579"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TATASTEEL \u001b[32m200\u001b[0m 270.412 ms - 128\u001b[0m","timestamp":"2026-04-19 14:54:39.580"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ADANIENT from Yahoo Finance","timestamp":"2026-04-19 14:54:42.614"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ADANIENT","timestamp":"2026-04-19 14:54:42.984"}
+{"level":"info","message":"[DataCtrl] ✅ ADANIENT: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:42.984"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ADANIENT \u001b[32m200\u001b[0m 371.415 ms - 127\u001b[0m","timestamp":"2026-04-19 14:54:42.985"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ADANIPORTS from Yahoo Finance","timestamp":"2026-04-19 14:54:46.020"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ADANIPORTS","timestamp":"2026-04-19 14:54:46.291"}
+{"level":"info","message":"[DataCtrl] ✅ ADANIPORTS: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:46.292"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ADANIPORTS \u001b[32m200\u001b[0m 272.012 ms - 129\u001b[0m","timestamp":"2026-04-19 14:54:46.292"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for NTPC from Yahoo Finance","timestamp":"2026-04-19 14:54:49.323"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for NTPC","timestamp":"2026-04-19 14:54:50.415"}
+{"level":"info","message":"[DataCtrl] ✅ NTPC: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:50.415"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/NTPC \u001b[32m200\u001b[0m 1093.418 ms - 123\u001b[0m","timestamp":"2026-04-19 14:54:50.416"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for POWERGRID from Yahoo Finance","timestamp":"2026-04-19 14:54:53.452"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for POWERGRID","timestamp":"2026-04-19 14:54:53.896"}
+{"level":"info","message":"[DataCtrl] ✅ POWERGRID: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:53.896"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/POWERGRID \u001b[32m200\u001b[0m 444.659 ms - 128\u001b[0m","timestamp":"2026-04-19 14:54:53.896"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ONGC from Yahoo Finance","timestamp":"2026-04-19 14:54:56.928"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ONGC","timestamp":"2026-04-19 14:54:57.339"}
+{"level":"info","message":"[DataCtrl] ✅ ONGC: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:54:57.339"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ONGC \u001b[32m200\u001b[0m 412.401 ms - 123\u001b[0m","timestamp":"2026-04-19 14:54:57.340"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for COALINDIA from Yahoo Finance","timestamp":"2026-04-19 14:55:00.380"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for COALINDIA","timestamp":"2026-04-19 14:55:00.689"}
+{"level":"info","message":"[DataCtrl] ✅ COALINDIA: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:00.689"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/COALINDIA \u001b[32m200\u001b[0m 310.712 ms - 128\u001b[0m","timestamp":"2026-04-19 14:55:00.691"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for BPCL from Yahoo Finance","timestamp":"2026-04-19 14:55:03.719"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for BPCL","timestamp":"2026-04-19 14:55:04.040"}
+{"level":"info","message":"[DataCtrl] ✅ BPCL: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:04.041"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/BPCL \u001b[32m200\u001b[0m 322.321 ms - 123\u001b[0m","timestamp":"2026-04-19 14:55:04.042"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ITC from Yahoo Finance","timestamp":"2026-04-19 14:55:07.080"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ITC","timestamp":"2026-04-19 14:55:07.467"}
+{"level":"info","message":"[DataCtrl] ✅ ITC: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:07.468"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ITC \u001b[32m200\u001b[0m 389.086 ms - 122\u001b[0m","timestamp":"2026-04-19 14:55:07.469"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for HINDUNILVR from Yahoo Finance","timestamp":"2026-04-19 14:55:10.505"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for HINDUNILVR","timestamp":"2026-04-19 14:55:10.891"}
+{"level":"info","message":"[DataCtrl] ✅ HINDUNILVR: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:10.891"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/HINDUNILVR \u001b[32m200\u001b[0m 387.086 ms - 129\u001b[0m","timestamp":"2026-04-19 14:55:10.892"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ASIANPAINT from Yahoo Finance","timestamp":"2026-04-19 14:55:13.919"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for ASIANPAINT","timestamp":"2026-04-19 14:55:14.234"}
+{"level":"info","message":"[DataCtrl] ✅ ASIANPAINT: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:14.234"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ASIANPAINT \u001b[32m200\u001b[0m 316.011 ms - 129\u001b[0m","timestamp":"2026-04-19 14:55:14.236"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for ULTRATECH from Yahoo Finance","timestamp":"2026-04-19 14:55:17.272"}
+{"level":"warn","message":"[DataCtrl] Yahoo Finance failed for ULTRATECH: Request failed with status code 404 — falling back to current price","timestamp":"2026-04-19 14:55:17.349"}
+{"level":"warn","message":"[MarketData] NSE ULTRATECH: NSE no priceInfo for ULTRATECH","timestamp":"2026-04-19 14:55:21.387"}
+{"level":"warn","message":"[MarketData] TwelveData ULTRATECH: TwelveData error: **symbol** or **figi** parameter is missing or invalid. Please provide a valid symbol according to API documentation: https://twelvedata.com/docs#reference-data","timestamp":"2026-04-19 14:55:21.647"}
+{"level":"warn","message":"[MarketData] Finnhub ULTRATECH: Finnhub bad price 0","timestamp":"2026-04-19 14:55:21.945"}
+{"level":"info","message":"[DataStore] Upserted 1 price rows for ULTRATECH","timestamp":"2026-04-19 14:55:22.010"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/ULTRATECH \u001b[32m200\u001b[0m 4738.658 ms - 223\u001b[0m","timestamp":"2026-04-19 14:55:22.011"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for GRASIM from Yahoo Finance","timestamp":"2026-04-19 14:55:25.044"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for GRASIM","timestamp":"2026-04-19 14:55:25.408"}
+{"level":"info","message":"[DataCtrl] ✅ GRASIM: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:25.408"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/GRASIM \u001b[32m200\u001b[0m 364.904 ms - 125\u001b[0m","timestamp":"2026-04-19 14:55:25.409"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for DRREDDY from Yahoo Finance","timestamp":"2026-04-19 14:55:28.446"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for DRREDDY","timestamp":"2026-04-19 14:55:28.773"}
+{"level":"info","message":"[DataCtrl] ✅ DRREDDY: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:28.774"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/DRREDDY \u001b[32m200\u001b[0m 328.301 ms - 126\u001b[0m","timestamp":"2026-04-19 14:55:28.774"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for CIPLA from Yahoo Finance","timestamp":"2026-04-19 14:55:31.803"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for CIPLA","timestamp":"2026-04-19 14:55:32.090"}
+{"level":"info","message":"[DataCtrl] ✅ CIPLA: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:32.090"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/CIPLA \u001b[32m200\u001b[0m 287.346 ms - 124\u001b[0m","timestamp":"2026-04-19 14:55:32.090"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for DIVISLAB from Yahoo Finance","timestamp":"2026-04-19 14:55:35.113"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for DIVISLAB","timestamp":"2026-04-19 14:55:35.391"}
+{"level":"info","message":"[DataCtrl] ✅ DIVISLAB: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:35.392"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/DIVISLAB \u001b[32m200\u001b[0m 279.364 ms - 127\u001b[0m","timestamp":"2026-04-19 14:55:35.392"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for APOLLOHOSP from Yahoo Finance","timestamp":"2026-04-19 14:55:38.418"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for APOLLOHOSP","timestamp":"2026-04-19 14:55:38.689"}
+{"level":"info","message":"[DataCtrl] ✅ APOLLOHOSP: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:38.689"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/APOLLOHOSP \u001b[32m200\u001b[0m 271.390 ms - 129\u001b[0m","timestamp":"2026-04-19 14:55:38.689"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for EICHERMOT from Yahoo Finance","timestamp":"2026-04-19 14:55:41.718"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for EICHERMOT","timestamp":"2026-04-19 14:55:42.097"}
+{"level":"info","message":"[DataCtrl] ✅ EICHERMOT: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:42.097"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/EICHERMOT \u001b[32m200\u001b[0m 379.700 ms - 128\u001b[0m","timestamp":"2026-04-19 14:55:42.098"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for HEROMOTOCO from Yahoo Finance","timestamp":"2026-04-19 14:55:45.129"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for HEROMOTOCO","timestamp":"2026-04-19 14:55:45.440"}
+{"level":"info","message":"[DataCtrl] ✅ HEROMOTOCO: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:45.440"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/HEROMOTOCO \u001b[32m200\u001b[0m 312.339 ms - 129\u001b[0m","timestamp":"2026-04-19 14:55:45.441"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for BRITANNIA from Yahoo Finance","timestamp":"2026-04-19 14:55:48.466"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for BRITANNIA","timestamp":"2026-04-19 14:55:48.755"}
+{"level":"info","message":"[DataCtrl] ✅ BRITANNIA: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:48.755"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/BRITANNIA \u001b[32m200\u001b[0m 290.066 ms - 128\u001b[0m","timestamp":"2026-04-19 14:55:48.756"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for UPL from Yahoo Finance","timestamp":"2026-04-19 14:55:51.786"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for UPL","timestamp":"2026-04-19 14:55:52.149"}
+{"level":"info","message":"[DataCtrl] ✅ UPL: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:52.149"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/UPL \u001b[32m200\u001b[0m 363.917 ms - 122\u001b[0m","timestamp":"2026-04-19 14:55:52.150"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for JSWSTEEL from Yahoo Finance","timestamp":"2026-04-19 14:55:55.182"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for JSWSTEEL","timestamp":"2026-04-19 14:55:55.469"}
+{"level":"info","message":"[DataCtrl] ✅ JSWSTEEL: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:55.469"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/JSWSTEEL \u001b[32m200\u001b[0m 287.343 ms - 127\u001b[0m","timestamp":"2026-04-19 14:55:55.470"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for HINDALCO from Yahoo Finance","timestamp":"2026-04-19 14:55:58.506"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for HINDALCO","timestamp":"2026-04-19 14:55:58.856"}
+{"level":"info","message":"[DataCtrl] ✅ HINDALCO: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:55:58.856"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/HINDALCO \u001b[32m200\u001b[0m 351.433 ms - 127\u001b[0m","timestamp":"2026-04-19 14:55:58.857"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for LT from Yahoo Finance","timestamp":"2026-04-19 14:56:01.887"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for LT","timestamp":"2026-04-19 14:56:02.207"}
+{"level":"info","message":"[DataCtrl] ✅ LT: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:56:02.208"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/LT \u001b[32m200\u001b[0m 321.126 ms - 121\u001b[0m","timestamp":"2026-04-19 14:56:02.208"}
+{"level":"info","message":"[DataCtrl] Fetching historical data for TECHM from Yahoo Finance","timestamp":"2026-04-19 14:56:05.240"}
+{"level":"info","message":"[DataStore] Upserted 1235 price rows for TECHM","timestamp":"2026-04-19 14:56:05.568"}
+{"level":"info","message":"[DataCtrl] ✅ TECHM: fetched 1235 bars, saved 1235","timestamp":"2026-04-19 14:56:05.568"}
+{"level":"http","message":"\u001b[0mPOST /api/data/fetch-and-store/TECHM \u001b[32m200\u001b[0m 328.545 ms - 124\u001b[0m","timestamp":"2026-04-19 14:56:05.569"}

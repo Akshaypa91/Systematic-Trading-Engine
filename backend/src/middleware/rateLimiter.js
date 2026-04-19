@@ -50,14 +50,15 @@ const authLimiter = rateLimit({
   },
 });
 
-// ── Backtest: 5 req/min per IP (CPU-intensive endpoint) ──────────────────────
+// ── Backtest: 20 req/min per IP (POST /api/backtest only — CPU-intensive) ─────
+// GET /api/backtest/runs is a cheap DB read, rate-limited by apiLimiter only
 const backtestLimiter = rateLimit({
   windowMs:        60 * 1000,
-  max:             5,
+  max:             20,
   standardHeaders: true,
   keyGenerator,
   handler: (req, res) => {
-    res.status(429).json({ success: false, error: 'Backtest rate limit: max 5 per minute.', retryAfter: 60 });
+    res.status(429).json({ success: false, error: 'Backtest rate limit: max 20 per minute.', retryAfter: 60 });
   },
 });
 

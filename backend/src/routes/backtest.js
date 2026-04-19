@@ -2,8 +2,11 @@
 const router = require('express').Router();
 const ctrl   = require('../controllers/backtestController');
 const { requireAuth } = require('../middleware/authMiddleware');
+const { backtestLimiter } = require('../middleware/rateLimiter');
 
-router.post('/',                     requireAuth, ctrl.runBacktest);
+// POST is CPU-intensive — rate limit only this
+router.post('/',                     requireAuth, backtestLimiter, ctrl.runBacktest);
+// GETs are cheap DB reads — no rate limit needed
 router.get('/runs',                  requireAuth, ctrl.getBacktestRuns);
 router.get('/runs/:runId/trades',    requireAuth, ctrl.getBacktestTrades);
 

@@ -76,46 +76,98 @@ async function getHistorical(req, res) {
 
 /**
  * POST /api/data/fetch-and-store/:symbol
- * Fetches current price via marketDataService and stores as a synthetic row.
+ * Fetches 5 years of daily OHLCV from Yahoo Finance (free, no key needed)
+ * and upserts into daily_prices. Falls back to current-price-only if Yahoo fails.
  */
 async function fetchAndStore(req, res) {
+  const { symbol } = req.params;
+  const sym = symbol.toUpperCase();
+
+  // Yahoo Finance ticker for NSE: RELIANCE → RELIANCE.NS
+  const yahooTicker = `${sym}.NS`;
+  const to   = Math.floor(Date.now() / 1000);
+  const from = to - 5 * 365 * 24 * 60 * 60;   // 5 years back
+
   try {
-    const { symbol } = req.params;
-    const sym = symbol.toUpperCase();
+    logger.info(`[DataCtrl] Fetching historical data for ${sym} from Yahoo Finance`);
 
-    const result = await marketDataService.getLivePrice(sym);
+    const axios  = require('axios');
+    const yahooRes = await axios.get(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}`,
+      {
+        params: { period1: from, period2: to, interval: '1d', events: 'history' },
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          'Accept': 'application/json',
+        },
+        timeout: 20000,
+      }
+    );
 
-    const row = {
-      symbol:   sym,
-      date:     new Date().toISOString().slice(0, 10),
-      open:     result.price,
-      high:     result.price,
-      low:      result.price,
-      close:    result.price,
-      vwap:     result.price,
-      volume:   0,
-      exchange: 'NSE',
-    };
+    const result = yahooRes.data?.chart?.result?.[0];
+    if (!result) throw new Error('No data returned from Yahoo Finance');
+
+    const timestamps = result.timestamp || [];
+    const q = result.indicators?.quote?.[0] || {};
+    const { open = [], high = [], low = [], close = [], volume = [] } = q;
+
+    if (timestamps.length < 10) throw new Error(`Only ${timestamps.length} bars from Yahoo`);
+
+    const rows = timestamps
+      .map((ts, i) => ({
+        symbol:   sym,
+        date:     new Date(ts * 1000).toISOString().slice(0, 10),
+        open:     parseFloat((open[i] || close[i] || 0).toFixed(2)),
+        high:     parseFloat((high[i] || close[i] || 0).toFixed(2)),
+        low:      parseFloat((low[i]  || close[i] || 0).toFixed(2)),
+        close:    parseFloat((close[i] || 0).toFixed(2)),
+        volume:   parseInt(volume[i] || 0, 10),
+        exchange: 'NSE',
+      }))
+      .filter(r => r.close > 0 && r.date);
 
     let saved = 0;
     try {
-      saved = await dataStore.saveDailyPrices([row]);
+      saved = await dataStore.saveDailyPrices(rows);
     } catch (dbErr) {
-      logger.warn(`[DataCtrl] fetchAndStore DB save skipped (${dbErr.message})`);
+      logger.warn(`[DataCtrl] DB save partial: ${dbErr.message}`);
     }
 
-    res.json({
+    logger.info(`[DataCtrl] ✅ ${sym}: fetched ${rows.length} bars, saved ${saved}`);
+    return res.json({
       success: true,
-      fetched: 1,
+      fetched: rows.length,
       saved,
       symbol:  sym,
-      source:  result.source,
-      price:   result.price,
-      note:    'Historical OHLCV not available on free Twelve Data tier — current price stored.',
+      source:  'YAHOO_FINANCE',
+      from:    rows[0]?.date,
+      to:      rows[rows.length - 1]?.date,
     });
-  } catch (err) {
-    logger.error(`[DataCtrl] fetchAndStore error: ${err.message}`);
-    res.status(500).json({ success: false, error: err.message });
+
+  } catch (yahooErr) {
+    logger.warn(`[DataCtrl] Yahoo Finance failed for ${sym}: ${yahooErr.message} — falling back to current price`);
+
+    // Fallback: store just today's price so the symbol exists in DB
+    try {
+      const result = await marketDataService.getLivePrice(sym);
+      const row = {
+        symbol:   sym,
+        date:     new Date().toISOString().slice(0, 10),
+        open:     result.price, high: result.price,
+        low:      result.price, close: result.price,
+        volume:   0, exchange: 'NSE',
+      };
+      let saved = 0;
+      try { saved = await dataStore.saveDailyPrices([row]); } catch (_) {}
+      return res.json({
+        success: true, fetched: 1, saved, symbol: sym,
+        source: result.source, price: result.price,
+        warning: `Yahoo Finance unavailable (${yahooErr.message}). Only current price stored — backtest needs 201+ bars.`,
+      });
+    } catch (err) {
+      logger.error(`[DataCtrl] fetchAndStore total failure for ${sym}: ${err.message}`);
+      return res.status(500).json({ success: false, error: err.message });
+    }
   }
 }
 

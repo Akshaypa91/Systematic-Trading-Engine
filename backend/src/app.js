@@ -76,7 +76,9 @@ app.use(morgan(C.NODE_ENV === 'production' ? 'combined' : 'dev', {
 app.use('/api',            apiLimiter);
 app.use('/api/data',       nseProxyLimiter);
 app.use('/api/auth',       authLimiter);
-app.use('/api/backtest',   backtestLimiter);
+// ── Backtest: limit only POST /api/backtest (CPU-intensive run) ───────────────
+// GET /api/backtest/runs is a cheap DB read — don't rate-limit it
+// Applied per-route in backtest.js, not here globally
 
 // ── Health check ──────────────────────────────────────────────────────────────
 const _startTime = Date.now();
