@@ -164,6 +164,20 @@ async function login(req, res) {
     // Update last_login (best-effort)
     db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => {});
 
+    // Auto-create portfolio if user has none (best-effort, non-blocking)
+    db.query(
+      `SELECT id FROM portfolios WHERE user_id = ? AND status = 'ACTIVE' LIMIT 1`,
+      [user.id]
+    ).then(([rows]) => {
+      if (!rows.length) {
+        const DEFAULT_CAPITAL = 1_000_000;
+        return db.query(
+          `INSERT INTO portfolios (user_id, initial_capital, current_capital, status) VALUES (?, ?, ?, 'ACTIVE')`,
+          [user.id, DEFAULT_CAPITAL, DEFAULT_CAPITAL]
+        ).then(() => logger.info(`[Auth] Auto-created portfolio for user ${user.id}`));
+      }
+    }).catch(e => logger.warn(`[Auth] Portfolio auto-create: ${e.message}`));
+
     logger.info(`[Auth] Login: ${email}`);
     res.json({
       success: true,

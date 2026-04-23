@@ -85,10 +85,18 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
 
         {user && (
           <div className="flex items-center gap-2">
-            <div style={{ width:26, height:26, borderRadius:'50%', background:'rgba(0,212,255,0.15)', color:'var(--cyan)', fontSize:10, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              {initials}
-            </div>
-            <span className="hidden xl:block" style={{ fontSize:12, color:'var(--text-secondary)' }}>{user.email}</span>
+            {user.picture ? (
+              <img src={user.picture} alt={user.name || user.email}
+                referrerPolicy="no-referrer"
+                style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(0,212,255,0.3)' }} />
+            ) : (
+              <div style={{ width:26, height:26, borderRadius:'50%', background:'rgba(0,212,255,0.15)', color:'var(--cyan)', fontSize:10, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                {initials}
+              </div>
+            )}
+            <span className="hidden xl:block" style={{ fontSize:12, color:'var(--text-secondary)' }}>
+              {user.name || user.email}
+            </span>
           </div>
         )}
 

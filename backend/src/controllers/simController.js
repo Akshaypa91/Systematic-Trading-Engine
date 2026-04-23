@@ -39,8 +39,9 @@ function getLiveSignals(req, res) {
 
 // ── GET /api/sim/portfolio ────────────────────────────────────────────────────
 async function getPortfolio(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
-    const state = await portfolio.getState();
+    const state = await portfolio.getState(userId);
 
     // If not initialized yet return empty safe structure — don't 500
     if (!state.initialized) {
@@ -140,14 +141,16 @@ async function getPortfolio(req, res) {
 
 // ── GET /api/sim/trades ───────────────────────────────────────────────────────
 function getTrades(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   const limit  = Math.min(parseInt(req.query.limit || '30', 10), 200);
-  const trades = sim.getRecentTrades(limit);
+  const trades = sim.getRecentTrades(limit, userId);
   res.json({ success: true, count: trades.length, data: trades });
 }
 
 // ── GET /api/sim/equity ───────────────────────────────────────────────────────
 function getEquityCurve(req, res) {
-  const curve = sim.getEquityCurve();
+  const userId = req.user?.userId ?? req.user?.id ?? null;
+  const curve = sim.getEquityCurve(userId);
   res.json({ success: true, count: curve.length, data: curve });
 }
 
@@ -198,6 +201,7 @@ function removeFromWatchlist(req, res) {
  * Response: { success, message, portfolio }
  */
 async function startWithCapital(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
     const { capital } = req.body || {};
 
@@ -225,11 +229,12 @@ async function startWithCapital(req, res) {
       });
     }
 
-    await portfolio.initialize(cap);
+    await portfolio.initialize(cap, userId);
+    sim.initUserPortfolio(userId, cap);
 
     logger.info(`[SimCtrl] Portfolio initialized: ₹${cap.toLocaleString('en-IN')}`);
 
-    const state = await portfolio.getState();
+    const state = await portfolio.getState(userId);
     res.status(200).json({
       success:   true,
       message:   `Portfolio initialized with ₹${cap.toLocaleString('en-IN')} capital`,
@@ -250,8 +255,9 @@ async function startWithCapital(req, res) {
  * Response: { success, message, portfolio }
  */
 async function resetPortfolio(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
-    const state = await portfolio.getState();
+    const state = await portfolio.getState(userId);
 
     if (!state.initialized) {
       return res.status(400).json({
@@ -260,11 +266,12 @@ async function resetPortfolio(req, res) {
       });
     }
 
-    await portfolio.resetToInitial();
+    await portfolio.resetToInitial(userId);
+    sim.resetUserPortfolio(userId);
 
     logger.info(`[SimCtrl] Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`);
 
-    const newState = await portfolio.getState();
+    const newState = await portfolio.getState(userId);
     res.status(200).json({
       success:   true,
       message:   `Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`,
@@ -284,8 +291,9 @@ async function resetPortfolio(req, res) {
  * Response: { success, closedCount, totalProceeds, realizedPnL, trades, portfolio }
  */
 async function exitAll(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
-    const state   = await portfolio.getState();
+    const state   = await portfolio.getState(userId);
     const symbols = Object.keys(state.positions);
 
     if (!state.initialized) {
@@ -316,7 +324,7 @@ async function exitAll(req, res) {
       const price = priceMap[sym] ?? pos.entryPrice;
 
       try {
-        const result = await portfolio.executeSell(sym, pos.qty, price, 'API');
+        const result = await portfolio.executeSell(sym, pos.qty, price, 'API', userId);
         closedTrades.push(result.trade);
         totalProceeds += pos.qty * price;
         totalRealPnL  += result.pnl ?? 0;
@@ -328,7 +336,7 @@ async function exitAll(req, res) {
 
     logger.info(`[SimCtrl] exitAll complete: ${closedTrades.length} positions closed, PnL ₹${totalRealPnL.toFixed(2)}`);
 
-    const finalState = await portfolio.getState();
+    const finalState = await portfolio.getState(userId);
     res.json({
       success:       true,
       closedCount:   closedTrades.length,

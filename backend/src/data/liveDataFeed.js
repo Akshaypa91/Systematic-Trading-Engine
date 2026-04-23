@@ -243,6 +243,17 @@ function broadcastAuth(payload) {
   }
 }
 
+/** Broadcast to a specific user's authenticated WS connections. */
+function broadcastToUser(userId, payload) {
+  if (!authClients.size) return;
+  const msg = JSON.stringify(payload);
+  for (const ws of authClients) {
+    if (ws.readyState === WebSocket.OPEN && ws.user?.userId === userId) {
+      try { ws.send(msg); } catch (_) {}
+    }
+  }
+}
+
 function broadcastAlert(alert) {
   broadcastAll({ type: 'ALERT', ...alert, ts: new Date().toISOString() });
 }
@@ -257,4 +268,4 @@ function getStats() {
   };
 }
 
-module.exports = { attach, broadcast, broadcastAll, broadcastAuth, broadcastAlert, getStats };
+module.exports = { attach, broadcast, broadcastAll, broadcastAuth, broadcastToUser, broadcastAlert, getStats };

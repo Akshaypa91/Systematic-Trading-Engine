@@ -1,23 +1,39 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import { Zap, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+function Divider() {
+  return (
+    <div className="flex items-center gap-3 my-5">
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>or</span>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+    </div>
+  );
+}
+
 export default function Signup() {
-  const [email, setEmail]       = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm]   = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const [success, setSuccess]   = useState(false);
-  const navigate = useNavigate();
+  const [confirm,  setConfirm]  = useState('');
+  const [showPw,   setShowPw]   = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [gLoading, setGLoading] = useState(false);
+  const [error,    setError]    = useState('');
+  const [success,  setSuccess]  = useState(false);
+  const { login } = useAuth();
+  const navigate  = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) { setError('All fields are required'); return; }
+    if (!email || !password)   { setError('All fields required'); return; }
     if (password !== confirm)  { setError('Passwords do not match'); return; }
-    if (password.length < 8)   { setError('Password must be at least 8 characters'); return; }
+    if (password.length < 8)   { setError('Password must be ≥ 8 characters'); return; }
     setLoading(true); setError('');
     try {
       await authAPI.signup(email, password);
@@ -25,10 +41,22 @@ export default function Signup() {
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Signup failed');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
+
+  const handleGoogle = useCallback(async (credentialResponse) => {
+    setGLoading(true); setError('');
+    try {
+      const res   = await authAPI.googleAuth(credentialResponse.credential);
+      const token = res.data.token;
+      const user  = res.data.user;
+      if (!token) throw new Error('No token received');
+      login(token, user);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Google signup failed');
+    } finally { setGLoading(false); }
+  }, [login, navigate]);
 
   if (success) {
     return (
@@ -45,12 +73,13 @@ export default function Signup() {
     );
   }
 
-  return (
+  const inner = (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden grid-bg">
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06), transparent)' }} />
 
       <div className="w-full max-w-sm mx-4 fade-in">
+        {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)' }}>
@@ -62,18 +91,30 @@ export default function Signup() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-8"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="rounded-2xl p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Create Account</h1>
           <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Join the trading engine</p>
 
           {error && (
             <div className="flex items-start gap-2 text-xs font-mono px-3 py-2.5 rounded-lg mb-4"
               style={{ background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', color: 'var(--red)' }}>
-              <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
-              <span>{error}</span>
+              <AlertCircle size={13} className="mt-0.5 flex-shrink-0" /><span>{error}</span>
             </div>
           )}
+
+          {/* Google button */}
+          {GOOGLE_CLIENT_ID && (
+            <div style={{ opacity: gLoading ? 0.6 : 1, pointerEvents: gLoading ? 'none' : 'auto' }}>
+              <GoogleLogin
+                onSuccess={handleGoogle}
+                onError={() => setError('Google sign-up failed')}
+                theme="filled_black" shape="rectangular" size="large" width="100%"
+                text="signup_with"
+              />
+            </div>
+          )}
+
+          <Divider />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -133,4 +174,8 @@ export default function Signup() {
       </div>
     </div>
   );
+
+  return GOOGLE_CLIENT_ID
+    ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{inner}</GoogleOAuthProvider>
+    : inner;
 }
