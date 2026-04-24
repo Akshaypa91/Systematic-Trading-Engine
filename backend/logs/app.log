@@ -27455,3 +27455,97 @@
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-24 08:51:43.051"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-24 08:52:18.987"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-24 08:53:22.008"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-24 12:21:57.753"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 375)","timestamp":"2026-04-24 12:21:58.122"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-24 12:21:58.192"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-24 12:21:58.192"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-24 12:21:58.192"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-24 12:21:58.318"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-24 12:21:58.448"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-24 12:21:58.796"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-24 12:21:58.926"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-24 12:21:59.056"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-24 12:21:59.184"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-24 12:21:59.310"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-24 12:21:59.465"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-24 12:21:59.589"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-24 12:21:59.714"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-24 12:21:59.847"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-24 12:21:59.983"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-24 12:21:59.983"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-24 12:21:59.984"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-24 12:21:59.985"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-24 12:21:59.985"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-24 12:21:59.985"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-24 12:21:59.986"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-24 12:21:59.986"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-24 12:21:59.986"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-24 12:21:59.987"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-24 12:22:00.018"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-24 12:22:00.021"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-24 12:22:00.021"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-24 12:22:00.022"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-24 12:22:00.022"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nPOST     /api/google\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-24 12:22:00.022"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-24 12:22:00.086"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-24 12:22:36.091"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-24 12:23:39.111"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-24 12:23:59.986"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-24 12:25:45.194"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-24 12:26:00.023"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-04-24 12:27:00.023"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-04-24 12:27:00.023"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-04-24 12:27:00.023"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-04-24 12:28:00.024"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-24 12:28:45.472"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 376)","timestamp":"2026-04-24 12:28:45.748"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-24 12:28:45.840"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-24 12:28:45.840"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-24 12:28:45.841"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-24 12:28:45.991"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-24 12:28:46.173"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-24 12:28:46.338"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-24 12:28:46.476"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-24 12:28:46.681"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-24 12:28:46.830"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-24 12:28:47.221"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-24 12:28:47.615"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-24 12:28:47.778"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-24 12:28:47.921"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-24 12:28:48.060"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-24 12:28:48.202"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-04-24 12:29:43.972"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 377)","timestamp":"2026-04-24 12:29:44.197"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-04-24 12:29:44.269"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-04-24 12:29:44.270"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-04-24 12:29:44.270"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-04-24 12:29:44.641"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-04-24 12:29:44.784"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-04-24 12:29:44.928"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-04-24 12:29:45.061"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-04-24 12:29:45.203"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-04-24 12:29:45.348"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-04-24 12:29:45.484"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-04-24 12:29:45.618"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-04-24 12:29:45.772"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-04-24 12:29:45.915"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-04-24 12:29:46.053"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-04-24 12:29:46.185"}
+{"level":"info","message":"[InitDB] Done — 0 created, 12 existed, 0 failed","timestamp":"2026-04-24 12:29:46.186"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-04-24 12:29:46.187"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-04-24 12:29:46.187"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-04-24 12:29:46.188"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-04-24 12:29:46.188"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-04-24 12:29:46.188"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-04-24 12:29:46.188"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-04-24 12:29:46.188"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-04-24 12:29:46.189"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-04-24 12:29:46.208"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-04-24 12:29:46.210"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-04-24 12:29:46.210"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-04-24 12:29:46.210"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-04-24 12:29:46.210"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nPOST     /api/google\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nGET      /api/signals\nGET      /api/signals/history\nGET      /api/trades\nGET      /api/portfolio\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/engine/run\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nPOST     /api/circuit-breaker/reset\nGET      /api/health\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\n===========================","timestamp":"2026-04-24 12:29:46.210"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-04-24 12:29:46.311"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-24 12:30:22.290"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-24 12:31:25.298"}

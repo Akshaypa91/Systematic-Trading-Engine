@@ -337,7 +337,7 @@ This system is for **educational and research purposes only**. Paper trading sim
 
 
 
-
+## Backend LocalHost Failed
 kill -9 $(lsof -ti :3000) 2>/dev/null; echo "killed"
 pkill -f "node src/app.js" 2>/dev/null; echo "pkilled"
 sleep 2

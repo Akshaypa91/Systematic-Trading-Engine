@@ -85,7 +85,10 @@ export default function StockCard({ data, loading, onRefresh }) {
   const price     = data.price ?? data.lastPrice;
   const rsi       = data.rsi ?? data.rsiValue;
   const conf      = data.confidence;
-  const trend     = data.trend ?? data.regime;
+  const _rawTrend = data.trend ?? data.regime;
+  const trend     = typeof _rawTrend === 'string' ? _rawTrend
+                  : typeof _rawTrend === 'object' && _rawTrend !== null ? (_rawTrend.type ?? _rawTrend.label ?? JSON.stringify(_rawTrend))
+                  : null;
   const maFast    = data.maFast;
   const maSlow    = data.maSlow;
   const zScore    = data.zScore;
@@ -149,7 +152,7 @@ export default function StockCard({ data, loading, onRefresh }) {
             </span>
           </div>
 
-          {trend && (
+          {trend && typeof trend === 'string' && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '3px 10px', borderRadius: 6,

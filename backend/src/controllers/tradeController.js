@@ -135,6 +135,7 @@ function computeSize(req, res) {
  * Response: { success, message, trade, portfolio }
  */
 async function placeManualOrder(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
     const { symbol, action, qty, price: bodyPrice } = req.body;
 
@@ -205,9 +206,9 @@ async function placeManualOrder(req, res) {
     let result;
     try {
       if (normalizedAction === 'BUY') {
-        result = await portfolio.executeBuy(sym, quantity, price, source);
+        result = await portfolio.executeBuy(sym, quantity, price, source, userId);
       } else {
-        result = await portfolio.executeSell(sym, quantity, price, source);
+        result = await portfolio.executeSell(sym, quantity, price, source, userId);
       }
     } catch (execErr) {
       const code = execErr.statusCode || 400;
@@ -219,7 +220,7 @@ async function placeManualOrder(req, res) {
       (result.pnl != null ? ` | P&L: ₹${result.pnl}` : '')
     );
 
-    const updatedState = await portfolio.getState();
+    const updatedState = await portfolio.getState(userId);
     return res.status(201).json({
       success:   true,
       message:   'Trade executed',
