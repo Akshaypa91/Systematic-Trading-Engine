@@ -74,14 +74,15 @@ async function createPortfolio(capital, userId = null) {
  * @returns {Promise<{id, initial_capital, current_capital, status, created_at}|null>}
  */
 async function getActivePortfolio(userId = null) {
+  // STRICT: only match exact user_id — never leak NULL-owner portfolios
   const [rows] = await db.query(
     `SELECT id, user_id, initial_capital, current_capital, status, created_at, updated_at
      FROM portfolios
      WHERE status = 'ACTIVE'
-       AND (user_id = ? OR (user_id IS NULL AND ? IS NULL))
+       AND user_id = ?
      ORDER BY created_at DESC
      LIMIT 1`,
-    [userId, userId]
+    [userId]
   );
   if (!rows[0]) return null;
   const r = rows[0];
