@@ -349,4 +349,19 @@ async function getStock(req, res) {
   }
 }
 
-module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth };
+
+/**
+ * GET /api/data/search?q=hbl&limit=10
+ * Fast in-memory stock symbol + name search.
+ */
+function searchStocks(req, res) {
+  const q     = (req.query.q || '').trim();
+  const limit = Math.min(parseInt(req.query.limit || '10', 10), 30);
+  if (!q) return res.json({ success: true, data: [], query: '' });
+  const results = stockMaster.search(q, limit);
+  return res.json({ success: true, data: results, query: q, total: results.length });
+}
+
+module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
+  searchStocks
+};

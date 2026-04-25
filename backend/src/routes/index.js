@@ -19,6 +19,7 @@ router.get('/health', (req, res) => res.json({
 }));
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
+router.get ('/data/search',  dataCtrl.searchStocks);
 router.get ('/data/health',              dataCtrl.getDataHealth);
 router.get ('/data/quote/:symbol',           dataCtrl.getQuote);
 router.get ('/data/historical/:symbol',      dataCtrl.getHistorical);
