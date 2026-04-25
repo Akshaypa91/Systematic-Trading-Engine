@@ -96,3 +96,14 @@ export const manualTradeAPI = {
 };
 
 export default api;
+
+// ── Live trading API ──────────────────────────────────────────────────────────
+export const liveAPI = {
+  status:      ()           => api.get('/live/status'),
+  setMode:     (mode)       => api.post('/live/mode', { mode }),
+  placeOrder:  (body)       => api.post('/live/order', body),
+  cancelOrder: (id)         => api.delete(`/live/order/${id}`),
+  positions:   ()           => api.get('/live/positions'),
+  orders:      ()           => api.get('/live/orders'),
+  funds:       ()           => api.get('/live/funds'),
+};

@@ -8,8 +8,10 @@ import TradePanel   from '../components/TradePanel';
 import PortfolioCard from '../components/PortfolioCard';
 import CapitalSetup from '../components/CapitalSetup';
 import TradingChart from '../components/TradingChart';
-import { marketAPI, manualTradeAPI, signalAPI, simAPI } from '../services/api';
+import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
+import TradingModeToggle from '../components/TradingModeToggle';
+import LiveOrderModal    from '../components/LiveOrderModal';
 
 const MAX_HISTORY = 8;
 
@@ -22,6 +24,43 @@ export default function Trade() {
   const [portfolioRefresh, setPortfolioRefresh] = useState(0);
   const [initialized,      setInitialized]      = useState(null);
   const [checkingInit,     setCheckingInit]     = useState(true);
+
+  // ── Live trading state ──────────────────────────────────────────────────────
+  const [tradingMode,   setTradingMode]   = useState('PAPER');
+  const [brokerLinked,  setBrokerLinked]  = useState(false);
+  const [liveModal,     setLiveModal]     = useState(null);   // pending order
+  const [liveLoading,   setLiveLoading]   = useState(false);
+
+  useEffect(() => {
+    liveAPI.status().then(r => {
+      setTradingMode(r.data.tradingMode || 'PAPER');
+      setBrokerLinked(!!r.data.brokerLinked);
+    }).catch(() => {});
+  }, []);
+
+  async function handleModeChange(newMode) {
+    setTradingMode(newMode);
+    liveAPI.setMode(newMode).catch(() => {});
+  }
+
+  async function handleLiveOrder(orderDetails) {
+    // orderDetails = { symbol, side, qty, currentPrice }
+    setLiveModal({ ...orderDetails, estTotal: orderDetails.qty * (orderDetails.currentPrice || 0) });
+  }
+
+  async function confirmLiveOrder() {
+    if (!liveModal) return;
+    setLiveLoading(true);
+    try {
+      const res = await liveAPI.placeOrder({ ...liveModal, confirmed: true });
+      setToast({ message: `✅ Live order placed: ${liveModal.side} ${liveModal.qty}×${liveModal.symbol}`, type: 'success' });
+      setLiveModal(null);
+    } catch (err) {
+      setToast({ message: `❌ ${err.response?.data?.error || err.message}`, type: 'error' });
+    } finally {
+      setLiveLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function checkPortfolio() {
@@ -115,6 +154,13 @@ export default function Trade() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <Layers size={18} style={{ color: 'var(--cyan)' }} />
             <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Trade</h1>
+            <div style={{ marginLeft: 'auto' }}>
+              <TradingModeToggle
+                mode={tradingMode}
+                brokerLinked={brokerLinked}
+                onChange={handleModeChange}
+              />
+            </div>
           </div>
           <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 28 }}>
             Search stocks · view signals · execute manual orders
@@ -194,6 +240,12 @@ export default function Trade() {
         )}
       </main>
       {ToastEl}
+      <LiveOrderModal
+        order={liveModal}
+        onConfirm={confirmLiveOrder}
+        onCancel={() => setLiveModal(null)}
+        loading={liveLoading}
+      />
     </AppShell>
   );
 }
