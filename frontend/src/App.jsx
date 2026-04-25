@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider }  from './context/AuthContext';
 import { WSProvider }    from './context/WSContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -11,6 +11,34 @@ import Backtest    from './pages/Backtest';
 import Signals     from './pages/Signals';
 import LiveTrading from './pages/LiveTrading';
 import Trade       from './pages/Trade';
+import { useEffect } from 'react';
+
+// Show toast on Upstox OAuth redirect
+function UpstoxCallback() {
+  const [params] = useSearchParams();
+  useEffect(() => {
+    const status = params.get('upstox');
+    const reason = params.get('reason');
+    if (status === 'connected') {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 20px;border-radius:10px;background:#0d1b2a;border:1px solid rgba(0,229,160,0.4);color:#00e5a0;font-family:monospace;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.5)';
+        el.textContent = '✅ Upstox connected — LIVE trading enabled';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 5000);
+      }, 500);
+    } else if (status === 'error') {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 20px;border-radius:10px;background:#0d1b2a;border:1px solid rgba(255,77,106,0.4);color:#ff4d6a;font-family:monospace;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.5)';
+        el.textContent = `❌ Upstox error: ${reason || 'unknown'}`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 6000);
+      }, 500);
+    }
+  }, [params]);
+  return null;
+}
 
 export default function App() {
   return (
@@ -18,6 +46,7 @@ export default function App() {
       <AuthProvider>
         <WSProvider>
           <BrowserRouter>
+            <UpstoxCallback />
             <Routes>
               <Route path="/login"  element={<Login />} />
               <Route path="/signup" element={<Signup />} />
