@@ -27666,3 +27666,5 @@
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-04-26 01:00:51.813"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-04-26 01:01:54.784"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-04-26 01:04:00.859"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 5): Request failed with status code 403 — retry in 300s","timestamp":"2026-04-26 01:08:03.910"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 6): Request failed with status code 403 — retry in 300s","timestamp":"2026-04-26 01:13:10.075"}

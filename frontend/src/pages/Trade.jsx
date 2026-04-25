@@ -87,7 +87,13 @@ export default function Trade() {
   }
 
   const fetchStock = useCallback(async (sym) => {
+    // Guard: only accept valid NSE symbol format (letters, digits, hyphen, &)
+    // Reject company names like "Bajaj Consumer Care Ltd"
     const upper = sym.toUpperCase().trim();
+    if (!upper || upper.length > 20 || upper.includes(' ')) {
+      showToast(`"${sym}" is not a valid NSE symbol. Select from the dropdown.`, 'error');
+      return;
+    }
     setLoading(true); setData(null);
     try {
       const [quoteRes, signalRes] = await Promise.allSettled([
