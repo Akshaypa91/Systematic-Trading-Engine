@@ -154,7 +154,33 @@ export default function Trade() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <Layers size={18} style={{ color: 'var(--cyan)' }} />
             <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Trade</h1>
-            <div style={{ marginLeft: 'auto' }}>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              {!brokerLinked && (
+                <a
+                  href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:3000'}/api/auth/upstox/login`}
+                  style={{
+                    padding: '4px 12px', borderRadius: 99, fontSize: 11,
+                    fontFamily: 'var(--font-mono)', fontWeight: 600,
+                    background: 'rgba(99,102,241,0.12)',
+                    border: '1px solid rgba(99,102,241,0.4)',
+                    color: '#818cf8', textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                >
+                  🔗 Connect Upstox
+                </a>
+              )}
+              {brokerLinked && (
+                <span style={{
+                  padding: '4px 10px', borderRadius: 99, fontSize: 10,
+                  fontFamily: 'var(--font-mono)', fontWeight: 600,
+                  background: 'rgba(0,229,160,0.08)',
+                  border: '1px solid rgba(0,229,160,0.3)',
+                  color: 'var(--green)',
+                }}>
+                  ✓ Upstox
+                </span>
+              )}
               <TradingModeToggle
                 mode={tradingMode}
                 brokerLinked={brokerLinked}
