@@ -170,6 +170,19 @@ async function saveTrade(trade) {
     priceSource = 'SIM',
   } = trade;
 
+  // Normalize any source string → valid ENUM('API','SIM','MANUAL')
+  // LIVE_UPSTOX / LIVE_NSE / LIVE_TWELVE / LIVE_FINNHUB → 'API'
+  // SIM / SIMULATION → 'SIM'
+  // MANUAL / USER → 'MANUAL'
+  function _normalizeSource(src) {
+    const s = (src || '').toUpperCase();
+    if (s.startsWith('LIVE') || s === 'API' || s === 'UPSTOX' ||
+        s === 'NSE' || s === 'TWELVE' || s === 'FINNHUB' || s === 'YAHOO_FINANCE') return 'API';
+    if (s === 'MANUAL' || s === 'USER') return 'MANUAL';
+    return 'SIM';
+  }
+  const safeSource = _normalizeSource(priceSource);
+
   const value = parseFloat((qty * price).toFixed(4));
 
   return db.transaction(async (conn) => {
@@ -200,7 +213,7 @@ async function saveTrade(trade) {
       [portfolioId, symbol.toUpperCase(), action, qty,
        parseFloat(price.toFixed(4)), value,
        pnl !== null ? parseFloat(pnl.toFixed(4)) : null,
-       priceSource]
+       safeSource]
     );
 
     // 3. Update capital
