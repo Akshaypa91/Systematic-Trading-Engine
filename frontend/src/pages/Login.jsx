@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
-import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Zap, Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react';
+import { useThemeContext } from '../context/ThemeContext';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -18,6 +19,7 @@ function Divider() {
 }
 
 export default function Login() {
+  const { isDark, toggleTheme } = useThemeContext();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
@@ -65,6 +67,20 @@ export default function Login() {
 
   const inner = (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden grid-bg">
+      {/* Theme toggle — top right */}
+      <button onClick={toggleTheme}
+        style={{
+          position: 'fixed', top: 16, right: 16, zIndex: 999,
+          width: 36, height: 36, borderRadius: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+          cursor: 'pointer', color: 'var(--text-muted)',
+          transition: 'all 0.2s',
+        }}
+        title={isDark ? 'Switch to Light' : 'Switch to Dark'}
+      >
+        {isDark ? <Sun size={15} /> : <Moon size={15} />}
+      </button>
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06), transparent)' }} />
 
