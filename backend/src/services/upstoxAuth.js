@@ -143,6 +143,7 @@ async function exchangeCodeForToken(code) {
   if (!code)         throw new Error('Authorization code is required');
 
   logger.info('[UpstoxAuth] Exchanging auth code for access token…');
+  logger.debug(`[UpstoxAuth] Using client_id=${API_KEY} secret_len=${API_SECRET.length} redirect=${REDIRECT_URI}`);
 
   const response = await axios.post(
     UPSTOX_TOKEN_URL,

@@ -57,7 +57,8 @@ async function callback(req, res) {
 
     return res.redirect(`${FRONTEND_URL}?upstox=connected`);
   } catch (err) {
-    logger.error(`[UpstoxCtrl] Token exchange failed: ${err.message}`);
+    const upstoxBody = err.response?.data;
+    logger.error(`[UpstoxCtrl] Token exchange failed: ${err.message} | Upstox response: ${JSON.stringify(upstoxBody)}`);
     return res.redirect(`${FRONTEND_URL}?upstox=error&reason=${encodeURIComponent(err.message)}`);
   }
 }
