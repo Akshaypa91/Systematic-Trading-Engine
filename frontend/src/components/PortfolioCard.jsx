@@ -427,7 +427,16 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
                         <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>No open positions</p>
                       </div>
                     )
-                    : <PositionsTable positions={positions} biggestGainer={biggestGainer} biggestLoser={biggestLoser} />
+                    : <PositionsTable
+                        positions={positions}
+                        biggestGainer={biggestGainer}
+                        biggestLoser={biggestLoser}
+                        onExited={(updatedPortfolio) => {
+                          if (updatedPortfolio) setData(updatedPortfolio);
+                          else load();
+                          if (onReset) onReset(updatedPortfolio);
+                        }}
+                      />
                 )}
 
                 {!loading && tab === 'trades' && (

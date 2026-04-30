@@ -284,6 +284,49 @@ async function resetPortfolio(req, res) {
 }
 
 
+// ── POST /api/sim/exit-one ────────────────────────────────────────────────────
+/**
+ * Close ONE position by symbol at current market price.
+ * Body: { symbol }
+ */
+async function exitOne(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
+  const sym    = (req.body.symbol || '').toUpperCase().trim();
+
+  if (!sym) return res.status(400).json({ success: false, error: 'symbol required' });
+
+  try {
+    const state = await portfolio.getState(userId);
+    const pos   = state.positions?.[sym];
+    if (!pos) return res.status(404).json({ success: false, error: `No open position for ${sym}` });
+
+    // Get live price
+    let price = pos.entryPrice;
+    try {
+      const p = await marketDataSvc.getBestPrice(sym);
+      if (p?.price > 0) price = p.price;
+    } catch (_) {}
+
+    const result     = await portfolio.executeSell(sym, pos.qty, price, 'API', userId);
+    const finalState = await portfolio.getState(userId);
+
+    logger.info(`[SimCtrl] exitOne: closed ${sym} ${pos.qty} @ ₹${price} | PnL ₹${result.pnl}`);
+
+    return res.json({
+      success:    true,
+      symbol:     sym,
+      qty:        pos.qty,
+      price:      parseFloat(price.toFixed(2)),
+      realizedPnL:parseFloat((result.pnl ?? 0).toFixed(2)),
+      trade:      result.trade,
+      portfolio:  finalState,
+    });
+  } catch (err) {
+    logger.error(`[SimCtrl] exitOne: ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 // ── POST /api/sim/exit-all ────────────────────────────────────────────────────
 /**
  * Close ALL open positions at current market price.
@@ -364,4 +407,5 @@ module.exports = {
   startWithCapital,
   resetPortfolio,
   exitAll,
+  exitOne,
 };

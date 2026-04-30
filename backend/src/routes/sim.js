@@ -23,5 +23,6 @@ router.get('/portfolio', requireAuth, ctrl.getPortfolio);
 router.post('/start',    requireAuth, ctrl.startWithCapital);
 router.post('/reset',    requireAuth, ctrl.resetPortfolio);
 router.post('/exit-all', requireAuth, ctrl.exitAll);
+router.post('/exit-one', requireAuth, ctrl.exitOne);
 
 module.exports = router;
