@@ -10,7 +10,10 @@ import Screener    from './pages/Screener';
 import Backtest    from './pages/Backtest';
 import Signals     from './pages/Signals';
 import LiveTrading from './pages/LiveTrading';
-import Trade       from './pages/Trade';
+import Trade          from './pages/Trade';
+import ForgotPassword  from './pages/ForgotPassword';
+import ResetPassword   from './pages/ResetPassword';
+import Feedback        from './pages/Feedback';
 import { useEffect } from 'react';
 
 // Show toast on Upstox OAuth redirect
@@ -49,7 +52,9 @@ export default function App() {
             <UpstoxCallback />
             <Routes>
               <Route path="/login"  element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
+        <Route path="/signup" element={<Signup />} />
               <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/live"     element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
               <Route path="/screener" element={<ProtectedRoute><Screener /></ProtectedRoute>} />
@@ -57,7 +62,8 @@ export default function App() {
               <Route path="/signals"  element={<ProtectedRoute><Signals /></ProtectedRoute>} />
               <Route path="/trade"    element={<ProtectedRoute><Trade /></ProtectedRoute>} />
               <Route path="*"         element={<Navigate to="/" replace />} />
-            </Routes>
+                      <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+        </Routes>
           </BrowserRouter>
         </WSProvider>
       </AuthProvider>

@@ -208,4 +208,96 @@ function me(req, res) {
   }
 }
 
-module.exports = { signup, login, me, verifyJWT, signJWT };
+
+// ── POST /api/auth/forgot-password ────────────────────────────────────────────
+// Generates a reset token and stores it. In production this would email a link.
+// For demo: returns the token directly in response (frontend shows it).
+async function forgotPassword(req, res) {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+
+  try {
+    const [rows] = await db.query('SELECT id FROM users WHERE email = ? LIMIT 1', [email]);
+    // Always return success to prevent email enumeration
+    if (!rows[0]) return res.json({ success: true, message: 'If that email exists, a reset link was sent.' });
+
+    const token   = require('crypto').randomBytes(32).toString('hex');
+    const expiry  = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db.query(
+      `INSERT INTO password_resets (user_id, token, expires_at)
+       VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)`,
+      [rows[0].id, token, expiry]
+    );
+
+    logger.info(`[Auth] Password reset requested for ${email}`);
+
+    // In production: send email with reset link
+    // For demo: return token so user can test the flow
+    return res.json({
+      success: true,
+      message: 'If that email exists, a reset link was sent.',
+      // REMOVE in production — only for demo/dev:
+      _devToken: process.env.NODE_ENV === 'development' ? token : undefined,
+    });
+  } catch (err) {
+    logger.logError('Auth.forgotPassword', err);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+}
+
+// ── POST /api/auth/reset-password ─────────────────────────────────────────────
+async function resetPassword(req, res) {
+  const { token, password } = req.body || {};
+  if (!token || !password) return res.status(400).json({ success: false, error: 'Token and password required' });
+  if (password.length < 8) return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
+
+  try {
+    const [rows] = await db.query(
+      `SELECT pr.user_id FROM password_resets pr
+       WHERE pr.token = ? AND pr.expires_at > NOW() LIMIT 1`,
+      [token]
+    );
+    if (!rows[0]) return res.status(400).json({ success: false, error: 'Invalid or expired reset token' });
+
+    const hashed = hashPassword(password);
+    await db.query('UPDATE users SET password = ? WHERE id = ?', [hashed, rows[0].user_id]);
+    await db.query('DELETE FROM password_resets WHERE user_id = ?', [rows[0].user_id]);
+
+    logger.info(`[Auth] Password reset completed for user ${rows[0].user_id}`);
+    return res.json({ success: true, message: 'Password updated. Please log in.' });
+  } catch (err) {
+    logger.logError('Auth.resetPassword', err);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+}
+
+// ── POST /api/feedback ────────────────────────────────────────────────────────
+async function submitFeedback(req, res) {
+  const { name, email, type, message, rating } = req.body || {};
+  if (!message || message.trim().length < 10) {
+    return res.status(400).json({ success: false, error: 'Message must be at least 10 characters' });
+  }
+  try {
+    await db.query(
+      `INSERT INTO feedback (name, email, type, message, rating, user_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        (name || '').slice(0, 100),
+        (email || '').slice(0, 255),
+        (type || 'general').slice(0, 50),
+        message.slice(0, 2000),
+        rating ? parseInt(rating, 10) : null,
+        req.user?.userId ?? req.user?.id ?? null,
+      ]
+    );
+    logger.info(`[Feedback] Received from ${email || 'anonymous'}: ${type}`);
+    return res.json({ success: true, message: 'Thank you for your feedback!' });
+  } catch (err) {
+    logger.logError('Auth.submitFeedback', err);
+    return res.status(500).json({ success: false, error: 'Could not save feedback' });
+  }
+}
+
+module.exports = { signup, login, me, verifyJWT, signJWT, forgotPassword, resetPassword, submitFeedback };

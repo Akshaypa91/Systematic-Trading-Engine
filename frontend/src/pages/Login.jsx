@@ -3,7 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
-import { Zap, Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react';
+
+function SystraLogo() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="11" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.3)" strokeWidth="1"/>
+      <polyline points="7,29 12,20 17,24 22,14 27,18 33,11" stroke="var(--cyan)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <circle cx="27" cy="11" r="2.2" fill="var(--cyan)"/>
+      <line x1="7" y1="32" x2="33" y2="32" stroke="rgba(59,130,246,0.25)" strokeWidth="1"/>
+      <circle cx="12" cy="20" r="1.5" fill="rgba(59,130,246,0.5)"/>
+      <circle cx="17" cy="24" r="1.5" fill="rgba(59,130,246,0.5)"/>
+      <circle cx="22" cy="14" r="1.5" fill="rgba(59,130,246,0.5)"/>
+    </svg>
+  );
+}
 import { useThemeContext } from '../context/ThemeContext';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -87,13 +101,10 @@ export default function Login() {
       <div className="w-full max-w-sm mx-4 fade-in">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)' }}>
-            <Zap size={20} style={{ color: 'var(--cyan)' }} />
-          </div>
+          <SystraLogo />
           <div>
-            <div className="text-lg font-bold tracking-widest uppercase" style={{ color: 'var(--cyan)' }}>SYSTRA</div>
-            <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Systematic Trading Engine</div>
+            <div className="text-lg font-bold tracking-widest uppercase" style={{ color: 'var(--text-primary)', letterSpacing:'0.1em' }}>SYSTRA</div>
+            <div className="font-mono" style={{ fontSize:10, color: 'var(--text-muted)' }}>Systematic Trading Engine</div>
           </div>
         </div>
 
@@ -156,6 +167,12 @@ export default function Login() {
                   {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
+            </div>
+
+            <div style={{ textAlign:'right', marginTop:-8, marginBottom:12 }}>
+              <Link to="/forgot-password" style={{ fontSize:11, color:'var(--text-muted)', fontFamily:'var(--font-mono)' }}>
+                Forgot password?
+              </Link>
             </div>
 
             <button type="submit" disabled={loading}

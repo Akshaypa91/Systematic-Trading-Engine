@@ -33,7 +33,10 @@ api.interceptors.response.use(
 export const authAPI = {
   login:      (email, password) => api.post('/auth/login',  { email, password }),
   signup:     (email, password) => api.post('/auth/signup', { email, password }),
-  googleAuth: (credential)      => api.post('/auth/google', { credential }),
+  googleAuth:      (credential)       => api.post('/auth/google', { credential }),
+  forgotPassword:  (email)             => api.post('/auth/forgot-password', { email }),
+  resetPassword:   (token, password)   => api.post('/auth/reset-password', { token, password }),
+  submitFeedback:  (data)              => api.post('/feedback', data),
 };
 
 export const backtestAPI = {

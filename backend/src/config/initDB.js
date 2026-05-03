@@ -290,6 +290,38 @@ const TABLES = [
     `,
   },
 
+  
+  // ── password_resets ──────────────────────────────────────────────────────────
+  {
+    name: 'password_resets',
+    sql: `
+      CREATE TABLE IF NOT EXISTS password_resets (
+        user_id    INT UNSIGNED NOT NULL PRIMARY KEY,
+        token      VARCHAR(64)  NOT NULL,
+        expires_at DATETIME     NOT NULL,
+        created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_token (token)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `,
+  },
+  // ── feedback ────────────────────────────────────────────────────────────────
+  {
+    name: 'feedback',
+    sql: `
+      CREATE TABLE IF NOT EXISTS feedback (
+        id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id    INT UNSIGNED NULL,
+        name       VARCHAR(100) NULL,
+        email      VARCHAR(255) NULL,
+        type       VARCHAR(50)  NOT NULL DEFAULT 'general',
+        message    TEXT         NOT NULL,
+        rating     TINYINT      NULL,
+        created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_type    (type),
+        INDEX idx_created (created_at DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `,
+  },
   // ── 12. sim_trades ─────────────────────────────────────────────────────────
   // Append-only trade ledger. Positions reconstructed by GROUP BY query.
   // FK to portfolios ensures referential integrity.
