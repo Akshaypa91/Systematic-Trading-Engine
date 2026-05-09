@@ -14,16 +14,18 @@ router.use((req, _res, next) => {
 });
 
 // ── Local auth ────────────────────────────────────────────────────────────────
-router.post('/signup', ctrl.signup);
-router.post('/login',  ctrl.login);
-router.get ('/me',     ctrl.me);
+router.post('/signup',          ctrl.signup);
+router.post('/login',           ctrl.login);
+router.get ('/me',              ctrl.me);
+router.post('/forgot-password', ctrl.forgotPassword);
+router.post('/reset-password',  ctrl.resetPassword);
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
-router.post('/google', googleCtrl.googleAuth);   // no requireAuth — public
+router.post('/google', googleCtrl.googleAuth);
 
 // ── Upstox OAuth ──────────────────────────────────────────────────────────────
 router.get ('/upstox/login',    upstoxCtrl.login);
-router.get ('/upstox/callback', upstoxCtrl.callback);
+router.get ('/upstox/callback', upstoxCtrl.callback);   // NO requireAuth
 router.get ('/upstox/status',   requireAuth, upstoxCtrl.status);
 router.post('/upstox/logout',   requireAuth, upstoxCtrl.logout);
 router.post('/upstox/token',    requireAuth, upstoxCtrl.setToken);
