@@ -30,6 +30,7 @@ const liveRoutes     = require('./routes/live');
 const liveDataFeed    = require('./data/liveDataFeed');
 const scheduler       = require('./engine/scheduler');
 const simEngine       = require('./engine/simulationEngine');
+const feedbackRoutes = require('./routes/feedback');
 
 // ── Validate critical env vars at startup ─────────────────────────────────────
 function validateEnv() {
@@ -135,6 +136,7 @@ app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
 app.use('/api/live',     liveRoutes);
 app.use('/api',          allRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // ── Error handling (must be last) ────────────────────────────────────────────
 app.use(notFound);

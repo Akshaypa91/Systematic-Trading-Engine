@@ -27739,3 +27739,60 @@
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-09 10:50:42.921"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-09 10:51:18.634"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-05-09 10:52:21.432"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-09 19:29:29.395"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 691)","timestamp":"2026-05-09 19:29:31.195"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-05-09 19:29:31.497"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-05-09 19:29:31.498"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-05-09 19:29:31.499"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-05-09 19:29:32.415"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-05-09 19:29:33.644"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-05-09 19:29:35.180"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-05-09 19:29:35.982"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-05-09 19:29:36.626"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-05-09 19:29:37.944"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-05-09 19:29:39.173"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-05-09 19:29:40.168"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-05-09 19:29:40.769"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-05-09 19:29:41.938"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-05-09 19:29:42.529"}
+{"level":"debug","message":"[InitDB] ✅ exists   — password_resets","timestamp":"2026-05-09 19:29:43.473"}
+{"level":"debug","message":"[InitDB] ✅ exists   — feedback","timestamp":"2026-05-09 19:29:44.396"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-05-09 19:29:45.317"}
+{"level":"info","message":"[InitDB] Done — 0 created, 14 existed, 0 failed","timestamp":"2026-05-09 19:29:45.318"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-09 19:29:45.319"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-09 19:29:45.319"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-09 19:29:45.320"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-09 19:29:45.320"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-09 19:29:45.320"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-09 19:29:45.320"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-09 19:29:45.320"}
+{"level":"info","message":"[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login to connect","timestamp":"2026-05-09 19:29:45.321"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-05-09 19:29:45.349"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-05-09 19:29:45.352"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-05-09 19:29:45.352"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-05-09 19:29:45.352"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-05-09 19:29:45.352"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nPOST     /api/forgot-password\nPOST     /api/reset-password\nPOST     /api/google\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nPOST     /api/exit-one\nPOST     /api/order\nGET      /api/positions\nGET      /api/orders\nGET      /api/funds\nDELETE   /api/order/:brokerOrderId\nGET      /api/status\nPOST     /api/mode\nPOST     /api/admin/kill-switch\nGET      /api/health\nGET      /api/data/search\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\nPOST     /api/\n===========================","timestamp":"2026-05-09 19:29:45.353"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-09 19:29:45.707"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-09 19:30:21.624"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:30:47.374"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-09 19:30:51.468"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:30:59.472"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:00.823"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-09 19:31:05.515"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:08.696"}
+{"level":"warn","message":"[MarketData] CB OPEN twelvedata — 15min cooldown","timestamp":"2026-05-09 19:31:10.690"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-09 19:31:10.690"}
+{"level":"warn","message":"[MarketData] NSE INFY: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:11.379"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-09 19:31:11.379"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:12.790"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-09 19:31:12.790"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:13.518"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:13.521"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-09 19:31:13.521"}
+{"level":"warn","message":"[MarketData] NSE MARUTI: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:16.293"}
+{"level":"warn","message":"[MarketData] TwelveData MARUTI: TwelveData CB open","timestamp":"2026-05-09 19:31:16.293"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:18.694"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub bad price 0","timestamp":"2026-05-09 19:31:18.965"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:20.794"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: timeout of 8000ms exceeded","timestamp":"2026-05-09 19:31:21.525"}
