@@ -1,203 +1,111 @@
-# Production Deployment Guide
-## Systematic Trading Engine
+# .github/workflows/deploy.yml
+name: CI / Deploy
 
----
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-## Prerequisites
+jobs:
+  # ── Lint + Build ─────────────────────────────────────────────────────────────
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-- Node.js ≥ 20
-- Docker + Docker Compose ≥ 2.0
-- MySQL 8 (or use the bundled Docker service)
-- 1GB RAM minimum (2GB recommended)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
 
----
+      - name: Install backend deps
+        run: cd backend && npm ci
 
-## Step 1: Environment Setup
+      - name: Check backend syntax
+        run: |
+          cd backend
+          find src -name "*.js" | xargs node --check
+          echo "✅ Backend syntax OK"
 
-```bash
-# Clone the repo
-git clone <your-repo>
-cd systematic-trading-engine
+      - name: Install frontend deps
+        run: cd frontend && npm ci
 
-# Create .env from template
-cp .env.example .env
+      - name: Build frontend
+        run: cd frontend && npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
-# Generate a strong JWT_SECRET
-node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-# Paste the output as JWT_SECRET in .env
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 1
 
-# Set a strong DB_PASSWORD in .env
-# Set MYSQL_ROOT_PASSWORD in .env
-```
+  # ── Deploy Backend → Render ───────────────────────────────────────────────────
+  deploy-backend:
+    name: Deploy Backend (Render)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" \
+            -H "Content-Type: application/json" | jq .
+        # Set RENDER_DEPLOY_HOOK in GitHub repo secrets
+        # Get from: Render dashboard → your service → Settings → Deploy Hook
 
----
+  # ── Deploy Frontend → Vercel ──────────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend (Vercel)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
 
-## Step 2: Local Development
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-```bash
-npm install
-npm run db:migrate          # create tables
-npm run db:seed             # seed sample price data
-npm run dev                 # start with hot-reload (nodemon)
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
 
-# Verify
-curl http://localhost:3000/health
-```
+      - name: Deploy to Vercel
+        run: |
+          vercel --token ${{ secrets.VERCEL_TOKEN }} \
+                 --prod \
+                 --yes \
+                 --cwd frontend
+        env:
+          VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
----
-
-## Step 3: Docker Deployment
-
-```bash
-# Build and start all services (app + MySQL)
-docker compose up -d
-
-# Check health
-docker compose ps
-curl http://localhost:3000/health
-
-# View logs
-docker compose logs -f app
-
-# Stop
-docker compose down
-```
-
----
-
-## Step 4: VPS / AWS Deployment
-
-### On Ubuntu 22.04 VPS:
-
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# Install Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Clone and configure
-git clone <repo> /opt/trading-engine
-cd /opt/trading-engine
-cp .env.example .env
-# Edit .env with production values
-
-# One-command deploy
-npm run deploy
-```
-
-### Systemd service (alternative to Docker):
-
-```ini
-# /etc/systemd/system/trading-engine.service
-[Unit]
-Description=Systematic Trading Engine
-After=network.target mysql.service
-
-[Service]
-Type=simple
-User=trading
-WorkingDirectory=/opt/trading-engine
-ExecStart=/usr/bin/node src/app.js
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
-EnvironmentFile=/opt/trading-engine/.env
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable trading-engine
-sudo systemctl start trading-engine
-sudo journalctl -u trading-engine -f
-```
-
----
-
-## Step 5: Nginx Reverse Proxy (Recommended)
-
-```nginx
-# /etc/nginx/sites-available/trading-engine
-server {
-    listen 80;
-    server_name your-domain.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-
-    ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-
-    # WebSocket support
-    location /ws {
-        proxy_pass         http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection "upgrade";
-        proxy_set_header   Host $host;
-        proxy_read_timeout 3600s;
-    }
-
-    location / {
-        proxy_pass         http://localhost:3000;
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto $scheme;
-    }
-}
-```
-
----
-
-## Step 6: Health Monitoring
-
-```bash
-# Manual health check
-npm run health
-# or
-curl http://localhost:3000/health | jq
-
-# Docker health status
-docker inspect trading-engine | jq '.[0].State.Health'
-
-# Set up cron for monitoring
-# crontab -e
-*/5 * * * * /usr/bin/node /opt/trading-engine/scripts/health-check.js >> /var/log/trading-health.log 2>&1
-```
-
----
-
-## API Endpoints
-
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| GET | /health | System health + scheduler status | None |
-| POST | /api/auth/signup | Register user | None |
-| POST | /api/auth/login | Login, returns JWT | None |
-| GET | /api/auth/me | Verify token | JWT |
-| GET | /api/signal/:symbol | Generate signal | Optional |
-| POST | /api/backtest | Run backtest | Optional |
-| GET | /api/trade/portfolio | Paper portfolio state | Optional |
-| GET | /api/screener | Screen NIFTY50 | Optional |
-
----
-
-## Environment Variables Reference
-
-See `.env.example` for complete documentation.
-
-Critical variables (must set in production):
-- `JWT_SECRET` — 64-char random hex
-- `DB_PASSWORD` — strong database password
-- `MYSQL_ROOT_PASSWORD` — MySQL root password (Docker only)
-- `NODE_ENV=production`
+  # ── PR Preview ────────────────────────────────────────────────────────────────
+  preview:
+    name: Preview Deploy (PR only)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm install -g vercel@latest
+      - name: Deploy Preview
+        run: |
+          url=$(vercel --token ${{ secrets.VERCEL_TOKEN }} --yes --cwd frontend)
+          echo "Preview URL: $url"
+          echo "preview_url=$url" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          

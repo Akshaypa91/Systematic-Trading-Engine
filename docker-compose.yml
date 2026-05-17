@@ -1,101 +1,69 @@
+# docker-compose.yml — root of project
 version: '3.9'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Systematic Trading Engine — Docker Compose
-#
-# Services:
-#   app   — Node.js trading engine (port 3000)
-#   db    — MySQL 8 (port 3306, internal only)
-#
-# Usage:
-#   Development:  docker compose up
-#   Production:   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-# ─────────────────────────────────────────────────────────────────────────────
-
 services:
-
-  # ── Trading Engine ──────────────────────────────────────────────────────────
-  app:
+  backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: trading-engine
-    restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
     environment:
-      NODE_ENV:        ${NODE_ENV:-production}
-      PORT:            3000
-      DB_HOST:         db
-      DB_PORT:         3306
-      DB_USER:         ${DB_USER:-trading_user}
-      DB_PASSWORD:     ${DB_PASSWORD:?DB_PASSWORD is required}
-      DB_NAME:         ${DB_NAME:-trading_engine}
-      DB_POOL_MAX:     ${DB_POOL_MAX:-10}
-      JWT_SECRET:      ${JWT_SECRET:?JWT_SECRET is required}
-      LOG_LEVEL:       ${LOG_LEVEL:-info}
-      DEFAULT_CAPITAL: ${DEFAULT_CAPITAL:-1000000}
-    volumes:
-      - ./logs:/app/logs          # persist logs on host
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - DB_HOST=mysql
     depends_on:
-      db:
+      mysql:
         condition: service_healthy
-    healthcheck:
-      test:     ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
-      interval: 30s
-      timeout:  10s
-      retries:  3
-      start_period: 20s
-    networks:
-      - trading-net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
-
-  # ── MySQL 8 ─────────────────────────────────────────────────────────────────
-  db:
-    image: mysql:8.0
-    container_name: trading-db
+      redis:
+        condition: service_started
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD:    ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
-      MYSQL_DATABASE:         ${DB_NAME:-trading_engine}
-      MYSQL_USER:             ${DB_USER:-trading_user}
-      MYSQL_PASSWORD:         ${DB_PASSWORD:?DB_PASSWORD is required}
-    volumes:
-      - mysql-data:/var/lib/mysql          # persist DB data
-      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-    ports:
-      - "127.0.0.1:3306:3306"             # bind to localhost only (not public)
     healthcheck:
-      test:     ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-trading_user}", "-p${DB_PASSWORD}"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:9.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: trading_engine
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
-      timeout:  5s
-      retries:  5
-      start_period: 30s
-    networks:
-      - trading-net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "3"
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-time-zone='+05:30'
-      --max-connections=200
-      --innodb-buffer-pool-size=512M
-      --slow-query-log=1
-      --slow-query-log-file=/var/log/mysql/slow.log
-      --long-query-time=2
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
-  mysql-data:
-    driver: local
-
-networks:
-  trading-net:
-    driver: bridge
+  mysql_data:
+  redis_data:
+  
