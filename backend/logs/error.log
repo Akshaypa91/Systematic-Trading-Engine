@@ -536,3 +536,13 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:47:32.734"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:48:29.942"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:49:55.588"}
+{"level":"error","message":"[App] Uncaught exception: listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:2016:16)\n    at listenInCluster (node:net:2073:12)\n    at Server.listen (node:net:2178:7)\n    at start (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:208:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)","timestamp":"2026-05-17 07:51:07.348"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:51:43.059"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:51:48.299"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:51:56.046"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:52:07.469"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:52:24.592"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:52:50.192"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:53:28.386"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:54:25.529"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:55:51.144"}
