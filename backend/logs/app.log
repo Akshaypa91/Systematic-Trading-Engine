@@ -27864,3 +27864,85 @@
 {"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-14 18:05:26.035"}
 {"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-14 18:05:26.036"}
 {"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-14 18:05:26.036"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-17 07:45:32.013"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 22)","timestamp":"2026-05-17 07:45:33.385"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-05-17 07:45:33.828"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-05-17 07:45:33.828"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-05-17 07:45:33.829"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-05-17 07:45:34.793"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-05-17 07:45:35.742"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-05-17 07:45:36.702"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-05-17 07:45:37.609"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-05-17 07:45:38.524"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-05-17 07:45:39.444"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-05-17 07:45:40.359"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-05-17 07:45:41.414"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-05-17 07:45:42.544"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-05-17 07:45:43.556"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-05-17 07:45:44.599"}
+{"level":"debug","message":"[InitDB] ✅ exists   — password_resets","timestamp":"2026-05-17 07:45:45.516"}
+{"level":"debug","message":"[InitDB] ✅ exists   — feedback","timestamp":"2026-05-17 07:45:46.430"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-05-17 07:45:47.384"}
+{"level":"info","message":"[InitDB] Done — 0 created, 14 existed, 0 failed","timestamp":"2026-05-17 07:45:47.384"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-17 07:45:47.385"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-17 07:45:47.386"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:45:47.387"}
+{"level":"info","message":"[App] 🤖 Simulation engine started (paper trading active)","timestamp":"2026-05-17 07:45:47.412"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [development]","timestamp":"2026-05-17 07:45:47.415"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-05-17 07:45:47.415"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-05-17 07:45:47.415"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-05-17 07:45:47.415"}
+{"level":"info","message":"\n==== Registered Routes ====\nGET      /health\nGET      /__debug/auth-ping\nPOST     /api/signup\nPOST     /api/login\nGET      /api/me\nPOST     /api/forgot-password\nPOST     /api/reset-password\nPOST     /api/google\nGET      /api/upstox/login\nGET      /api/upstox/callback\nGET      /api/upstox/status\nPOST     /api/upstox/logout\nPOST     /api/upstox/token\nGET      /api/health\nGET      /api/stock/:symbol\nGET      /api/quote/:symbol\nGET      /api/historical/:symbol\nGET      /api/prices/:symbol\nGET      /api/nifty50\nGET      /api/market-status\nPOST     /api/fetch-and-store/:symbol\nGET      /api/describe\nGET      /api/history/:symbol\nGET      /api/regime/:symbol\nGET      /api/:symbol\nPOST     /api/\nGET      /api/runs\nGET      /api/runs/:runId/trades\nPOST     /api/order\nPOST     /api/manual\nGET      /api/portfolio\nGET      /api/orders\nPOST     /api/check-exits\nPOST     /api/size\nGET      /api/\nGET      /api/score/:symbol\nGET      /api/signals\nGET      /api/trades\nGET      /api/equity\nGET      /api/status\nPOST     /api/engine/start\nPOST     /api/engine/stop\nPOST     /api/watchlist/add\nPOST     /api/watchlist/remove\nGET      /api/portfolio\nPOST     /api/start\nPOST     /api/reset\nPOST     /api/exit-all\nPOST     /api/exit-one\nPOST     /api/order\nGET      /api/positions\nGET      /api/orders\nGET      /api/funds\nDELETE   /api/order/:brokerOrderId\nGET      /api/status\nPOST     /api/mode\nPOST     /api/admin/kill-switch\nGET      /api/health\nGET      /api/data/search\nGET      /api/data/health\nGET      /api/data/quote/:symbol\nGET      /api/data/historical/:symbol\nPOST     /api/data/fetch-and-store/:symbol\nGET      /api/data/prices/:symbol\nGET      /api/data/nifty50\nGET      /api/data/market-status\nGET      /api/signal/describe\nGET      /api/signal/history/:symbol\nGET      /api/signal/:symbol\nPOST     /api/backtest\nGET      /api/backtest/runs\nGET      /api/backtest/runs/:runId/trades\nPOST     /api/trade/order\nGET      /api/trade/portfolio\nGET      /api/trade/orders\nGET      /api/trade/check/:symbol\nGET      /api/screener\nPOST     /api/screener\nGET      /api/screener/score/:symbol\nGET      /api/analytics/backtest/:runId\nGET      /api/analytics/portfolio\nPOST     /api/analytics/optimize\nGET      /api/analytics/optimizer/grids\nGET      /api/analytics/feed/stats\nPOST     /api/analytics/alerts\nGET      /api/analytics/alerts\nGET      /api/analytics/alerts/recent\nDELETE   /api/analytics/alerts/:id\nGET      /api/info\nGET      /api/scheduler/status\nPOST     /api/scheduler/job/:name/stop\nPOST     /api/\n===========================","timestamp":"2026-05-17 07:45:47.416"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:45:47.666"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:45:47.666"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-05-17 07:45:47.667"}
+{"level":"warn","message":"[App] Upstox WS connect failed: Unexpected server response: 401 — prices fall back to TwelveData/SIM","timestamp":"2026-05-17 07:45:47.667"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-17 07:45:47.900"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:45:52.669"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:45:52.833"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:45:52.833"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-05-17 07:45:52.833"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:45:52.834"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:46:00.336"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:46:00.461"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:46:00.461"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-17 07:46:00.461"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:46:00.461"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:46:11.713"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:46:11.885"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:46:11.885"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-05-17 07:46:11.885"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:46:11.886"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-17 07:46:23.619"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:46:28.762"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:46:29.013"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:46:29.013"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-05-17 07:46:29.013"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:46:29.014"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:46:54.327"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:46:54.501"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:46:54.501"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-05-17 07:46:54.501"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:46:54.502"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-05-17 07:47:26.649"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:47:32.471"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:47:32.734"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:47:32.735"}
+{"level":"info","message":"[UpstoxWS] Reconnect #7 in 57s","timestamp":"2026-05-17 07:47:32.735"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:47:32.735"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:48:29.690"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:48:29.941"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:48:29.942"}
+{"level":"info","message":"[UpstoxWS] Reconnect #8 in 85s","timestamp":"2026-05-17 07:48:29.942"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:48:29.942"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-05-17 07:49:26.709"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-17 07:49:55.373"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:49:55.588"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-17 07:49:55.588"}
+{"level":"info","message":"[UpstoxWS] Reconnect #9 in 120s","timestamp":"2026-05-17 07:49:55.588"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-17 07:49:55.588"}
