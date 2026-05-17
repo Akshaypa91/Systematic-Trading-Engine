@@ -546,3 +546,5 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:53:28.386"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:54:25.529"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 07:55:51.144"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 12:42:47.268"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-17 12:42:52.640"}
