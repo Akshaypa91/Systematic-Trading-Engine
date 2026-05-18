@@ -1,65 +1,81 @@
-// src/middleware/rateLimiter.js — Production Rate Limiting
+// src/middleware/rateLimiter.js
+// Per-user rate limiting — authenticated users get their own bucket
+// Prevents one heavy user from blocking all others on shared Render IP
 'use strict';
 
 const rateLimit = require('express-rate-limit');
 const logger    = require('../config/logger');
 
-const keyGenerator = (req) =>
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+// Extract real key: userId for authenticated, IP for anonymous
+function keyGenerator(req) {
+  if (req.user?.userId) return `user:${req.user.userId}`;
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+}
 
-const onLimitReached = (req, res, options) => {
-  logger.warn(`[RateLimit] Hit by ${keyGenerator(req)} on ${req.path}`);
-};
+function onLimitReached(req, res, options) {
+  const key = keyGenerator(req);
+  logger.warn(`[RateLimit] ${options.message} | key=${key} path=${req.path}`);
+}
 
-// ── General API: 120 req/min per IP ──────────────────────────────────────────
+// ── General API — 200 req / 15 min ───────────────────────────────────────────
 const apiLimiter = rateLimit({
-  windowMs:        60 * 1000,
-  max:             120,
-  standardHeaders: true,
-  legacyHeaders:   false,
+  windowMs:         15 * 60 * 1000,
+  max:              200,
   keyGenerator,
+  standardHeaders:  true,
+  legacyHeaders:    false,
   handler: (req, res) => {
-    onLimitReached(req, res);
-    res.status(429).json({ success: false, error: 'Too many requests. Please slow down.', retryAfter: 60 });
+    onLimitReached(req, res, { message: 'API rate limit reached' });
+    res.status(429).json({
+      success: false,
+      error:   'Too many requests — please slow down',
+      retryAfter: Math.ceil(res.getHeader('Retry-After') || 60),
+    });
   },
 });
 
-// ── NSE proxy: 30 req/min per IP (mirrors NSE's own rate limit) ──────────────
-const nseProxyLimiter = rateLimit({
-  windowMs:        60 * 1000,
-  max:             30,
-  standardHeaders: true,
-  legacyHeaders:   false,
-  keyGenerator,
-  handler: (req, res) => {
-    onLimitReached(req, res);
-    res.status(429).json({ success: false, error: 'NSE data rate limit exceeded.', retryAfter: 60 });
-  },
-});
-
-// ── Auth: 10 req/min per IP (brute-force protection) ─────────────────────────
+// ── Auth — 20 req / 15 min (brute force protection) ──────────────────────────
 const authLimiter = rateLimit({
-  windowMs:        60 * 1000,
-  max:             10,
+  windowMs:        15 * 60 * 1000,
+  max:             20,
+  keyGenerator,
   standardHeaders: true,
   legacyHeaders:   false,
-  keyGenerator,
   handler: (req, res) => {
-    logger.warn(`[RateLimit:Auth] Possible brute-force from ${keyGenerator(req)}`);
-    res.status(429).json({ success: false, error: 'Too many auth attempts. Try again in 1 minute.', retryAfter: 60 });
+    onLimitReached(req, res, { message: 'Auth rate limit reached' });
+    res.status(429).json({
+      success: false,
+      error:   'Too many authentication attempts — try again in 15 minutes',
+    });
   },
 });
 
-// ── Backtest: 20 req/min per IP (POST /api/backtest only — CPU-intensive) ─────
-// GET /api/backtest/runs is a cheap DB read, rate-limited by apiLimiter only
+// ── Backtest — 20 req / min (CPU-intensive) ───────────────────────────────────
 const backtestLimiter = rateLimit({
   windowMs:        60 * 1000,
   max:             20,
-  standardHeaders: true,
   keyGenerator,
+  standardHeaders: true,
+  legacyHeaders:   false,
   handler: (req, res) => {
-    res.status(429).json({ success: false, error: 'Backtest rate limit: max 20 per minute.', retryAfter: 60 });
+    onLimitReached(req, res, { message: 'Backtest rate limit reached' });
+    res.status(429).json({
+      success: false,
+      error:   'Backtest rate limit — max 20 runs per minute',
+    });
   },
 });
 
-module.exports = { apiLimiter, nseProxyLimiter, authLimiter, backtestLimiter };
+// ── NSE proxy — 30 req / min ──────────────────────────────────────────────────
+const nseProxyLimiter = rateLimit({
+  windowMs:        60 * 1000,
+  max:             30,
+  keyGenerator,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  handler: (req, res) => {
+    res.status(429).json({ success: false, error: 'Market data rate limit exceeded' });
+  },
+});
+
+module.exports = { apiLimiter, authLimiter, backtestLimiter, nseProxyLimiter };

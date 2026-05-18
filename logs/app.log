@@ -619,3 +619,78 @@
 {"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-05-14 13:04:42.629"}
 {"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-05-14 13:04:43.153"}
 {"level":"info","message":"[App] SIGTERM — shutting down gracefully","timestamp":"2026-05-14 13:10:00.186"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-18 03:27:18.525"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: getaddrinfo ENOTFOUND db — starting in offline mode","timestamp":"2026-05-18 03:27:18.588"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-18 03:27:18.588"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-18 03:27:18.588"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-18 03:27:18.588"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-18 03:27:18.589"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-18 03:27:18.589"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-18 03:27:18.589"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-18 03:27:18.589"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [production]","timestamp":"2026-05-18 03:27:18.590"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-05-18 03:27:18.590"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-05-18 03:27:18.590"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-05-18 03:27:18.590"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-05-18 03:27:19.356"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-18 05:37:06.784"}
+{"level":"info","message":"[Scheduler] Running market scan...","timestamp":"2026-05-18 05:42:06.777"}
+{"level":"info","message":"[Screener] Scanning 20 symbols...","timestamp":"2026-05-18 05:42:06.777"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.789"}
+{"level":"warn","message":"[Screener] ADANIPORTS score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.790"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.791"}
+{"level":"warn","message":"[Screener] ADANIENT score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.791"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-18 05:42:06.793"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.793"}
+{"level":"warn","message":"[Screener] APOLLOHOSP score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.793"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.794"}
+{"level":"warn","message":"[Screener] ASIANPAINT score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.794"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.796"}
+{"level":"warn","message":"[Screener] BAJAJ-AUTO score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.796"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.797"}
+{"level":"warn","message":"[Screener] AXISBANK score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.797"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.799"}
+{"level":"warn","message":"[Screener] BAJFINANCE score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.800"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.802"}
+{"level":"warn","message":"[Screener] BAJAJFINSV score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.802"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.805"}
+{"level":"warn","message":"[Screener] BHARTIARTL score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.805"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.806"}
+{"level":"warn","message":"[Screener] BPCL score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.806"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.807"}
+{"level":"warn","message":"[Screener] BRITANNIA score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.807"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.808"}
+{"level":"warn","message":"[Screener] CIPLA score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.808"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.811"}
+{"level":"warn","message":"[Screener] DIVISLAB score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.811"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.811"}
+{"level":"warn","message":"[Screener] COALINDIA score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.811"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.815"}
+{"level":"warn","message":"[Screener] DRREDDY score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.815"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.815"}
+{"level":"warn","message":"[Screener] EICHERMOT score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.815"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.817"}
+{"level":"warn","message":"[Screener] HCLTECH score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.817"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.818"}
+{"level":"warn","message":"[Screener] GRASIM score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.818"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.819"}
+{"level":"warn","message":"[Screener] HDFCBANK score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.819"}
+{"level":"error","message":"[DB] Query error: getaddrinfo ENOTFOUND db | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-18 05:42:06.820"}
+{"level":"warn","message":"[Screener] HDFCLIFE score failed: getaddrinfo ENOTFOUND db","timestamp":"2026-05-18 05:42:06.820"}
+{"level":"warn","message":"[Screener] No symbols could be scored","timestamp":"2026-05-18 05:42:06.820"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-18 05:47:06.797"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-18 05:52:41.022"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: getaddrinfo ENOTFOUND db — starting in offline mode","timestamp":"2026-05-18 05:52:41.027"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-18 05:52:41.028"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-18 05:52:41.028"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-18 05:52:41.028"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-18 05:52:41.028"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-18 05:52:41.030"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-18 05:52:41.030"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-18 05:52:41.030"}
+{"level":"info","message":"[App] ✅ Running on port 3000 [production]","timestamp":"2026-05-18 05:52:41.031"}
+{"level":"info","message":"[App] 🔗 Health:  http://localhost:3000/health","timestamp":"2026-05-18 05:52:41.031"}
+{"level":"info","message":"[App] 🔗 API:     http://localhost:3000/api/info","timestamp":"2026-05-18 05:52:41.031"}
+{"level":"info","message":"[App] 🔗 WS:      ws://localhost:3000/ws","timestamp":"2026-05-18 05:52:41.031"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-05-18 05:52:41.279"}
+{"level":"info","message":"[App] SIGTERM — shutting down gracefully","timestamp":"2026-05-18 05:53:08.608"}

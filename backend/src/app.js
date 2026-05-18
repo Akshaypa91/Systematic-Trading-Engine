@@ -31,6 +31,7 @@ const feedbackRoutes = require('./routes/feedback');
 const liveDataFeed = require('./data/liveDataFeed');
 const scheduler    = require('./engine/scheduler');
 const simEngine    = require('./engine/simulationEngine');
+const requestTrace = require('./middleware/requestTrace');
 
 // ── Validate critical env vars at startup ─────────────────────────────────────
 function validateEnv() {
@@ -134,6 +135,7 @@ app.use('/api',          allRoutes);        // catch-all last
 // ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
+app.use(requestTrace);
 
 // ── Startup ───────────────────────────────────────────────────────────────────
 async function start() {
