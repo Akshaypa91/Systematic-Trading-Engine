@@ -28197,3 +28197,225 @@
 {"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-18 14:17:07.056"}
 {"level":"info","message":"[UpstoxWS] Reconnect #12 in 120s","timestamp":"2026-05-18 14:17:07.056"}
 {"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-18 14:17:07.057"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-19 13:24:26.290"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 82)","timestamp":"2026-05-19 13:24:27.860"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-05-19 13:24:28.351"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-05-19 13:24:28.352"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-05-19 13:24:28.352"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-05-19 13:24:29.279"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-05-19 13:24:30.191"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-05-19 13:24:31.240"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-05-19 13:24:32.341"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-05-19 13:24:33.280"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-05-19 13:24:34.491"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-05-19 13:24:35.720"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-05-19 13:24:36.641"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-05-19 13:24:37.561"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-05-19 13:24:38.558"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-05-19 13:24:39.714"}
+{"level":"debug","message":"[InitDB] ✅ exists   — password_resets","timestamp":"2026-05-19 13:24:40.638"}
+{"level":"debug","message":"[InitDB] ✅ exists   — feedback","timestamp":"2026-05-19 13:24:41.557"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-05-19 13:24:42.785"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-19 13:25:20.156"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 93)","timestamp":"2026-05-19 13:25:21.638"}
+{"level":"info","message":"[DB] Health check passed","timestamp":"2026-05-19 13:25:22.071"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-05-19 13:25:22.072"}
+{"level":"info","message":"[InitDB] Running table initialisation…","timestamp":"2026-05-19 13:25:22.072"}
+{"level":"debug","message":"[InitDB] ✅ exists   — users","timestamp":"2026-05-19 13:25:23.283"}
+{"level":"debug","message":"[InitDB] ✅ exists   — daily_prices","timestamp":"2026-05-19 13:25:24.567"}
+{"level":"debug","message":"[InitDB] ✅ exists   — signals","timestamp":"2026-05-19 13:25:25.637"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_runs","timestamp":"2026-05-19 13:25:26.541"}
+{"level":"debug","message":"[InitDB] ✅ exists   — backtest_trades","timestamp":"2026-05-19 13:25:27.422"}
+{"level":"debug","message":"[InitDB] ✅ exists   — paper_trades","timestamp":"2026-05-19 13:25:28.319"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolio","timestamp":"2026-05-19 13:25:29.320"}
+{"level":"debug","message":"[InitDB] ✅ exists   — performance_metrics","timestamp":"2026-05-19 13:25:30.197"}
+{"level":"debug","message":"[InitDB] ✅ exists   — data_fetch_log","timestamp":"2026-05-19 13:25:31.198"}
+{"level":"debug","message":"[InitDB] ✅ exists   — system_health","timestamp":"2026-05-19 13:25:32.090"}
+{"level":"debug","message":"[InitDB] ✅ exists   — portfolios","timestamp":"2026-05-19 13:25:33.166"}
+{"level":"debug","message":"[InitDB] ✅ exists   — password_resets","timestamp":"2026-05-19 13:25:34.238"}
+{"level":"debug","message":"[InitDB] ✅ exists   — feedback","timestamp":"2026-05-19 13:25:35.192"}
+{"level":"debug","message":"[InitDB] ✅ exists   — sim_trades","timestamp":"2026-05-19 13:25:36.238"}
+{"level":"info","message":"[InitDB] Done — 0 created, 14 existed, 0 failed","timestamp":"2026-05-19 13:25:36.239"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-19 13:25:36.240"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-19 13:25:36.240"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-19 13:25:36.241"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-19 13:25:36.241"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-19 13:25:36.241"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-19 13:25:36.241"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-19 13:25:36.241"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:25:36.242"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-05-19 13:25:36.270"}
+{"level":"info","message":"[App] 🚀 Running on port 3000 [development]","timestamp":"2026-05-19 13:25:36.272"}
+{"level":"info","message":"[App] 🔗 Health: http://localhost:3000/health","timestamp":"2026-05-19 13:25:36.272"}
+{"level":"info","message":"[App] 🔗 WS:     ws://localhost:3000/ws","timestamp":"2026-05-19 13:25:36.272"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:36.423"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:25:36.424"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-05-19 13:25:36.424"}
+{"level":"warn","message":"[App] Upstox WS failed: Unexpected server response: 401","timestamp":"2026-05-19 13:25:36.425"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-19 13:25:36.611"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:25:41.426"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:41.623"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:25:41.623"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-05-19 13:25:41.623"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:25:41.624"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:25:49.124"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:49.291"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:25:49.292"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-19 13:25:49.292"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:25:49.292"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:26:00.543"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:00.798"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:26:00.798"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-05-19 13:26:00.799"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:26:00.799"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-19 13:26:06.798"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:26:17.675"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:17.872"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:26:17.872"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-05-19 13:26:17.872"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:26:17.873"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:26:43.186"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:43.327"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:26:43.328"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-05-19 13:26:43.328"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:26:43.328"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-05-19 13:27:07.015"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:27:21.297"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:27:21.471"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:27:21.471"}
+{"level":"info","message":"[UpstoxWS] Reconnect #7 in 57s","timestamp":"2026-05-19 13:27:21.471"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:27:21.472"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 1ms — OK","timestamp":"2026-05-19 13:27:36.243"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:28:18.426"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:28:18.575"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:28:18.576"}
+{"level":"info","message":"[UpstoxWS] Reconnect #8 in 85s","timestamp":"2026-05-19 13:28:18.576"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:28:18.576"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 4): Request failed with status code 403 — retry in 240s","timestamp":"2026-05-19 13:29:09.442"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:29:36.244"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:29:44.005"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:29:44.271"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:29:44.271"}
+{"level":"info","message":"[UpstoxWS] Reconnect #9 in 120s","timestamp":"2026-05-19 13:29:44.272"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:29:44.272"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-05-19 13:30:36.240"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-19 13:30:36.240"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-05-19 13:30:36.240"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:31:36.243"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:31:44.272"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:31:44.454"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:31:44.454"}
+{"level":"info","message":"[UpstoxWS] Reconnect #10 in 120s","timestamp":"2026-05-19 13:31:44.454"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:31:44.454"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 5): Request failed with status code 403 — retry in 300s","timestamp":"2026-05-19 13:33:09.606"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:33:36.242"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:33:44.455"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:33:44.734"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:33:44.734"}
+{"level":"info","message":"[UpstoxWS] Reconnect #11 in 120s","timestamp":"2026-05-19 13:33:44.734"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:33:44.734"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-05-19 13:35:36.240"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-19 13:35:36.241"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 2ms — OK","timestamp":"2026-05-19 13:35:36.241"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:35:36.243"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:35:44.735"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:35:44.882"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:35:44.882"}
+{"level":"info","message":"[UpstoxWS] Reconnect #12 in 120s","timestamp":"2026-05-19 13:35:44.883"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:35:44.883"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:37:36.245"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:37:44.885"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:37:45.230"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:37:45.231"}
+{"level":"info","message":"[UpstoxWS] Reconnect #13 in 120s","timestamp":"2026-05-19 13:37:45.231"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:37:45.231"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 6): Request failed with status code 403 — retry in 300s","timestamp":"2026-05-19 13:38:09.701"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:39:36.246"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:39:45.231"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:39:45.550"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:39:45.551"}
+{"level":"info","message":"[UpstoxWS] Reconnect #14 in 120s","timestamp":"2026-05-19 13:39:45.551"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:39:45.551"}
+{"level":"info","message":"[Scheduler] Running market scan...","timestamp":"2026-05-19 13:40:36.240"}
+{"level":"info","message":"[Screener] Scanning 20 symbols...","timestamp":"2026-05-19 13:40:36.240"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-05-19 13:40:36.251"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-19 13:40:36.251"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 0ms — OK","timestamp":"2026-05-19 13:40:36.251"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:36.709"}
+{"level":"warn","message":"[Screener] ADANIENT score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:36.710"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:37.156"}
+{"level":"warn","message":"[Screener] BPCL score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:37.156"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:37.626"}
+{"level":"warn","message":"[Screener] BHARTIARTL score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:37.626"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.068"}
+{"level":"warn","message":"[Screener] BRITANNIA score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.069"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 94)","timestamp":"2026-05-19 13:40:38.209"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 98)","timestamp":"2026-05-19 13:40:38.210"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 95)","timestamp":"2026-05-19 13:40:38.217"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 97)","timestamp":"2026-05-19 13:40:38.218"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 96)","timestamp":"2026-05-19 13:40:38.219"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 99)","timestamp":"2026-05-19 13:40:38.219"}
+{"level":"debug","message":"[DB] New connection acquired (threadId: 100)","timestamp":"2026-05-19 13:40:38.221"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.787"}
+{"level":"warn","message":"[Screener] BAJAJ-AUTO score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.787"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.788"}
+{"level":"warn","message":"[Screener] AXISBANK score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.788"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.789"}
+{"level":"warn","message":"[Screener] APOLLOHOSP score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.789"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"warn","message":"[Screener] ASIANPAINT score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"warn","message":"[Screener] ADANIPORTS score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"warn","message":"[Screener] BAJAJFINSV score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"warn","message":"[Screener] CIPLA score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"warn","message":"[Screener] BAJFINANCE score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:38.792"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.399"}
+{"level":"warn","message":"[Screener] COALINDIA score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.400"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.400"}
+{"level":"warn","message":"[Screener] HDFCBANK score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.401"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.401"}
+{"level":"warn","message":"[Screener] DIVISLAB score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.401"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"warn","message":"[Screener] DRREDDY score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"warn","message":"[Screener] EICHERMOT score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"warn","message":"[Screener] GRASIM score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"warn","message":"[Screener] HCLTECH score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"warn","message":"[Screener] HDFCLIFE score failed: Unknown column 'trade_date' in 'field list'","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"warn","message":"[Screener] No symbols could be scored","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"debug","message":"[Scheduler] \"MARKET_SCAN\" completed in 3164ms — OK","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:41:36.246"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:41:45.552"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:41:45.728"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:41:45.728"}
+{"level":"info","message":"[UpstoxWS] Reconnect #15 in 120s","timestamp":"2026-05-19 13:41:45.728"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:41:45.729"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 7): Request failed with status code 403 — retry in 300s","timestamp":"2026-05-19 13:43:09.821"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:43:36.247"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:43:45.729"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:43:45.920"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:43:45.921"}
+{"level":"info","message":"[UpstoxWS] Reconnect #16 in 120s","timestamp":"2026-05-19 13:43:45.921"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:43:45.921"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-05-19 13:45:36.248"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-05-19 13:45:36.250"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-05-19 13:45:36.251"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-05-19 13:45:36.251"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:45:45.921"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:45:46.138"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:45:46.139"}
+{"level":"info","message":"[UpstoxWS] Reconnect #17 in 120s","timestamp":"2026-05-19 13:45:46.139"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:45:46.139"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 1ms — OK","timestamp":"2026-05-19 13:47:36.246"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-19 13:47:46.139"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:47:46.326"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-19 13:47:46.327"}
+{"level":"info","message":"[UpstoxWS] Reconnect #18 in 120s","timestamp":"2026-05-19 13:47:46.327"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:47:46.327"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 8): Request failed with status code 403 — retry in 300s","timestamp":"2026-05-19 13:48:09.947"}

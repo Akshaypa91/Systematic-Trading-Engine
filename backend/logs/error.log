@@ -560,3 +560,42 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-18 14:13:06.621"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-18 14:15:06.839"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-18 14:17:07.056"}
+{"level":"error","message":"[App] uncaughtException: listen EADDRINUSE: address already in use :::3000","timestamp":"2026-05-19 13:24:42.820"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:36.423"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:41.623"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:25:49.291"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:00.798"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:17.872"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:26:43.328"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:27:21.471"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:28:18.575"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:29:44.271"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:31:44.454"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:33:44.734"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:35:44.882"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:37:45.231"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:39:45.550"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:36.709"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:37.156"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:37.626"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.068"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.787"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.788"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.789"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.790"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:38.791"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.399"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.400"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.401"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.402"}
+{"level":"error","message":"[DB] Query error: Unknown column 'trade_date' in 'field list' | SQL: \n    SELECT\n      symbol, trade_date AS date,\n      open_price AS open, high_price AS high, low_price AS low,\n      clos","timestamp":"2026-05-19 13:40:39.403"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:41:45.728"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:43:45.921"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:45:46.139"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-19 13:47:46.326"}

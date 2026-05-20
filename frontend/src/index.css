@@ -458,8 +458,16 @@ body.nav-open { overflow:hidden; }
 }
 
 /* AppShell responsive */
+/* Bottom nav padding — prevents content hiding behind mobile nav */
 @media (max-width: 1023px) {
   .main-content-area {
     padding-left: 0 !important;
+    padding-bottom: 68px !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .page-content {
+    padding-bottom: 72px !important;
   }
 }

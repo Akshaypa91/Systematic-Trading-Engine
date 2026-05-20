@@ -15,6 +15,7 @@ import ForgotPassword  from './pages/ForgotPassword';
 import ResetPassword   from './pages/ResetPassword';
 import Feedback        from './pages/Feedback';
 import { useEffect } from 'react';
+import Analytics from './pages/Analytics';
 
 // Show toast on Upstox OAuth redirect
 function UpstoxCallback() {
@@ -62,7 +63,8 @@ export default function App() {
               <Route path="/signals"  element={<ProtectedRoute><Signals /></ProtectedRoute>} />
               <Route path="/trade"    element={<ProtectedRoute><Trade /></ProtectedRoute>} />
               <Route path="*"         element={<Navigate to="/" replace />} />
-                      <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+              <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         </Routes>
           </BrowserRouter>
         </WSProvider>

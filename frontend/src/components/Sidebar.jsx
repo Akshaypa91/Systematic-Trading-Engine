@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Zap, Search, TrendingUp,
-  Activity, Radio, ArrowLeftRight, X, MessageSquare
+  Activity, Radio, ArrowLeftRight, X, MessageSquare, BarChart2
 } from 'lucide-react';
 
 const NAV = [
@@ -14,6 +14,7 @@ const NAV = [
   { to:'/backtest', icon:TrendingUp,      label:'Backtest' },
   { to:'/trade',    icon:ArrowLeftRight,  label:'Trade' },
   { to:'/feedback',  icon:MessageSquare,   label:'Feedback' },
+  { to: '/analytics', icon: BarChart2, label: 'Analytics' },
 ];
 
 function isMarketOpen() {
