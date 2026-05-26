@@ -28419,3 +28419,521 @@
 {"level":"info","message":"[UpstoxWS] Reconnect #18 in 120s","timestamp":"2026-05-19 13:47:46.327"}
 {"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-19 13:47:46.327"}
 {"level":"debug","message":"[MarketData] NSE prime failed (attempt 8): Request failed with status code 403 — retry in 300s","timestamp":"2026-05-19 13:48:09.947"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-20 17:41:25.235"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: Connection lost: The server closed the connection. — starting in offline mode","timestamp":"2026-05-20 17:41:33.271"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-20 17:41:33.272"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-20 17:41:33.273"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-20 17:41:33.273"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-20 17:41:33.273"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-20 17:41:33.274"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-20 17:41:33.274"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-20 17:41:33.274"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:41:33.275"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-05-20 17:41:33.304"}
+{"level":"info","message":"[App] 🚀 Running on port 3000 [development]","timestamp":"2026-05-20 17:41:33.307"}
+{"level":"info","message":"[App] 🔗 Health: http://localhost:3000/health","timestamp":"2026-05-20 17:41:33.307"}
+{"level":"info","message":"[App] 🔗 WS:     ws://localhost:3000/ws","timestamp":"2026-05-20 17:41:33.307"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-20 17:41:33.687"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:41:34.027"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:41:34.028"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-05-20 17:41:34.029"}
+{"level":"warn","message":"[App] Upstox WS failed: Unexpected server response: 401","timestamp":"2026-05-20 17:41:34.029"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:41:39.030"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:41:39.882"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:41:39.882"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-05-20 17:41:39.882"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:41:39.883"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:41:47.385"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:41:47.954"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:41:47.954"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-20 17:41:47.954"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:41:47.955"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:41:59.206"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:41:59.790"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:41:59.790"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-05-20 17:41:59.791"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:41:59.791"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-20 17:42:09.627"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:42:16.668"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:42:17.031"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:42:17.031"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-05-20 17:42:17.031"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:42:17.032"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:42:42.346"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:42:42.931"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:42:42.932"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-05-20 17:42:42.932"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:42:42.932"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-05-20 17:43:12.637"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:43:20.902"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:43:21.465"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:43:21.466"}
+{"level":"info","message":"[UpstoxWS] Reconnect #7 in 57s","timestamp":"2026-05-20 17:43:21.466"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:43:21.466"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:44:18.421"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-20 17:44:18.653"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:44:18.653"}
+{"level":"info","message":"[UpstoxWS] Reconnect #8 in 85s","timestamp":"2026-05-20 17:44:18.654"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-20 17:44:18.654"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-20 17:45:18.809"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: Connection lost: The server closed the connection. — starting in offline mode","timestamp":"2026-05-20 17:45:26.689"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-20 17:45:26.690"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-20 17:45:26.690"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-20 17:45:26.690"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-20 17:45:26.691"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-20 17:45:26.691"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-20 17:45:26.691"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-20 17:45:26.691"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:45:26.692"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-05-20 17:45:26.716"}
+{"level":"error","message":"[App] uncaughtException: listen EADDRINUSE: address already in use :::3000","timestamp":"2026-05-20 17:45:26.718"}
+{"level":"info","message":"[App] uncaughtException — shutting down","timestamp":"2026-05-20 17:45:26.719"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-20 17:45:47.272"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: Connection lost: The server closed the connection. — starting in offline mode","timestamp":"2026-05-20 17:45:54.997"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-20 17:45:54.998"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-20 17:45:54.998"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-20 17:45:54.999"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-20 17:45:54.999"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-20 17:45:54.999"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-20 17:45:54.999"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-20 17:45:54.999"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:45:55.000"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-05-20 17:45:55.024"}
+{"level":"info","message":"[App] 🚀 Running on port 3000 [development]","timestamp":"2026-05-20 17:45:55.027"}
+{"level":"info","message":"[App] 🔗 Health: http://localhost:3000/health","timestamp":"2026-05-20 17:45:55.027"}
+{"level":"info","message":"[App] 🔗 WS:     ws://localhost:3000/ws","timestamp":"2026-05-20 17:45:55.027"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:45:55.254"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:45:55.255"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-05-20 17:45:55.255"}
+{"level":"warn","message":"[App] Upstox WS failed: Unexpected server response: 410","timestamp":"2026-05-20 17:45:55.256"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-20 17:45:55.498"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:46:00.257"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:46:00.519"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:46:00.520"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-05-20 17:46:00.520"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:46:00.521"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:46:08.022"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:46:08.627"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:46:08.628"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-20 17:46:08.628"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:46:08.628"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:46:19.880"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:46:20.107"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:46:20.108"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-05-20 17:46:20.108"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:46:20.108"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 2): Request failed with status code 403 — retry in 60s","timestamp":"2026-05-20 17:46:32.273"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:46:36.984"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:46:37.639"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:46:37.640"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-05-20 17:46:37.640"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:46:37.640"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:47:02.951"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:47:03.265"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:47:03.265"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-05-20 17:47:03.265"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:47:03.266"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 3): Request failed with status code 403 — retry in 120s","timestamp":"2026-05-20 17:47:37.144"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:47:41.233"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:47:41.812"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:47:41.813"}
+{"level":"info","message":"[UpstoxWS] Reconnect #7 in 57s","timestamp":"2026-05-20 17:47:41.813"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:47:41.813"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE bad price undefined","timestamp":"2026-05-20 17:48:23.331"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE bad price undefined","timestamp":"2026-05-20 17:48:25.486"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-20 17:48:25.666"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-20 17:48:26.010"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub bad price 0","timestamp":"2026-05-20 17:48:26.950"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub bad price 0","timestamp":"2026-05-20 17:48:26.963"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-20 17:48:38.768"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 410","timestamp":"2026-05-20 17:48:39.652"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-20 17:48:39.652"}
+{"level":"info","message":"[UpstoxWS] Reconnect #8 in 85s","timestamp":"2026-05-20 17:48:39.652"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 410","timestamp":"2026-05-20 17:48:39.652"}
+{"level":"info","message":"[DB] Connection pool initialized","timestamp":"2026-05-23 19:22:17.131"}
+{"level":"warn","message":"[App] ⚠️  DB unavailable: Connection lost: The server closed the connection. — starting in offline mode","timestamp":"2026-05-23 19:22:25.361"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-05-23 19:22:25.362"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-05-23 19:22:25.362"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-05-23 19:22:25.363"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-05-23 19:22:25.363"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-05-23 19:22:25.363"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-05-23 19:22:25.363"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-05-23 19:22:25.363"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:22:25.364"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-05-23 19:22:25.393"}
+{"level":"info","message":"[App] 🚀 Running on port 3000 [development]","timestamp":"2026-05-23 19:22:25.396"}
+{"level":"info","message":"[App] 🔗 Health: http://localhost:3000/health","timestamp":"2026-05-23 19:22:25.396"}
+{"level":"info","message":"[App] 🔗 WS:     ws://localhost:3000/ws","timestamp":"2026-05-23 19:22:25.396"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:22:25.644"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:22:25.644"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-05-23 19:22:25.645"}
+{"level":"warn","message":"[App] Upstox WS failed: Unexpected server response: 401","timestamp":"2026-05-23 19:22:25.645"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-05-23 19:22:25.711"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-05-23 19:22:25.862"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-23 19:22:26.524"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub bad price 0","timestamp":"2026-05-23 19:22:27.199"}
+{"level":"warn","message":"[MarketData] NSE TCS: Request failed with status code 403","timestamp":"2026-05-23 19:22:27.255"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-23 19:22:27.604"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub bad price 0","timestamp":"2026-05-23 19:22:27.948"}
+{"level":"warn","message":"[MarketData] CB OPEN nse — 15min cooldown","timestamp":"2026-05-23 19:22:28.013"}
+{"level":"warn","message":"[MarketData] NSE INFY: Request failed with status code 403","timestamp":"2026-05-23 19:22:28.013"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:22:28.360"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:22:28.394"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-23 19:22:28.751"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-23 19:22:28.804"}
+{"level":"warn","message":"[MarketData] CB OPEN finnhub — 15min cooldown","timestamp":"2026-05-23 19:22:29.095"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub bad price 0","timestamp":"2026-05-23 19:22:29.095"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:22:29.096"}
+{"level":"warn","message":"[MarketData] CB OPEN twelvedata — 15min cooldown","timestamp":"2026-05-23 19:22:29.435"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData error: This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing","timestamp":"2026-05-23 19:22:29.435"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:29.436"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:22:29.436"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:22:29.436"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:22:29.436"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:22:29.436"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:29.437"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:22:29.438"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:29.438"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:29.438"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub bad price 0","timestamp":"2026-05-23 19:22:29.439"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:22:30.646"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:22:30.778"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:22:30.778"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-05-23 19:22:30.778"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-23 19:22:30.778"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:22:37.397"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:37.397"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:37.397"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:22:37.398"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:22:38.279"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:22:38.459"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:22:38.459"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-05-23 19:22:38.459"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-23 19:22:38.459"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:22:40.398"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:40.398"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:40.398"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:40.399"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:40.400"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:22:46.400"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:46.400"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:22:46.401"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:22:49.402"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:22:49.403"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:49.404"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:49.405"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:22:49.405"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:49.405"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:49.405"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:22:49.710"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:22:49.931"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:22:49.931"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-05-23 19:22:49.931"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-23 19:22:49.931"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:22:55.404"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:55.405"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:55.405"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:22:55.405"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:22:55.405"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:22:55.405"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:22:55.406"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:22:55.406"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:22:55.406"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:22:58.412"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:58.412"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:58.413"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:22:58.414"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:04.415"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:04.415"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:04.415"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:04.415"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:04.415"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:04.416"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:04.416"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:04.416"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:04.416"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:23:06.807"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:23:06.989"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:23:06.990"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-05-23 19:23:06.990"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-23 19:23:06.990"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:07.415"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:07.416"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:07.416"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:07.416"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:07.416"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:07.416"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:07.417"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:07.418"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:13.417"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:13.417"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:13.418"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:13.418"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:13.418"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:13.418"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:13.419"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:13.419"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:13.419"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:16.418"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:16.419"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:16.419"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:16.419"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:16.419"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:16.420"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:16.420"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:16.420"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:16.421"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:16.421"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:16.421"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:16.421"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:16.421"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:16.422"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:16.422"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:16.422"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:16.422"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:16.422"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:16.423"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:16.423"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:16.423"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:22.420"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:22.421"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:22.421"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:22.421"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:22.421"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:22.422"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:22.422"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:22.422"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:22.422"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:25.422"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:25.423"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:25.424"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:25.425"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:31.424"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:31.425"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:31.425"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:31.425"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:31.426"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:31.426"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:31.426"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:31.426"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:31.426"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-05-23 19:23:32.304"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:23:32.538"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-05-23 19:23:32.538"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-05-23 19:23:32.538"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-05-23 19:23:32.538"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:34.426"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:34.426"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:34.427"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:34.427"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:34.428"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:34.429"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:40.426"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:40.427"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:40.427"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:40.427"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:40.428"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:40.428"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:40.428"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:40.428"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:40.428"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:43.427"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:43.428"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:43.428"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:43.428"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:43.428"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:43.429"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:43.430"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:43.431"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:43.431"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:49.429"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:49.430"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:23:52.431"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:52.431"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:52.431"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:23:52.431"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:52.431"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:52.432"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:23:52.432"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:23:52.432"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:23:52.432"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:23:52.432"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:52.433"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:52.434"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:23:52.434"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:23:52.434"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:23:52.434"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:23:58.433"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:23:58.433"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:23:58.434"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:23:58.434"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:23:58.434"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:23:58.434"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:23:58.434"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:23:58.435"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:23:58.435"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-05-23 19:24:01.435"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: TwelveData CB open","timestamp":"2026-05-23 19:24:01.435"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-05-23 19:24:01.436"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-05-23 19:24:01.436"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: TwelveData CB open","timestamp":"2026-05-23 19:24:01.436"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: TwelveData CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: TwelveData CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-05-23 19:24:01.437"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: TwelveData CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: TwelveData CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: TwelveData CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-05-23 19:24:01.438"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-05-23 19:24:07.437"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: TwelveData CB open","timestamp":"2026-05-23 19:24:07.437"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: TwelveData CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: TwelveData CB open","timestamp":"2026-05-23 19:24:07.438"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-05-23 19:24:07.438"}
