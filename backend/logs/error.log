@@ -622,3 +622,121 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:22:49.931"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:23:06.989"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-23 19:23:32.538"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:28:10.977"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:28:16.735"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:28:24.466"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:28:35.862"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:28:52.971"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:29:18.428"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:29:56.546"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:30:53.647"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:32:19.309"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:34:19.563"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:36:20.052"}
+{"level":"error","message":"[DB] Connection failed: Connection lost: The server closed the connection.","timestamp":"2026-05-31 09:44:54.487"}
+{"level":"error","message":"[App] uncaughtException: listen EADDRINUSE: address already in use :::3000","timestamp":"2026-05-31 09:44:54.517"}
+{"level":"error","message":"[App] uncaughtException: WebSocket was closed before the connection was established","timestamp":"2026-05-31 09:44:54.518"}
+{"level":"error","message":"[DB] Connection failed: Connection lost: The server closed the connection.","timestamp":"2026-05-31 09:45:16.602"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:45:16.854"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:45:22.050"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:45:30.136"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:45:41.601"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:45:58.707"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:46:24.388"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:47:02.514"}
+{"level":"error","message":"[DB] Connection failed: Connection lost: The server closed the connection.","timestamp":"2026-05-31 09:47:31.786"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:47:32.006"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:47:37.235"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 09:47:44.908"}
+{"level":"error","message":"[DB] Connection failed: Connection lost: The server closed the connection.","timestamp":"2026-05-31 10:14:13.681"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:14:14.098"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:14:19.481"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:14:27.252"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:14:38.763"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:14:55.817"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:15:21.271"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:15:59.504"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:16:56.633"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:18:22.335"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:20:22.597"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:22:22.883"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:24:23.059"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:26:23.289"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:28:23.438"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:30:23.772"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:32:24.792"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:34:25.028"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:36:25.271"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:38:25.768"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:40:25.924"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:42:26.095"}
+{"level":"error","message":"[UpstoxWS] Max reconnects (20) reached","timestamp":"2026-05-31 10:42:26.095"}
+{"level":"error","message":"[InitDB] ❌ failed   — users: unknown function: database()","timestamp":"2026-05-31 10:54:13.243"}
+{"level":"error","message":"[InitDB] ❌ failed   — daily_prices: unknown function: database()","timestamp":"2026-05-31 10:54:13.748"}
+{"level":"error","message":"[InitDB] ❌ failed   — signals: unknown function: database()","timestamp":"2026-05-31 10:54:14.055"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_runs: unknown function: database()","timestamp":"2026-05-31 10:54:14.422"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_trades: unknown function: database()","timestamp":"2026-05-31 10:54:14.822"}
+{"level":"error","message":"[InitDB] ❌ failed   — paper_trades: unknown function: database()","timestamp":"2026-05-31 10:54:15.222"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolio: unknown function: database()","timestamp":"2026-05-31 10:54:16.538"}
+{"level":"error","message":"[InitDB] ❌ failed   — performance_metrics: unknown function: database()","timestamp":"2026-05-31 10:54:17.964"}
+{"level":"error","message":"[InitDB] ❌ failed   — data_fetch_log: unknown function: database()","timestamp":"2026-05-31 10:54:18.892"}
+{"level":"error","message":"[InitDB] ❌ failed   — system_health: unknown function: database()","timestamp":"2026-05-31 10:54:19.282"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolios: unknown function: database()","timestamp":"2026-05-31 10:54:19.662"}
+{"level":"error","message":"[InitDB] ❌ failed   — password_resets: unknown function: database()","timestamp":"2026-05-31 10:54:20.052"}
+{"level":"error","message":"[InitDB] ❌ failed   — feedback: unknown function: database()","timestamp":"2026-05-31 10:54:20.442"}
+{"level":"error","message":"[InitDB] ❌ failed   — sim_trades: unknown function: database()","timestamp":"2026-05-31 10:54:20.812"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:54:21.169"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:54:26.328"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:54:34.086"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:54:45.861"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:55:02.953"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:55:29.631"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:56:07.871"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:57:05.028"}
+{"level":"error","message":"[InitDB] ❌ failed   — users: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:21.642"}
+{"level":"error","message":"[InitDB] ❌ failed   — daily_prices: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:22.082"}
+{"level":"error","message":"[InitDB] ❌ failed   — signals: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:22.543"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_runs: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:23.002"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:23.803"}
+{"level":"error","message":"[InitDB] ❌ failed   — paper_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:25.408"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolio: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:26.719"}
+{"level":"error","message":"[InitDB] ❌ failed   — performance_metrics: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:27.183"}
+{"level":"error","message":"[InitDB] ❌ failed   — data_fetch_log: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:27.614"}
+{"level":"error","message":"[InitDB] ❌ failed   — system_health: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:28.039"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolios: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:28.469"}
+{"level":"error","message":"[InitDB] ❌ failed   — password_resets: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:28.918"}
+{"level":"error","message":"[InitDB] ❌ failed   — feedback: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:29.292"}
+{"level":"error","message":"[InitDB] ❌ failed   — sim_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 10:58:29.752"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:58:30.019"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:58:35.276"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:58:42.957"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:58:54.447"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:59:11.496"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 10:59:37.353"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:00:15.554"}
+{"date":"Sun May 31 2026 11:00:52 GMT+0530 (India Standard Time)","error":{},"level":"error","message":"unhandledRejection: logger is not defined\nReferenceError: logger is not defined\n    at /Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:32\n    at Array.forEach (<anonymous>)\n    at validateEnv (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:12)\n    at start (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:142:3)\n    at Object.<anonymous> (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:202:1)\n    at Module._compile (node:internal/modules/cjs/loader:1811:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1942:10)\n    at Module.load (node:internal/modules/cjs/loader:1532:32)\n    at Module._load (node:internal/modules/cjs/loader:1334:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)","os":{"loadavg":[1.712890625,1.8984375,1.9638671875],"uptime":95591},"process":{"argv":["/opt/homebrew/Cellar/node/25.6.1/bin/node","/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js"],"cwd":"/Users/akshaypagare/Project/Systematic Trading Engine/backend","execPath":"/opt/homebrew/Cellar/node/25.6.1/bin/node","gid":20,"memoryUsage":{"arrayBuffers":19569,"external":3606589,"heapTotal":24117248,"heapUsed":18178672,"rss":78839808},"pid":14178,"uid":501,"version":"v25.6.1"},"rejection":true,"stack":"ReferenceError: logger is not defined\n    at /Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:32\n    at Array.forEach (<anonymous>)\n    at validateEnv (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:12)\n    at start (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:142:3)\n    at Object.<anonymous> (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:202:1)\n    at Module._compile (node:internal/modules/cjs/loader:1811:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1942:10)\n    at Module.load (node:internal/modules/cjs/loader:1532:32)\n    at Module._load (node:internal/modules/cjs/loader:1334:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)","timestamp":"2026-05-31 11:00:52.211","trace":[{"column":32,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":null,"line":48,"method":null,"native":false},{"column":null,"file":null,"function":"Array.forEach","line":null,"method":"forEach","native":false},{"column":12,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":"validateEnv","line":48,"method":null,"native":false},{"column":3,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":"start","line":142,"method":null,"native":false},{"column":1,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":null,"line":202,"method":null,"native":false},{"column":14,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1811,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Module._extensions..js","line":1942,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1532,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1334,"method":"_load","native":false},{"column":19,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":255,"method":null,"native":false}]}
+{"date":"Sun May 31 2026 11:01:00 GMT+0530 (India Standard Time)","error":{},"level":"error","message":"unhandledRejection: logger is not defined\nReferenceError: logger is not defined\n    at /Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:32\n    at Array.forEach (<anonymous>)\n    at validateEnv (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:12)\n    at start (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:142:3)\n    at Object.<anonymous> (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:202:1)\n    at Module._compile (node:internal/modules/cjs/loader:1811:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1942:10)\n    at Module.load (node:internal/modules/cjs/loader:1532:32)\n    at Module._load (node:internal/modules/cjs/loader:1334:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)","os":{"loadavg":[1.60302734375,1.8681640625,1.9521484375],"uptime":95599},"process":{"argv":["/opt/homebrew/Cellar/node/25.6.1/bin/node","/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js"],"cwd":"/Users/akshaypagare/Project/Systematic Trading Engine/backend","execPath":"/opt/homebrew/Cellar/node/25.6.1/bin/node","gid":20,"memoryUsage":{"arrayBuffers":19569,"external":3606589,"heapTotal":24379392,"heapUsed":18231296,"rss":78938112},"pid":14463,"uid":501,"version":"v25.6.1"},"rejection":true,"stack":"ReferenceError: logger is not defined\n    at /Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:32\n    at Array.forEach (<anonymous>)\n    at validateEnv (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:48:12)\n    at start (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:142:3)\n    at Object.<anonymous> (/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js:202:1)\n    at Module._compile (node:internal/modules/cjs/loader:1811:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1942:10)\n    at Module.load (node:internal/modules/cjs/loader:1532:32)\n    at Module._load (node:internal/modules/cjs/loader:1334:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)","timestamp":"2026-05-31 11:01:00.933","trace":[{"column":32,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":null,"line":48,"method":null,"native":false},{"column":null,"file":null,"function":"Array.forEach","line":null,"method":"forEach","native":false},{"column":12,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":"validateEnv","line":48,"method":null,"native":false},{"column":3,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":"start","line":142,"method":null,"native":false},{"column":1,"file":"/Users/akshaypagare/Project/Systematic Trading Engine/backend/src/app.js","function":null,"line":202,"method":null,"native":false},{"column":14,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1811,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Module._extensions..js","line":1942,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1532,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1334,"method":"_load","native":false},{"column":19,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":255,"method":null,"native":false}]}
+{"level":"error","message":"[InitDB] ❌ failed   — users: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:01:11.757"}
+{"level":"error","message":"[InitDB] ❌ failed   — daily_prices: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:01:12.197"}
+{"level":"error","message":"[InitDB] ❌ failed   — signals: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:01:12.636"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_runs: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:01:13.107"}
+{"level":"error","message":"[InitDB] ❌ failed   — users: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:36.547"}
+{"level":"error","message":"[InitDB] ❌ failed   — daily_prices: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:37.070"}
+{"level":"error","message":"[InitDB] ❌ failed   — signals: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:37.521"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_runs: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:37.920"}
+{"level":"error","message":"[InitDB] ❌ failed   — backtest_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:38.343"}
+{"level":"error","message":"[InitDB] ❌ failed   — paper_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:38.800"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolio: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:39.245"}
+{"level":"error","message":"[InitDB] ❌ failed   — performance_metrics: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:39.699"}
+{"level":"error","message":"[InitDB] ❌ failed   — data_fetch_log: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:40.160"}
+{"level":"error","message":"[InitDB] ❌ failed   — system_health: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:40.610"}
+{"level":"error","message":"[InitDB] ❌ failed   — portfolios: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:41.046"}
+{"level":"error","message":"[InitDB] ❌ failed   — password_resets: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:41.490"}
+{"level":"error","message":"[InitDB] ❌ failed   — feedback: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:41.886"}
+{"level":"error","message":"[InitDB] ❌ failed   — sim_trades: at or near \"unsigned\": syntax error","timestamp":"2026-05-31 11:02:42.314"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:02:42.654"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:02:49.017"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:02:56.766"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:03:08.260"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:03:25.349"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-05-31 11:03:50.842"}

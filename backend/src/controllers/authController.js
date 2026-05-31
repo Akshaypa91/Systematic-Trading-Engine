@@ -2,13 +2,13 @@
 'use strict';
 
 const bcrypt = require('bcryptjs');
-const jwt    = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const db     = require('../config/database');
+const db = require('../config/database');
 const logger = require('../config/logger');
 
-const JWT_SECRET    = process.env.JWT_SECRET || 'dev_secret_min_32_chars_please!!';
-const JWT_EXPIRY    = parseInt(process.env.JWT_EXPIRY_SECONDS || '604800', 10);
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_min_32_chars_please!!';
+const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY_SECONDS || '604800', 10);
 const BCRYPT_ROUNDS = 12;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -58,18 +58,21 @@ async function signup(req, res) {
       return res.status(409).json({ success: false, error: 'Email already registered' });
 
     const hashed = hashPassword(password);
-    const [result] = await db.query(
-      `INSERT INTO users (email, password, name, role, provider) VALUES (?, ?, ?, 'user', 'local')`,
+    const [rows] = await db.query(
+      `INSERT INTO users (email, password, name, role, provider)
+   VALUES (?, ?, ?, 'user', 'local')
+   RETURNING id`,
       [email, hashed, name || null]
     );
-    const userId = result.insertId;
+
+    const userId = rows[0].id;
     _autoCreatePortfolio(userId);
 
     // Send welcome email (non-blocking)
     try {
       const { sendWelcome } = require('../services/emailService');
-      sendWelcome(email, name).catch(() => {});
-    } catch (_) {}
+      sendWelcome(email, name).catch(() => { });
+    } catch (_) { }
 
     const token = signJWT({ userId, email, role: 'user' });
     logger.info(`[Auth] Signup: ${email}`);
@@ -91,7 +94,7 @@ async function login(req, res) {
 
   try {
     const [rows] = await db.query('SELECT * FROM users WHERE email = ? LIMIT 1', [email]);
-    const user   = rows[0];
+    const user = rows[0];
     if (!user || !user.password)
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
 
@@ -102,18 +105,18 @@ async function login(req, res) {
     const token = signJWT({ userId: user.id, email: user.email, role: user.role });
 
     // Non-blocking side effects
-    db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => {});
+    db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => { });
     _autoCreatePortfolio(user.id);
 
     logger.info(`[Auth] Login: ${email}`);
     return res.json({
       success: true, token, expiresIn: JWT_EXPIRY,
       user: {
-        id:       user.id,
-        email:    user.email,
-        name:     user.name,
-        role:     user.role,
-        picture:  user.picture,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        picture: user.picture,
         provider: user.provider || 'local',
       },
     });
@@ -151,13 +154,13 @@ async function forgotPassword(req, res) {
     const [rows] = await db.query('SELECT id FROM users WHERE email = ? LIMIT 1', [email]);
     if (!rows[0]) return res.json(SUCCESS_MSG);
 
-    const token  = crypto.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex');
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await db.query(
-      `INSERT INTO password_resets (user_id, token, expires_at)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)`,
+      `UPSERT INTO password_resets
+   (user_id, token, expires_at)
+   VALUES (?, ?, ?)`,
       [rows[0].id, token, expiry]
     );
 
@@ -222,9 +225,9 @@ async function submitFeedback(req, res) {
       `INSERT INTO feedback (name, email, type, message, rating, user_id, created_at)
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
-        (name    || '').slice(0, 100),
-        (email   || '').slice(0, 255),
-        (type    || 'general').slice(0, 50),
+        (name || '').slice(0, 100),
+        (email || '').slice(0, 255),
+        (type || 'general').slice(0, 50),
         message.trim().slice(0, 2000),
         rating ? parseInt(rating, 10) : null,
         req.user?.userId ?? req.user?.id ?? null,

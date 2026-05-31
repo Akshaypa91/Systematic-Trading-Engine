@@ -27,7 +27,7 @@
 
 'use strict';
 
-const db     = require('./database');
+const db = require('./database');
 const logger = require('./logger');
 
 // ── DDL statements ────────────────────────────────────────────────────────────
@@ -290,7 +290,7 @@ const TABLES = [
     `,
   },
 
-  
+
   // ── password_resets ──────────────────────────────────────────────────────────
   {
     name: 'password_resets',
@@ -369,18 +369,15 @@ async function initDB() {
 
   for (const { name, sql } of TABLES) {
     try {
-      // Check if table already exists — avoid misleading "created" log
       const [rows] = await db.query(
         `SELECT COUNT(*) AS cnt
-         FROM information_schema.TABLES
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = ?`,
+       FROM information_schema.tables
+       WHERE table_name = ?`,
         [name]
       );
 
-      const existed = rows[0].cnt > 0;
+      const existed = Number(rows[0].cnt) > 0;
 
-      // Run DDL regardless — IF NOT EXISTS makes it a no-op if table is there
       await db.query(sql.trim());
 
       if (existed) {
@@ -388,12 +385,11 @@ async function initDB() {
         logger.debug(`[InitDB] ✅ exists   — ${name}`);
       } else {
         results.created.push(name);
-        logger.info(`[InitDB] ✅ created  — ${name}`);
+        logger.debug(`[InitDB] ✅ created  — ${name}`);
       }
     } catch (err) {
       results.failed.push(name);
       logger.error(`[InitDB] ❌ failed   — ${name}: ${err.message}`);
-      // Non-fatal: log and continue with remaining tables
     }
   }
 

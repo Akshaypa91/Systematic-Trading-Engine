@@ -2,12 +2,12 @@
 'use strict';
 
 const { OAuth2Client } = require('google-auth-library');
-const db     = require('../config/database');
+const db = require('../config/database');
 const logger = require('../config/logger');
 const { signJWT } = require('./authController');
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const client    = new OAuth2Client(CLIENT_ID);
+const client = new OAuth2Client(CLIENT_ID);
 
 /**
  * POST /api/auth/google
@@ -16,7 +16,7 @@ const client    = new OAuth2Client(CLIENT_ID);
 async function googleAuth(req, res) {
   const { credential } = req.body;
   if (!credential) return res.status(400).json({ success: false, error: 'credential required' });
-  if (!CLIENT_ID)  return res.status(500).json({ success: false, error: 'GOOGLE_CLIENT_ID not configured' });
+  if (!CLIENT_ID) return res.status(500).json({ success: false, error: 'GOOGLE_CLIENT_ID not configured' });
 
   let payload;
   try {
@@ -52,7 +52,12 @@ async function googleAuth(req, res) {
          VALUES (?, ?, NULL, 'google', ?, ?, 'user', NOW())`,
         [email, name || email.split('@')[0], googleId, picture]
       );
-      const [newRows] = await db.query('SELECT * FROM users WHERE id = ? LIMIT 1', [result.insertId]);
+
+      const userId = rows[0].id;
+      const [newRows] = await db.query(
+        'SELECT * FROM users WHERE id = ? LIMIT 1',
+        [userId]
+      );
       user = newRows[0];
       logger.info(`[GoogleAuth] Signup: ${email}`);
     }
@@ -76,12 +81,12 @@ async function googleAuth(req, res) {
       success: true,
       token,
       user: {
-        id:      user.id,
-        email:   user.email,
-        name:    user.name,
+        id: user.id,
+        email: user.email,
+        name: user.name,
         picture: user.picture,
-        role:    user.role,
-        provider:'google',
+        role: user.role,
+        provider: 'google',
       },
     });
   } catch (err) {
