@@ -42,9 +42,37 @@ async function closePool() {
 	await pool.end();
 }
 
+async function transaction(callback) {
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const tx = {
+            query: async (sql, params = []) => {
+                sql = convertPlaceholders(sql);
+                const result = await client.query(sql, params);
+                return [result.rows, result];
+            }
+        };
+
+        const result = await callback(tx);
+
+        await client.query('COMMIT');
+
+        return result;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
 	pool,
 	query,
+	transaction,
 	testConnection,
 	closePool,
 };
