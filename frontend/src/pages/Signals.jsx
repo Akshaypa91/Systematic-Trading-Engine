@@ -128,7 +128,9 @@ export default function Signals() {
       if (Array.isArray(sigs) && sigs.length > 0) {
         setSignals(prev => mergeMany(prev, sigs));
       }
-    } catch (_) {}
+    } catch (_err) {
+      // Polling is a fallback path; keep the latest successful signals on transient failures.
+    }
   }, []);
 
   useEffect(() => {

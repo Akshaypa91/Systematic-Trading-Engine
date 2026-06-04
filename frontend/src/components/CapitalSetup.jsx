@@ -159,7 +159,7 @@ export default function CapitalSetup({ onInitialized }) {
                   onClick={() => handlePreset(p.value)}
                   className="font-mono"
                   style={{
-                    padding: '8px 0', borderRadius: 8, border: 'none',
+                    padding: '8px 0', borderRadius: 8,
                     cursor: 'pointer', fontSize: 12, fontWeight: 600,
                     transition: 'all 0.15s',
                     background: active
@@ -255,7 +255,7 @@ export default function CapitalSetup({ onInitialized }) {
           style={{
             width: '100%', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: 8,
-            padding: '13px 0', borderRadius: 10, border: 'none',
+            padding: '13px 0', borderRadius: 10,
             cursor: valid && !busy ? 'pointer' : 'not-allowed',
             fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
             letterSpacing: '0.07em', transition: 'all 0.18s',

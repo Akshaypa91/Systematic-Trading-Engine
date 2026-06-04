@@ -63,6 +63,14 @@ export const tradeAPI = {
   placeOrder:   (body)       => api.post('/trade/order', body),
 };
 
+export const tradeJournalAPI = {
+  list:      (params = {}) => api.get('/trade-journal', { params }),
+  create:    (body)        => api.post('/trade-journal', body),
+  update:    (id, body)    => api.put(`/trade-journal/${id}`, body),
+  remove:    (id)          => api.delete(`/trade-journal/${id}`),
+  analytics: ()            => api.get('/trade-journal/analytics'),
+};
+
 export const screenerAPI = {
   run:   (params = {}) => api.get('/screener',          { params }),
   score: (symbol)      => api.get(`/screener/score/${symbol}`),

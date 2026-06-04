@@ -107,6 +107,24 @@ const _state = {
   openPositions: new Map(),   // symbol → position
   dailyPnl:      0,
 };
+const _states = new Map();
+
+function _userKey(userId) {
+  return userId == null ? 'anon' : String(userId);
+}
+
+function _getState(userId = null) {
+  const key = _userKey(userId);
+  if (!key || key === 'anon') return _state;
+  if (!_states.has(key)) {
+    _states.set(key, {
+      capital:       parseFloat(process.env.DEFAULT_CAPITAL || C.RISK.DEFAULT_CAPITAL),
+      openPositions: new Map(),
+      dailyPnl:      0,
+    });
+  }
+  return _states.get(key);
+}
 
 // ── Safety state (new) ────────────────────────────────────────────────────────
 // Signal dedup: Set of hashes for today's processed signals
@@ -126,9 +144,9 @@ const MAX_RECENT    = 200;
 
 function _today() { return new Date().toISOString().slice(0, 10); }
 
-function _signalHash(symbol, date, side) {
+function _signalHash(symbol, date, side, userId = null) {
   return crypto.createHash('sha256')
-    .update(`${symbol}|${date}|${side}`)
+    .update(`${_userKey(userId)}|${symbol}|${date}|${side}`)
     .digest('hex')
     .slice(0, 16);
 }
@@ -182,12 +200,17 @@ async function _retry(fn, attempts = DB_RETRY_ATTEMPTS, baseMs = DB_RETRY_BASE_M
  * @param {string} symbol
  * @returns {{ blocked: boolean, remainingMs: number, reason: string }}
  */
-function checkCooldown(symbol) {
-  const cd = _cooldowns.get(symbol);
+function _cooldownKey(symbol, userId = null) {
+  return `${_userKey(userId)}:${symbol}`;
+}
+
+function checkCooldown(symbol, userId = null) {
+  const key = _cooldownKey(symbol, userId);
+  const cd = _cooldowns.get(key);
   if (!cd) return { blocked: false, remainingMs: 0, reason: '' };
   const remaining = cd.until - Date.now();
   if (remaining <= 0) {
-    _cooldowns.delete(symbol);
+    _cooldowns.delete(key);
     return { blocked: false, remainingMs: 0, reason: '' };
   }
   return { blocked: true, remainingMs: remaining, reason: cd.reason };
@@ -198,7 +221,7 @@ function checkCooldown(symbol) {
  * @param {string} symbol
  * @param {string} exitReason  'STOP_LOSS' | 'TAKE_PROFIT' | 'SIGNAL' | 'BUY'
  */
-function _setCooldown(symbol, exitReason) {
+function _setCooldown(symbol, exitReason, userId = null) {
   let multiplier = 1;
   if (exitReason === 'STOP_LOSS')   multiplier = SL_COOLDOWN_MULT;
   if (exitReason === 'TAKE_PROFIT') multiplier = TP_COOLDOWN_MULT;
@@ -206,7 +229,9 @@ function _setCooldown(symbol, exitReason) {
   const durationMs = COOLDOWN_MINUTES * 60 * 1000 * multiplier;
   const until      = Date.now() + durationMs;
 
-  _cooldowns.set(symbol, {
+  _cooldowns.set(_cooldownKey(symbol, userId), {
+    symbol,
+    userId,
     until,
     reason:      `Post-${exitReason} cooldown (${Math.round(durationMs / 60000)} min)`,
     exitReason,
@@ -310,7 +335,7 @@ async function _simulateExecution(price, side, realisedVol = 0.20) {
  * Run all pre-trade safety checks. Returns first blocking failure.
  * @returns {{ approved: boolean, reasons: string[] }}
  */
-function _validateOrder({ symbol, side, quantity, price, strategy }) {
+function _validateOrder({ symbol, side, quantity, price, strategy, state = _state, userId = null }) {
   const reasons = [];
 
   // 1. Basic param check
@@ -335,24 +360,24 @@ function _validateOrder({ symbol, side, quantity, price, strategy }) {
     // 3. Capital check (including commission estimate)
     const commEst    = tradeValue * (C.BACKTEST.COMMISSION_PCT || 0.0003);
     const totalNeed  = tradeValue + commEst;
-    if (totalNeed > _state.capital)
-      reasons.push(`Insufficient capital: need ₹${totalNeed.toFixed(0)}, have ₹${_state.capital.toFixed(0)}`);
+    if (totalNeed > state.capital)
+      reasons.push(`Insufficient capital: need ₹${totalNeed.toFixed(0)}, have ₹${state.capital.toFixed(0)}`);
 
     // 4. Max single trade size
-    if (tradeValue / _state.capital > MAX_TRADE_PCT)
-      reasons.push(`Trade ₹${tradeValue.toFixed(0)} = ${((tradeValue / _state.capital) * 100).toFixed(1)}% of capital, max ${(MAX_TRADE_PCT * 100).toFixed(0)}%`);
+    if (tradeValue / state.capital > MAX_TRADE_PCT)
+      reasons.push(`Trade ₹${tradeValue.toFixed(0)} = ${((tradeValue / state.capital) * 100).toFixed(1)}% of capital, max ${(MAX_TRADE_PCT * 100).toFixed(0)}%`);
 
     // 5. Daily loss limit
-    const dailyCheck = riskMgr.checkDailyLossLimit('default', _state.capital);
+    const dailyCheck = riskMgr.checkDailyLossLimit(_userKey(userId), state.capital);
     if (dailyCheck.blocked)
       reasons.push(`Daily loss limit reached: ${dailyCheck.reason}`);
 
     // 6. Max open positions
-    if (_state.openPositions.size >= (C.RISK.MAX_OPEN_POSITIONS || 10))
+    if (state.openPositions.size >= (C.RISK.MAX_OPEN_POSITIONS || 10))
       reasons.push(`Max open positions (${C.RISK.MAX_OPEN_POSITIONS || 10}) reached`);
 
     // 7. No pyramiding
-    if (_state.openPositions.has(symbol))
+    if (state.openPositions.has(symbol))
       reasons.push(`Position already open for ${symbol}`);
   }
 
@@ -443,6 +468,7 @@ function _logTrade(event, data) {
  */
 async function placeOrder(params) {
   const {
+    userId         = null,
     symbol,
     side,
     quantity,
@@ -459,10 +485,11 @@ async function placeOrder(params) {
   } = params;
 
   const sym = (symbol || '').toUpperCase();
+  const state = _getState(userId);
   _logTrade('SIGNAL_RECEIVED', { symbol: sym, side, quantity, price: currentPrice, strategy });
 
   // ── 1. Input validation ──────────────────────────────────────────────────
-  const validation = _validateOrder({ symbol: sym, side, quantity, price: currentPrice, strategy });
+  const validation = _validateOrder({ symbol: sym, side, quantity, price: currentPrice, strategy, state, userId });
   if (!validation.approved) {
     _logTrade('ORDER_REJECTED', { symbol: sym, side, quantity, reasons: validation.reasons });
     return { status: 'REJECTED', symbol: sym, side, quantity, reasons: validation.reasons };
@@ -471,7 +498,7 @@ async function placeOrder(params) {
   // ── 2. Signal deduplication ──────────────────────────────────────────────
   if (!skipDedup && side === 'BUY') {
     _checkDedupReset();
-    const hash = _signalHash(sym, _today(), side);
+    const hash = _signalHash(sym, _today(), side, userId);
     if (_signalDedup.has(hash)) {
       _logTrade('ORDER_DEDUP', { symbol: sym, side, hash });
       return {
@@ -486,7 +513,7 @@ async function placeOrder(params) {
 
   // ── 3. Cooldown check ────────────────────────────────────────────────────
   if (!skipCooldown) {
-    const cd = checkCooldown(sym);
+    const cd = checkCooldown(sym, userId);
     if (cd.blocked) {
       _logTrade('ORDER_COOLDOWN', { symbol: sym, side, ...cd });
       return {
@@ -501,12 +528,12 @@ async function placeOrder(params) {
 
   // ── 4. Re-run risk validation (in case state changed since step 1) ───────
   const riskCheck = riskMgr.validateTrade({
-    capital:       _state.capital,
+    capital:       state.capital,
     entryPrice:    currentPrice,
     quantity,
     side,
-    portfolioId:   'default',
-    openPositions: _state.openPositions.size,
+    portfolioId:   _userKey(userId),
+    openPositions: state.openPositions.size,
   });
   if (!riskCheck.approved) {
     _logTrade('ORDER_REJECTED', { symbol: sym, side, quantity, reasons: riskCheck.reasons });
@@ -554,9 +581,9 @@ async function placeOrder(params) {
     const totalCost = fillPrice * filledQty + commissionAmt;
 
     // Final capital check against actual filled quantity
-    if (totalCost > _state.capital) {
+    if (totalCost > state.capital) {
       _logTrade('ORDER_REJECTED', { symbol: sym, side: 'BUY', quantity: filledQty,
-        reasons: [`Insufficient capital post-delay: need ₹${totalCost.toFixed(0)}, have ₹${_state.capital.toFixed(0)}`] });
+        reasons: [`Insufficient capital post-delay: need ₹${totalCost.toFixed(0)}, have ₹${state.capital.toFixed(0)}`] });
       return {
         status: 'REJECTED', symbol: sym, side, quantity,
         reasons: [`Insufficient capital post-delay: need ₹${totalCost.toFixed(0)}`],
@@ -565,8 +592,8 @@ async function placeOrder(params) {
 
     const levels = riskMgr.computeLevels({ entryPrice: fillPrice, side, stopLossPct, takeProfitPct });
 
-    _state.capital -= totalCost;
-    _state.openPositions.set(sym, {
+    state.capital -= totalCost;
+    state.openPositions.set(sym, {
       symbol: sym,
       qty:          filledQty,
       entryPrice:   fillPrice,
@@ -578,14 +605,9 @@ async function placeOrder(params) {
       realisedVol,
     });
 
-    // FIX: persist stop/take-profit levels on the order record so _persistOrder
-    // can write them to the DB (previously always NULL in paper_trades table)
-    order.stopLossPrice   = levels.stopLoss;
-    order.takeProfitPrice = levels.takeProfit;
-
   } else {
     // SELL — close existing position
-    const pos = _state.openPositions.get(sym);
+    const pos = state.openPositions.get(sym);
     if (!pos) {
       logger.warn(`[Exec] SELL on ${sym} with no open position — ignoring`);
       return { status: 'REJECTED', symbol: sym, side: 'SELL', quantity,
@@ -597,21 +619,22 @@ async function placeOrder(params) {
     pnl     = parseFloat((sellProceeds - entryValue).toFixed(2));
     pnlPct  = parseFloat(((pnl / entryValue) * 100).toFixed(4));
 
-    _state.capital  += sellProceeds;
-    _state.dailyPnl += pnl;
+    state.capital  += sellProceeds;
+    state.dailyPnl += pnl;
 
-    if (pnl < 0) riskMgr.recordDailyLoss('default', Math.abs(pnl));
-    _state.openPositions.delete(sym);
+    if (pnl < 0) riskMgr.recordDailyLoss(_userKey(userId), Math.abs(pnl));
+    state.openPositions.delete(sym);
 
     _logTrade('POSITION_CLOSED', { symbol: sym, exitReason, pnl, pnlPct, fillPrice });
 
     // Set cooldown AFTER position is closed
-    _setCooldown(sym, exitReason);
+    _setCooldown(sym, exitReason, userId);
   }
 
   // ── 8. Build order record ─────────────────────────────────────────────────
   const order = {
     orderId,
+    userId,
     symbol: sym,
     side,
     requestedQty:    quantity,
@@ -630,6 +653,12 @@ async function placeOrder(params) {
     pnl,
     pnlPct,
   };
+
+  if (side === 'BUY') {
+    const pos = state.openPositions.get(sym);
+    order.stopLossPrice = pos?.stopLoss ?? null;
+    order.takeProfitPrice = pos?.takeProfit ?? null;
+  }
 
   _logTrade('ORDER_PLACED', {
     symbol: sym, side, requestedQty: quantity, filledQty,
@@ -650,7 +679,7 @@ async function placeOrder(params) {
     order.dbPersisted = false;
   }
 
-  return { ...order, portfolioState: getPortfolioState() };
+  return { ...order, portfolioState: getPortfolioState(userId) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -662,9 +691,10 @@ async function placeOrder(params) {
  * Bypasses cooldown (SL/TP exits must always execute).
  * Sets appropriate cooldown AFTER close.
  */
-async function checkAndClosePosition(symbol, currentPrice) {
+async function checkAndClosePosition(symbol, currentPrice, userId = null) {
   const sym = symbol.toUpperCase();
-  const pos = _state.openPositions.get(sym);
+  const state = _getState(userId);
+  const pos = state.openPositions.get(sym);
   if (!pos) return null;
 
   let exitReason = null;
@@ -676,6 +706,7 @@ async function checkAndClosePosition(symbol, currentPrice) {
 
   const result = await placeOrder({
     symbol:       sym,
+    userId,
     side:         'SELL',
     quantity:     pos.qty,
     orderType:    'MARKET',
@@ -688,7 +719,7 @@ async function checkAndClosePosition(symbol, currentPrice) {
 
   // Override exitReason in cooldown to get the right multiplier
   if (result.status === 'EXECUTED') {
-    _setCooldown(sym, exitReason);
+    _setCooldown(sym, exitReason, userId);
   }
 
   return { ...result, exitReason };
@@ -698,19 +729,21 @@ async function checkAndClosePosition(symbol, currentPrice) {
 // PORTFOLIO STATE
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getPortfolioState() {
+function getPortfolioState(userId = null) {
+  const state = _getState(userId);
   return {
-    capital:       _state.capital,
-    openPositions: Object.fromEntries(_state.openPositions),
-    openCount:     _state.openPositions.size,
-    dailyPnl:      _state.dailyPnl,
+    capital:       state.capital,
+    openPositions: Object.fromEntries(state.openPositions),
+    openCount:     state.openPositions.size,
+    dailyPnl:      state.dailyPnl,
   };
 }
 
 /** Get full safety state snapshot (for monitoring/API). */
 function getSafetyState() {
-  const cooldownList = [..._cooldowns.entries()].map(([sym, cd]) => ({
-    symbol:     sym,
+  const cooldownList = [..._cooldowns.entries()].map(([, cd]) => ({
+    symbol:     cd.symbol,
+    userId:     cd.userId,
     remaining:  Math.max(0, cd.until - Date.now()),
     reason:     cd.reason,
     exitReason: cd.exitReason,
@@ -738,31 +771,36 @@ function getSafetyState() {
 async function _persistOrder(order) {
   await db.query(`
     INSERT INTO paper_trades
-      (order_id, symbol, order_type, side, quantity, limit_price,
+      (user_id, order_id, symbol, order_type, side, quantity, limit_price,
        executed_price, status, strategy, signal_id, stop_loss_price,
        take_profit_price, pnl, pnl_pct, commission, executed_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `, [
-    order.orderId, order.symbol, order.orderType, order.side, order.quantity,
+    order.userId, order.orderId, order.symbol, order.orderType, order.side, order.quantity,
     order.limitPrice, order.executedPrice, order.status, order.strategy,
     order.signalId, order.stopLossPrice ?? null, order.takeProfitPrice ?? null,
     order.pnl ?? null, order.pnlPct ?? null, order.commission, order.executedAt,
   ]);
 }
 
-async function getRecentOrders(limit = 50) {
+async function getRecentOrders(limit = 50, userId = null) {
   // Return in-memory cache first (fast path), fall back to DB
-  if (_recentTrades.length >= Math.min(limit, MAX_RECENT)) {
-    return _recentTrades.slice(0, limit);
+  const cached = _recentTrades.filter(t => (t.userId ?? null) === (userId ?? null));
+  if (cached.length >= Math.min(limit, MAX_RECENT)) {
+    return cached.slice(0, limit);
   }
   try {
     const [rows] = await db.query(
-      'SELECT * FROM paper_trades ORDER BY created_at DESC LIMIT ?', [limit]
+      `SELECT * FROM paper_trades
+       WHERE user_id IS NOT DISTINCT FROM ?
+       ORDER BY created_at DESC
+       LIMIT ?`,
+      [userId, limit]
     );
     return rows;
   } catch (err) {
     logger.warn(`[Exec] getRecentOrders DB fallback failed: ${err.message}`);
-    return _recentTrades.slice(0, limit);
+    return cached.slice(0, limit);
   }
 }
 

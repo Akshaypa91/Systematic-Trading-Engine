@@ -57,7 +57,9 @@ export default function Backtest() {
       const r = await backtestAPI.getTrades(runId);
       setTrades(r.data.data || []);
       setToast({ message: `Loaded run #${runId} trades`, type: 'info' });
-    } catch {}
+    } catch (_err) {
+      setToast({ message: 'Could not load trades for this run', type: 'error' });
+    }
   }
 
   const s = result?.summary;

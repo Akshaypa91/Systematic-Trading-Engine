@@ -471,3 +471,99 @@ body.nav-open { overflow:hidden; }
     padding-bottom: 72px !important;
   }
 }
+
+/* ── Trade journal ───────────────────────────────────────────────────────── */
+.journal-page { max-width: 1500px; }
+.journal-header {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; margin-bottom:18px;
+}
+.journal-title-row { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.journal-title-row h1 { font-size:20px; font-weight:700; color:var(--text-primary); }
+.journal-header p { font-size:11px; color:var(--text-muted); }
+.journal-error {
+  padding:10px 14px; border-radius:8px; margin-bottom:14px;
+  background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);
+  color:var(--red); font-size:12px;
+}
+.journal-stats {
+  display:grid; grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:12px; margin-bottom:16px;
+}
+.journal-stat { padding:16px; display:flex; flex-direction:column; gap:5px; }
+.journal-stat strong {
+  font-family:var(--font-mono); font-size:22px; color:var(--text-primary);
+}
+.journal-stat small {
+  color:var(--text-muted); font-size:11px; font-family:var(--font-mono);
+}
+.journal-layout {
+  display:grid; grid-template-columns:minmax(320px, 420px) minmax(0, 1fr);
+  gap:16px; align-items:start;
+}
+.journal-form { padding:18px; display:flex; flex-direction:column; gap:12px; }
+.journal-form h2 { font-size:15px; font-weight:700; color:var(--text-primary); }
+.journal-form-grid {
+  display:grid; grid-template-columns:1fr 120px; gap:10px;
+}
+.journal-form label {
+  display:flex; flex-direction:column; gap:6px;
+  font-size:11px; font-weight:600; letter-spacing:0.04em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.journal-form input,
+.journal-form select,
+.journal-form textarea {
+  width:100%; padding:9px 11px; border-radius:8px;
+  background:var(--bg-elevated); border:1px solid var(--border);
+  color:var(--text-primary); font:13px var(--font-ui); outline:none;
+}
+.journal-form textarea { resize:vertical; line-height:1.5; min-height:76px; }
+.journal-form input:focus,
+.journal-form select:focus,
+.journal-form textarea:focus {
+  border-color:var(--border-accent); box-shadow:0 0 0 3px rgba(59,130,246,0.08);
+}
+.journal-list { display:flex; flex-direction:column; gap:12px; min-width:0; }
+.journal-tags { padding:14px; }
+.journal-tags > div { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.journal-tags span,
+.journal-entry-tags span {
+  display:inline-flex; align-items:center; min-height:26px;
+  padding:4px 9px; border-radius:999px; font-size:11px;
+  font-family:var(--font-mono); color:var(--cyan);
+  background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.15);
+}
+.journal-empty { padding:28px; text-align:center; color:var(--text-muted); }
+.journal-entry { padding:16px; }
+.journal-entry-head {
+  display:flex; justify-content:space-between; gap:12px; align-items:flex-start;
+  margin-bottom:6px;
+}
+.journal-entry-head > div { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.journal-entry-head strong { font-family:var(--font-mono); font-size:15px; }
+.journal-entry-meta { color:var(--text-muted); font-size:11px; margin-bottom:12px; }
+.journal-entry p {
+  color:var(--text-secondary); font-size:13px; line-height:1.65; margin-top:8px;
+  overflow-wrap:anywhere;
+}
+.journal-entry b { color:var(--text-primary); font-weight:600; }
+.journal-entry a {
+  display:inline-flex; margin-top:10px; color:var(--cyan);
+  font-size:12px; text-decoration:none;
+}
+.journal-entry-tags { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+
+@media (max-width: 1023px) {
+  .journal-layout { grid-template-columns:1fr; }
+  .journal-stats { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .journal-header { align-items:flex-start; flex-direction:column; }
+  .journal-header .btn { width:100%; justify-content:center; }
+  .journal-form-grid { grid-template-columns:1fr; }
+  .journal-stats { grid-template-columns:1fr 1fr; gap:10px; }
+  .journal-stat { padding:13px; }
+  .journal-stat strong { font-size:19px; }
+}

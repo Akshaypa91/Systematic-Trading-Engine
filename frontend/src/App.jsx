@@ -1,21 +1,40 @@
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { Suspense, lazy, useEffect } from 'react';
 import { AuthProvider }  from './context/AuthContext';
 import { WSProvider }    from './context/WSContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute   from './components/ProtectedRoute';
-import Login       from './pages/Login';
-import Signup      from './pages/Signup';
-import Dashboard   from './pages/Dashboard';
-import Screener    from './pages/Screener';
-import Backtest    from './pages/Backtest';
-import Signals     from './pages/Signals';
-import LiveTrading from './pages/LiveTrading';
-import Trade          from './pages/Trade';
-import ForgotPassword  from './pages/ForgotPassword';
-import ResetPassword   from './pages/ResetPassword';
-import Feedback        from './pages/Feedback';
-import { useEffect } from 'react';
-import Analytics from './pages/Analytics';
+
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Screener = lazy(() => import('./pages/Screener'));
+const Backtest = lazy(() => import('./pages/Backtest'));
+const Signals = lazy(() => import('./pages/Signals'));
+const LiveTrading = lazy(() => import('./pages/LiveTrading'));
+const Trade = lazy(() => import('./pages/Trade'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const TradeJournal = lazy(() => import('./pages/TradeJournal'));
+
+function RouteFallback() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--bg-base)',
+      color: 'var(--text-muted)',
+      fontFamily: 'var(--font-mono)',
+      fontSize: 12,
+    }}>
+      Loading SYSTRA...
+    </div>
+  );
+}
 
 // Show toast on Upstox OAuth redirect
 function UpstoxCallback() {
@@ -51,21 +70,24 @@ export default function App() {
         <WSProvider>
           <BrowserRouter>
             <UpstoxCallback />
-            <Routes>
-              <Route path="/login"  element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password"  element={<ResetPassword />} />
-        <Route path="/signup" element={<Signup />} />
-              <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/live"     element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
-              <Route path="/screener" element={<ProtectedRoute><Screener /></ProtectedRoute>} />
-              <Route path="/backtest" element={<ProtectedRoute><Backtest /></ProtectedRoute>} />
-              <Route path="/signals"  element={<ProtectedRoute><Signals /></ProtectedRoute>} />
-              <Route path="/trade"    element={<ProtectedRoute><Trade /></ProtectedRoute>} />
-              <Route path="*"         element={<Navigate to="/" replace />} />
-              <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-        </Routes>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/live" element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
+                <Route path="/screener" element={<ProtectedRoute><Screener /></ProtectedRoute>} />
+                <Route path="/backtest" element={<ProtectedRoute><Backtest /></ProtectedRoute>} />
+                <Route path="/signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
+                <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
+                <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/journal" element={<ProtectedRoute><TradeJournal /></ProtectedRoute>} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </WSProvider>
       </AuthProvider>

@@ -8,6 +8,7 @@
 
 const marketDataService = require('../services/marketDataService');
 const dataStore         = require('../data/dataStore');
+const stockMaster       = require('../data/stockMaster');
 const logger            = require('../config/logger');
 
 // Default NIFTY-50 watchlist used when getNifty50 is called

@@ -27,7 +27,9 @@ function getInitialTheme() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (VALID_THEMES.includes(saved)) return saved;
-  } catch (_) {}
+  } catch (_err) {
+    // localStorage can be unavailable in restricted browser contexts.
+  }
   // Respect OS preference on first visit, then default to light
   if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
   return 'light';  // default
@@ -51,7 +53,9 @@ export function useTheme() {
     applyTheme(theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch (_) {}
+    } catch (_err) {
+      // Theme persistence is best effort.
+    }
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

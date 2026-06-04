@@ -34,7 +34,8 @@ async function fetchPrice(symbol) {
  */
 async function placeOrder(req, res) {
   try {
-    const result = await exec.placeOrder(req.body);
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const result = await exec.placeOrder({ ...req.body, userId });
     const status = result.status === 'REJECTED' ? 422 : 201;
     res.status(status).json({ success: result.status !== 'REJECTED', ...result });
   } catch (err) {
@@ -47,7 +48,8 @@ async function placeOrder(req, res) {
 
 function getPortfolio(req, res) {
   try {
-    const data = exec.getPortfolioState() ?? {};
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const data = exec.getPortfolioState(userId) ?? {};
     // Ensure safe shape — never return undefined fields
     const safe = {
       capital:       Number(data.capital ?? 0),
@@ -66,8 +68,9 @@ function getPortfolio(req, res) {
 
 async function getOrders(req, res) {
   try {
+    const userId = req.user?.userId ?? req.user?.id ?? null;
     const limit  = parseInt(req.query.limit || '50', 10);
-    const orders = await exec.getRecentOrders(limit);
+    const orders = await exec.getRecentOrders(limit, userId);
     res.json({ success: true, count: orders.length, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -79,9 +82,10 @@ async function getOrders(req, res) {
 async function checkExits(req, res) {
   try {
     const { prices = [] } = req.body;
+    const userId = req.user?.userId ?? req.user?.id ?? null;
     const results = [];
     for (const { symbol, currentPrice } of prices) {
-      const r = await exec.checkAndClosePosition(symbol, currentPrice);
+      const r = await exec.checkAndClosePosition(symbol, currentPrice, userId);
       if (r) results.push(r);
     }
     res.json({ success: true, closedPositions: results.length, data: results });
@@ -263,7 +267,8 @@ const checkPosition = async (req, res) => {
     if (!isFinite(price) || price <= 0) {
       return res.status(400).json({ success: false, error: 'currentPrice must be a positive number' });
     }
-    const result = await exec.checkAndClosePosition(symbol.toUpperCase(), price);
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const result = await exec.checkAndClosePosition(symbol.toUpperCase(), price, userId);
     res.json({ success: true, closed: !!result, data: result || null });
   } catch (err) {
     logger.error(`[TradeCtrl] checkPosition: ${err.message}`);

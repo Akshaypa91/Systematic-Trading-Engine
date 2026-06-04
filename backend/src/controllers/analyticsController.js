@@ -15,7 +15,8 @@ const logger               = require('../config/logger');
 async function getBacktestAnalytics(req, res) {
   try {
     const runId = parseInt(req.params.runId, 10);
-    const data  = await portfolioAnalytics.analyseBacktestRun(runId);
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const data  = await portfolioAnalytics.analyseBacktestRun(runId, userId);
     res.json({ success: true, data });
   } catch (err) {
     logger.error(`[AnalyticsCtrl] getBacktestAnalytics: ${err.message}`);
@@ -29,7 +30,8 @@ async function getBacktestAnalytics(req, res) {
  */
 async function getLiveAnalytics(req, res) {
   try {
-    const data = await portfolioAnalytics.getLivePortfolioAnalytics();
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const data = await portfolioAnalytics.getLivePortfolioAnalytics(userId);
     res.json({ success: true, data });
   } catch (err) {
     logger.error(`[AnalyticsCtrl] getLiveAnalytics: ${err.message}`);

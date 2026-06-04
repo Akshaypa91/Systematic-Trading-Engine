@@ -26,6 +26,7 @@ function buildValuesPlaceholders(rows, width) {
  */
 async function runBacktest(req, res) {
   try {
+    const userId = req.user?.userId ?? req.user?.id ?? null;
     const {
       symbol,
       strategy      = 'AGGREGATED',
@@ -111,13 +112,14 @@ async function runBacktest(req, res) {
     try {
       const [runRows] = await db.query(`
         INSERT INTO backtest_runs
-          (symbol, strategy, start_date, end_date, initial_capital, final_capital,
+          (user_id, symbol, strategy, start_date, end_date, initial_capital, final_capital,
            total_return_pct, annualised_return_pct, sharpe_ratio, max_drawdown_pct,
            win_rate_pct, total_trades, winning_trades, losing_trades,
            avg_profit_pct, avg_loss_pct, profit_factor, parameters)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         RETURNING id
       `, [
+        userId,
         summary.symbol, summary.strategy, summary.startDate, summary.endDate,
         summary.initialCapital, summary.finalCapital, summary.totalReturnPct,
         summary.annualisedReturnPct, summary.sharpeRatio, summary.maxDrawdownPct,
@@ -175,10 +177,11 @@ async function runBacktest(req, res) {
  */
 async function getBacktestRuns(req, res) {
   try {
+    const userId = req.user?.userId ?? req.user?.id ?? null;
     const { symbol, limit = 10 } = req.query;
-    let sql    = 'SELECT * FROM backtest_runs';
-    const params = [];
-    if (symbol) { sql += ' WHERE symbol = ?'; params.push(symbol.toUpperCase()); }
+    let sql    = 'SELECT * FROM backtest_runs WHERE user_id IS NOT DISTINCT FROM ?';
+    const params = [userId];
+    if (symbol) { sql += ' AND symbol = ?'; params.push(symbol.toUpperCase()); }
     sql += ' ORDER BY created_at DESC LIMIT ?';
     params.push(parseInt(limit, 10));
     const [rows] = await db.query(sql, params);
@@ -193,10 +196,15 @@ async function getBacktestRuns(req, res) {
  */
 async function getBacktestTrades(req, res) {
   try {
+    const userId = req.user?.userId ?? req.user?.id ?? null;
     const { runId } = req.params;
     const [rows] = await db.query(
-      'SELECT * FROM backtest_trades WHERE run_id = ? ORDER BY entry_date ASC',
-      [runId]
+      `SELECT bt.*
+       FROM backtest_trades bt
+       JOIN backtest_runs br ON br.id = bt.run_id
+       WHERE bt.run_id = ? AND br.user_id IS NOT DISTINCT FROM ?
+       ORDER BY bt.entry_date ASC`,
+      [runId, userId]
     );
     res.json({ success: true, count: rows.length, data: rows });
   } catch (err) {

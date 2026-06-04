@@ -53,10 +53,10 @@ export default function Trade() {
     setLiveLoading(true);
     try {
       const res = await liveAPI.placeOrder({ ...liveModal, confirmed: true });
-      setToast({ message: `✅ Live order placed: ${liveModal.side} ${liveModal.qty}×${liveModal.symbol}`, type: 'success' });
+        setToast({ msg: `Live order placed: ${liveModal.side} ${liveModal.qty}×${liveModal.symbol}`, type: 'success' });
       setLiveModal(null);
     } catch (err) {
-      setToast({ message: `❌ ${err.response?.data?.error || err.message}`, type: 'error' });
+      setToast({ msg: err.response?.data?.error || err.message, type: 'error' });
     } finally {
       setLiveLoading(false);
     }

@@ -249,7 +249,7 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
           style={{
             width: '100%', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: 8,
-            padding: '11px 0', borderRadius: 9, border: 'none',
+            padding: '11px 0', borderRadius: 9,
             cursor: canTrade ? 'pointer' : 'not-allowed',
             fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
             letterSpacing: '0.06em', transition: 'all 0.18s',

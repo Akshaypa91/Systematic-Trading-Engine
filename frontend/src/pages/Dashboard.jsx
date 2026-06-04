@@ -236,7 +236,9 @@ export default function Dashboard() {
                         const r = await backtestAPI.getTrades(run.id);
                         setTrades(r.data.data || []);
                         showToast(`Loaded run #${run.id}`, 'info');
-                      } catch {}
+                      } catch (_err) {
+                        showToast('Could not load trades for this run', 'error');
+                      }
                     }}
                     onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
                     onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>

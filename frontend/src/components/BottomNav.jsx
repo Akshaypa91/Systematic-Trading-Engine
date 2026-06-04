@@ -1,14 +1,14 @@
 // src/components/BottomNav.jsx
 // Shows on mobile (<768px) — fixed bottom bar with 5 main nav items
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, Radio, TrendingUp, Search } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, Radio, BookOpen, Search } from 'lucide-react';
 
 const NAV = [
   { to: '/',         icon: LayoutDashboard, label: 'Home',     end: true },
   { to: '/signals',  icon: Radio,           label: 'Signals' },
   { to: '/trade',    icon: ArrowLeftRight,  label: 'Trade' },
+  { to: '/journal',  icon: BookOpen,        label: 'Journal' },
   { to: '/screener', icon: Search,          label: 'Screen' },
-  { to: '/backtest', icon: TrendingUp,      label: 'Backtest' },
 ];
 
 export default function BottomNav() {

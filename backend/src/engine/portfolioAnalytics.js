@@ -28,8 +28,11 @@ const logger = require('../config/logger');
  * @param {number} runId
  * @returns {Promise<Object>}
  */
-async function analyseBacktestRun(runId) {
-  const [[run]] = await db.query('SELECT * FROM backtest_runs WHERE id = ?', [runId]);
+async function analyseBacktestRun(runId, userId = null) {
+  const [[run]] = await db.query(
+    'SELECT * FROM backtest_runs WHERE id = ? AND user_id IS NOT DISTINCT FROM ?',
+    [runId, userId]
+  );
   if (!run) throw new Error(`Backtest run ${runId} not found`);
 
   const [trades] = await db.query(
@@ -209,12 +212,13 @@ function groupBy(arr, key, mapper, reducer) {
 /**
  * Compute live portfolio analytics from paper_trades table.
  */
-async function getLivePortfolioAnalytics() {
+async function getLivePortfolioAnalytics(userId = null) {
   const [trades] = await db.query(`
     SELECT * FROM paper_trades
     WHERE status = 'EXECUTED'
+      AND user_id IS NOT DISTINCT FROM ?
     ORDER BY executed_at ASC
-  `);
+  `, [userId]);
 
   const closedTrades = trades.filter(t => t.pnl !== null);
   const openTrades   = trades.filter(t => t.pnl === null && t.side === 'BUY');

@@ -27,6 +27,7 @@ const allRoutes      = require('./routes/index');
 const simRoutes      = require('./routes/sim');
 const liveRoutes     = require('./routes/live');
 const feedbackRoutes = require('./routes/feedback');
+const tradeJournalRoutes = require('./routes/tradeJournal');
 
 const liveDataFeed = require('./data/liveDataFeed');
 const scheduler    = require('./engine/scheduler');
@@ -127,6 +128,7 @@ app.use('/api/data',     dataRoutes);
 app.use('/api/signal',   signalRoutes);
 app.use('/api/backtest', backtestRoutes);
 app.use('/api/trade',    tradeRoutes);
+app.use('/api/trade-journal', tradeJournalRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
 app.use('/api/live',     liveRoutes);

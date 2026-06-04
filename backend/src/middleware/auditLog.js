@@ -8,7 +8,7 @@ async function auditLog(action, req, metadata = {}) {
       `INSERT INTO audit_logs (user_id, action, ip, user_agent, trace_id, metadata, created_at)
        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [
-        req.user?.userId ?? null,
+        req.user?.userId ?? req.user?.id ?? null,
         action,
         (req.headers['x-forwarded-for']?.split(',')[0] || req.ip || '').slice(0,45),
         (req.headers['user-agent'] || '').slice(0,255),
@@ -16,7 +16,7 @@ async function auditLog(action, req, metadata = {}) {
         JSON.stringify(metadata),
       ]
     );
-    logger.info(`[Audit] ${action}`, { userId: req.user?.userId, ...metadata });
+    logger.info(`[Audit] ${action}`, { userId: req.user?.userId ?? req.user?.id, ...metadata });
   } catch (err) {
     logger.warn(`[Audit] Write failed: ${err.message}`);
   }
