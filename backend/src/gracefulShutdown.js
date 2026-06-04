@@ -34,10 +34,10 @@ module.exports = function setupGracefulShutdown(server, deps = {}) {
       catch (e) { logger.warn(`[Shutdown] Redis quit error: ${e.message}`); }
     }
 
-    // 5. Drain MySQL pool
-    if (db?.end) {
-      try { await db.end(); logger.info('[Shutdown] MySQL pool drained'); }
-      catch (e) { logger.warn(`[Shutdown] MySQL end error: ${e.message}`); }
+    // 5. Drain PostgreSQL/CockroachDB pool
+    if (db?.closePool) {
+      try { await db.closePool(); logger.info('[Shutdown] database pool drained'); }
+      catch (e) { logger.warn(`[Shutdown] database close error: ${e.message}`); }
     }
 
     logger.info('[Shutdown] ✅ Clean exit');

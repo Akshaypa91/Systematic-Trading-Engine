@@ -242,7 +242,8 @@ async function placeManualOrder(req, res) {
  */
 async function getManualPortfolio(req, res) {
   try {
-    const state = await portfolio.getState();
+    const userId = req.user?.userId ?? req.user?.id ?? null;
+    const state = await portfolio.getState(userId);
     res.json({ success: true, data: state });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

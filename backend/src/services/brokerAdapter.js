@@ -39,7 +39,7 @@ async function _getToken(userId) {
   if (userId) {
     const [rows] = await db.query(
       `SELECT access_token, token_expiry FROM broker_accounts
-       WHERE user_id = ? AND provider = 'upstox' AND is_active = 1 LIMIT 1`,
+       WHERE user_id = ? AND provider = 'upstox' AND is_active = true LIMIT 1`,
       [userId]
     );
     if (rows[0]?.access_token) {

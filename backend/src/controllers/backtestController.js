@@ -13,6 +13,12 @@ function getMarketData() {
   return _marketData;
 }
 
+function buildValuesPlaceholders(rows, width) {
+  return rows
+    .map(() => `(${Array.from({ length: width }, () => '?').join(',')})`)
+    .join(',');
+}
+
 /**
  * POST /api/backtest
  * Body: { symbol, strategy, startDate, endDate, initialCapital,
@@ -103,13 +109,14 @@ async function runBacktest(req, res) {
     // Persist run summary
     let runId = null;
     try {
-      const [result] = await db.query(`
+      const [runRows] = await db.query(`
         INSERT INTO backtest_runs
           (symbol, strategy, start_date, end_date, initial_capital, final_capital,
            total_return_pct, annualised_return_pct, sharpe_ratio, max_drawdown_pct,
            win_rate_pct, total_trades, winning_trades, losing_trades,
            avg_profit_pct, avg_loss_pct, profit_factor, parameters)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        RETURNING id
       `, [
         summary.symbol, summary.strategy, summary.startDate, summary.endDate,
         summary.initialCapital, summary.finalCapital, summary.totalReturnPct,
@@ -118,7 +125,7 @@ async function runBacktest(req, res) {
         summary.avgWinPct, summary.avgLossPct, summary.profitFactor,
         JSON.stringify({ stopLossPct, takeProfitPct, riskPerTrade }),
       ]);
-      runId = result.insertId;
+      runId = runRows[0].id;
 
       // FIX Bug 14: Persist individual trades — were NEVER inserted, causing
       // GET /api/backtest/runs/:id/trades and analytics to always return empty.
@@ -133,13 +140,14 @@ async function runBacktest(req, res) {
           t.exitReason ?? 'SIGNAL',
           t.regime    ?? null,
         ]);
+        const width = 14;
         await db.query(`
           INSERT INTO backtest_trades
             (run_id, symbol, side, entry_date, entry_price,
              exit_date, exit_price, quantity, pnl, pnl_pct,
              commission, slippage, exit_reason, regime)
-          VALUES ?
-        `, [tradeRows]);
+          VALUES ${buildValuesPlaceholders(tradeRows, width)}
+        `, tradeRows.flat());
       }
     } catch (dbErr) {
       logger.warn(`[BtCtrl] DB persist failed: ${dbErr.message}`);

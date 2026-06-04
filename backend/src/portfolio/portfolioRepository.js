@@ -4,7 +4,7 @@
 // PORTFOLIO REPOSITORY
 // ─────────────────────────────────────────────────────────────────────────────
 //
-// All MySQL I/O for portfolio persistence.
+// All PostgreSQL/CockroachDB I/O for portfolio persistence.
 // Zero business logic here — pure data access layer.
 //
 // TABLES USED
@@ -50,9 +50,9 @@ async function createPortfolio(capital, userId = null) {
     // Close any existing active portfolio for this user
     await conn.query(
       `UPDATE portfolios
-   SET status = 'CLOSED', updated_at = NOW()
+   SET status = 'CLOSED', updated_at = CURRENT_TIMESTAMP
    WHERE status = 'ACTIVE'
-   AND COALESCE(user_id, -1) = COALESCE(?, -1)`,
+     AND user_id IS NOT DISTINCT FROM ?`,
       [userId]
     );
 
@@ -78,12 +78,12 @@ async function createPortfolio(capital, userId = null) {
  * @returns {Promise<{id, initial_capital, current_capital, status, created_at}|null>}
  */
 async function getActivePortfolio(userId = null) {
-  // STRICT: only match exact user_id — never leak NULL-owner portfolios
+  // Strict nullable equality: user_id = NULL never works in SQL.
   const [rows] = await db.query(
     `SELECT id, user_id, initial_capital, current_capital, status, created_at, updated_at
      FROM portfolios
      WHERE status = 'ACTIVE'
-       AND user_id = ?
+       AND user_id IS NOT DISTINCT FROM ?
      ORDER BY created_at DESC
      LIMIT 1`,
     [userId]
@@ -105,7 +105,7 @@ async function getActivePortfolio(userId = null) {
  */
 async function updateCapital(portfolioId, capital) {
   await db.query(
-    `UPDATE portfolios SET current_capital = ?, updated_at = NOW()
+    `UPDATE portfolios SET current_capital = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
     [parseFloat(capital.toFixed(2)), portfolioId]
   );
@@ -133,7 +133,7 @@ async function resetPortfolio(portfolioId) {
 
     // Restore capital
     await conn.query(
-      `UPDATE portfolios SET current_capital = ?, status = 'ACTIVE', updated_at = NOW()
+      `UPDATE portfolios SET current_capital = ?, status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [initialCapital, portfolioId]
     );
@@ -174,7 +174,7 @@ async function saveTrade(trade) {
     priceSource = 'SIM',
   } = trade;
 
-  // Normalize any source string → valid ENUM('API','SIM','MANUAL')
+  // Normalize any source string into the price_source CHECK constraint.
   // LIVE_UPSTOX / LIVE_NSE / LIVE_TWELVE / LIVE_FINNHUB → 'API'
   // SIM / SIMULATION → 'SIM'
   // MANUAL / USER → 'MANUAL'
@@ -210,24 +210,27 @@ async function saveTrade(trade) {
     }
 
     // 2. Insert trade
-    const [result] = await conn.query(
+    const [tradeRows] = await conn.query(
       `INSERT INTO sim_trades
          (portfolio_id, symbol, action, qty, price, value, pnl, price_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       RETURNING id, executed_at`,
       [portfolioId, symbol.toUpperCase(), action, qty,
         parseFloat(price.toFixed(4)), value,
         pnl !== null ? parseFloat(pnl.toFixed(4)) : null,
         safeSource]
     );
+    const savedId = tradeRows[0].id;
+    const executedAt = tradeRows[0].executed_at;
 
     // 3. Update capital
     await conn.query(
-      'UPDATE portfolios SET current_capital = ?, updated_at = NOW() WHERE id = ?',
+      'UPDATE portfolios SET current_capital = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [newCapital, portfolioId]
     );
 
     const savedTrade = {
-      id: result.insertId,
+      id: savedId,
       portfolioId,
       symbol: symbol.toUpperCase(),
       action,
@@ -236,15 +239,15 @@ async function saveTrade(trade) {
       value: parseFloat(value.toFixed(2)),
       pnl: pnl !== null ? parseFloat(pnl.toFixed(2)) : null,
       priceSource,
-      executedAt: new Date().toISOString(),
+      executedAt: executedAt instanceof Date ? executedAt.toISOString() : String(executedAt),
     };
 
     logger.info(
-      `[PortfolioRepo] Trade #${result.insertId}: ${action} ${qty}×${symbol} ` +
+      `[PortfolioRepo] Trade #${savedId}: ${action} ${qty}×${symbol} ` +
       `@₹${price.toFixed(2)} | capital ₹${prevCapital}→₹${newCapital}`
     );
 
-    return { tradeId: result.insertId, newCapital, trade: savedTrade };
+    return { tradeId: savedId, newCapital, trade: savedTrade };
   });
 }
 
@@ -273,14 +276,14 @@ async function getPositions(portfolioId) {
      FROM sim_trades
      WHERE portfolio_id = ?
      GROUP BY symbol
-     HAVING net_qty > 0
+     HAVING SUM(CASE WHEN action = 'BUY' THEN qty ELSE -qty END) > 0
      ORDER BY symbol`,
     [portfolioId]
   );
 
   const positions = {};
   for (const row of rows) {
-    // MySQL returns DECIMAL/SUM fields as strings — coerce all to numbers first
+    // pg returns DECIMAL/SUM fields as strings — coerce all to numbers first.
     const netQty = parseInt(row.net_qty, 10);
     const totalBuyValue = parseFloat(row.total_buy_value) || 0;
     const totalBuyQty = parseFloat(row.total_buy_qty) || 0;
@@ -317,7 +320,7 @@ async function getPosition(portfolioId, symbol) {
      FROM sim_trades
      WHERE portfolio_id = ? AND symbol = ?
      GROUP BY symbol
-     HAVING net_qty > 0`,
+     HAVING SUM(CASE WHEN action = 'BUY' THEN qty ELSE -qty END) > 0`,
     [portfolioId, symbol.toUpperCase()]
   );
 

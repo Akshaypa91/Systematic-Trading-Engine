@@ -108,7 +108,10 @@ async function setMode(req, res) {
   if (!['PAPER','LIVE'].includes(mode)) {
     return res.status(400).json({ success: false, error: 'mode must be PAPER or LIVE' });
   }
-  await db.query('UPDATE users SET trading_mode = ? WHERE id = ?', [mode, uid(req)]);
+  await db.query(
+    'UPDATE users SET trading_mode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    [mode.toLowerCase(), uid(req)]
+  );
   return res.json({ success: true, mode });
 }
 

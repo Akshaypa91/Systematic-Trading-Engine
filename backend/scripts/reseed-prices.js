@@ -66,11 +66,12 @@ async function main() {
       const placeholders = chunk.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',');
       try {
         await db.query(
-          `INSERT IGNORE INTO daily_prices
+          `INSERT INTO daily_prices
             (symbol, exchange, trade_date, open_price, high_price, low_price,
              close_price, vwap, volume, delivery_qty, delivery_pct,
              num_trades, prev_close, change_pct)
-           VALUES ${placeholders}`,
+           VALUES ${placeholders}
+           ON CONFLICT (symbol, exchange, trade_date) DO NOTHING`,
           chunk.flat()
         );
         inserted += chunk.length;

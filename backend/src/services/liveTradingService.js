@@ -36,7 +36,7 @@ async function _isDuplicate(userId, symbol, side) {
     `SELECT id FROM live_orders
      WHERE user_id = ? AND symbol = ? AND side = ?
        AND status NOT IN ('REJECTED','CANCELLED')
-       AND created_at > DATE_SUB(NOW(), INTERVAL 10 SECOND)
+       AND created_at > CURRENT_TIMESTAMP - INTERVAL '10 seconds'
      LIMIT 1`,
     [userId, symbol, side]
   );
@@ -45,11 +45,12 @@ async function _isDuplicate(userId, symbol, side) {
 
 // ── Save order to DB ──────────────────────────────────────────────────────────
 async function _saveOrder(data) {
-  const [result] = await db.query(
+  const [rows] = await db.query(
     `INSERT INTO live_orders
        (user_id, broker_order_id, symbol, side, qty, price, order_type,
         status, provider, raw_response, error_message, confirmed)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     RETURNING id`,
     [
       data.userId, data.brokerOrderId || null,
       data.symbol, data.side, data.qty,
@@ -58,10 +59,10 @@ async function _saveOrder(data) {
       data.status, data.provider || 'upstox',
       data.rawResponse ? JSON.stringify(data.rawResponse) : null,
       data.errorMessage || null,
-      data.confirmed ? 1 : 0,
+      Boolean(data.confirmed),
     ]
   );
-  return result.insertId;
+  return rows[0].id;
 }
 
 // ── Main: placeOrder ──────────────────────────────────────────────────────────
@@ -163,7 +164,7 @@ async function getFunds(userId) {
 async function cancelOrder(userId, brokerOrderId) {
   const result = await broker.cancelOrder(userId, brokerOrderId);
   await db.query(
-    `UPDATE live_orders SET status = 'CANCELLED', updated_at = NOW()
+    `UPDATE live_orders SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP
      WHERE user_id = ? AND broker_order_id = ?`,
     [userId, brokerOrderId]
   );
@@ -173,8 +174,12 @@ async function cancelOrder(userId, brokerOrderId) {
 // ── Admin: kill switch ────────────────────────────────────────────────────────
 async function setKillSwitch(enabled) {
   await db.query(
-    "INSERT INTO system_flags (flag_key, flag_value) VALUES ('live_trading_enabled', ?) ON DUPLICATE KEY UPDATE flag_value = ?",
-    [enabled ? 'true' : 'false', enabled ? 'true' : 'false']
+    `INSERT INTO system_flags (flag_key, flag_value, updated_at)
+     VALUES ('live_trading_enabled', ?, CURRENT_TIMESTAMP)
+     ON CONFLICT (flag_key) DO UPDATE
+     SET flag_value = EXCLUDED.flag_value,
+         updated_at = CURRENT_TIMESTAMP`,
+    [enabled ? 'true' : 'false']
   );
 }
 

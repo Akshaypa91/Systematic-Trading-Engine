@@ -6,7 +6,7 @@ async function auditLog(action, req, metadata = {}) {
   try {
     await db.query(
       `INSERT INTO audit_logs (user_id, action, ip, user_agent, trace_id, metadata, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+       VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [
         req.user?.userId ?? null,
         action,

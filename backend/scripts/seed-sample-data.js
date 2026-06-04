@@ -76,10 +76,13 @@ async function seedSymbol({ symbol, startPrice, mu, sigma }) {
       INSERT INTO daily_prices
         (symbol,exchange,trade_date,open_price,high_price,low_price,close_price,vwap,volume)
       VALUES ${ph}
-      ON DUPLICATE KEY UPDATE
-        open_price=VALUES(open_price), high_price=VALUES(high_price),
-        low_price=VALUES(low_price),   close_price=VALUES(close_price),
-        vwap=VALUES(vwap), volume=VALUES(volume)
+      ON CONFLICT (symbol, exchange, trade_date) DO UPDATE
+      SET open_price = EXCLUDED.open_price,
+          high_price = EXCLUDED.high_price,
+          low_price = EXCLUDED.low_price,
+          close_price = EXCLUDED.close_price,
+          vwap = EXCLUDED.vwap,
+          volume = EXCLUDED.volume
     `, vals);
     saved += chunk.length;
   }
@@ -92,7 +95,11 @@ async function run() {
   logger.info('[Seed] Generating GBM price series...');
   for (const { symbol } of SYMBOLS) {
     await db.query(
-      "INSERT INTO instruments (symbol,exchange,is_active) VALUES (?,'NSE',1) ON DUPLICATE KEY UPDATE is_active=1",
+      `INSERT INTO instruments (symbol, exchange, is_active)
+       VALUES (?, 'NSE', true)
+       ON CONFLICT (symbol, exchange) DO UPDATE
+       SET is_active = true,
+           updated_at = CURRENT_TIMESTAMP`,
       [symbol]
     );
   }

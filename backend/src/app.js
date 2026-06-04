@@ -11,7 +11,7 @@ const os       = require('os');
 
 const logger   = require('./config/logger');
 const db       = require('./config/database');
-// const { initDB } = require('./config/initDB');
+const { initDB } = require('./config/initDB');
 const C        = require('./config/constants');
 
 const { apiLimiter, nseProxyLimiter, authLimiter, backtestLimiter } = require('./middleware/rateLimiter');

@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../config/database');
 const logger = require('../config/logger');
+const portfolioRepo = require('../portfolio/portfolioRepository');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_min_32_chars_please!!';
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY_SECONDS || '604800', 10);
@@ -23,25 +24,6 @@ function verifyJWT(token) {
 
 function hashPassword(plain) {
   return bcrypt.hashSync(plain, BCRYPT_ROUNDS);
-}
-
-async function _autoCreatePortfolio(userId) {
-  try {
-    const [rows] = await db.query(
-      `SELECT id FROM portfolios WHERE user_id = ? AND status = 'ACTIVE' LIMIT 1`,
-      [userId]
-    );
-    if (!rows.length) {
-      await db.query(
-        `INSERT INTO portfolios (user_id, initial_capital, current_capital, status)
-         VALUES (?, 1000000, 1000000, 'ACTIVE')`,
-        [userId]
-      );
-      logger.info(`[Auth] Auto-created portfolio for user ${userId}`);
-    }
-  } catch (e) {
-    logger.warn(`[Auth] Portfolio auto-create failed: ${e.message}`);
-  }
 }
 
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
@@ -66,7 +48,7 @@ async function signup(req, res) {
     );
 
     const userId = rows[0].id;
-    _autoCreatePortfolio(userId);
+    await portfolioRepo.createPortfolio(1000000, userId);
 
     // Send welcome email (non-blocking)
     try {
@@ -105,8 +87,7 @@ async function login(req, res) {
     const token = signJWT({ userId: user.id, email: user.email, role: user.role });
 
     // Non-blocking side effects
-    db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => { });
-    _autoCreatePortfolio(user.id);
+    db.query('UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [user.id]).catch(() => { });
 
     logger.info(`[Auth] Login: ${email}`);
     return res.json({
@@ -158,9 +139,12 @@ async function forgotPassword(req, res) {
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await db.query(
-      `UPSERT INTO password_resets
-   (user_id, token, expires_at)
-   VALUES (?, ?, ?)`,
+      `INSERT INTO password_resets (user_id, token, expires_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT (user_id) DO UPDATE
+       SET token = EXCLUDED.token,
+           expires_at = EXCLUDED.expires_at,
+           created_at = CURRENT_TIMESTAMP`,
       [rows[0].id, token, expiry]
     );
 
@@ -196,7 +180,7 @@ async function resetPassword(req, res) {
   try {
     const [rows] = await db.query(
       `SELECT pr.user_id FROM password_resets pr
-       WHERE pr.token = ? AND pr.expires_at > NOW() LIMIT 1`,
+       WHERE pr.token = ? AND pr.expires_at > CURRENT_TIMESTAMP LIMIT 1`,
       [token]
     );
     if (!rows[0])
@@ -223,7 +207,7 @@ async function submitFeedback(req, res) {
   try {
     await db.query(
       `INSERT INTO feedback (name, email, type, message, rating, user_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+       VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [
         (name || '').slice(0, 100),
         (email || '').slice(0, 255),

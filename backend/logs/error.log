@@ -772,3 +772,29 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:43:40.747"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:43:45.822"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:43:53.393"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:44:04.843"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:44:21.792"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:44:47.174"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:45:25.209"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:46:22.302"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:47:47.797"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:49:47.878"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:51:48.000"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:53:48.062"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:55:48.126"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:57:48.257"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 14:59:48.321"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:01:48.408"}
+{"level":"error","message":"[UpstoxWS] Error: getaddrinfo ENOTFOUND api.upstox.com","timestamp":"2026-06-04 15:04:01.858"}
+{"level":"error","message":"[UpstoxWS] Error: getaddrinfo ENOTFOUND api.upstox.com","timestamp":"2026-06-04 15:06:19.149"}
+{"level":"error","message":"[UpstoxWS] Error: ","timestamp":"2026-06-04 15:08:37.855"}
+{"level":"error","message":"[UpstoxWS] Error: getaddrinfo ENOTFOUND api.upstox.com","timestamp":"2026-06-04 15:10:49.861"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:13:25.133"}
+{"level":"error","message":"[UpstoxWS] Max reconnects (20) reached","timestamp":"2026-06-04 15:13:25.133"}
+{"level":"error","message":"[App] uncaughtException: listen EADDRINUSE: address already in use :::3000","timestamp":"2026-06-04 15:21:25.551"}
+{"level":"error","message":"[InitDB] failed  - users: column \"google_id\" does not exist","timestamp":"2026-06-04 15:22:05.134"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:25:52.148"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:25:57.238"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:04.870"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:16.216"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:33.152"}

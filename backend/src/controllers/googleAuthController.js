@@ -5,6 +5,7 @@ const { OAuth2Client } = require('google-auth-library');
 const db = require('../config/database');
 const logger = require('../config/logger');
 const { signJWT } = require('./authController');
+const portfolioRepo = require('../portfolio/portfolioRepository');
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
@@ -40,20 +41,23 @@ async function googleAuth(req, res) {
       if (user.provider === 'local') {
         // Local user logging in with Google — link accounts
         await db.query(
-          'UPDATE users SET provider = "google", google_id = ?, picture = ?, updated_at = NOW() WHERE id = ?',
+          "UPDATE users SET provider = 'google', google_id = ?, picture = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
           [googleId, picture, user.id]
         );
       }
       logger.info(`[GoogleAuth] Login: ${email}`);
     } else {
       // New user — create
-      const [result] = await db.query(
+      const [newUserRows] = await db.query(
         `INSERT INTO users (email, name, password, provider, google_id, picture, role, created_at)
-         VALUES (?, ?, NULL, 'google', ?, ?, 'user', NOW())`,
+         VALUES (?, ?, NULL, 'google', ?, ?, 'user', CURRENT_TIMESTAMP)
+         RETURNING id`,
         [email, name || email.split('@')[0], googleId, picture]
       );
 
-      const userId = rows[0].id;
+      const userId = newUserRows[0].id;
+      await portfolioRepo.createPortfolio(1000000, userId);
+
       const [newRows] = await db.query(
         'SELECT * FROM users WHERE id = ? LIMIT 1',
         [userId]
@@ -63,19 +67,6 @@ async function googleAuth(req, res) {
     }
 
     const token = signJWT({ userId: user.id, email: user.email, role: user.role || 'user' });
-
-    // Auto-create portfolio if user has none (best-effort)
-    db.query(
-      `SELECT id FROM portfolios WHERE user_id = ? AND status = 'ACTIVE' LIMIT 1`,
-      [user.id]
-    ).then(([rows]) => {
-      if (!rows.length) {
-        return db.query(
-          `INSERT INTO portfolios (user_id, initial_capital, current_capital, status) VALUES (?, 1000000, 1000000, 'ACTIVE')`,
-          [user.id]
-        ).then(() => logger.info(`[GoogleAuth] Auto-created portfolio for user ${user.id}`));
-      }
-    }).catch(e => logger.warn(`[GoogleAuth] Portfolio auto-create: ${e.message}`));
 
     return res.json({
       success: true,

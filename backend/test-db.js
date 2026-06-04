@@ -10,7 +10,7 @@ const pool = new Pool({
 
 (async () => {
 	try {
-		const result = await pool.query('SELECT NOW()');
+		const result = await pool.query('SELECT CURRENT_TIMESTAMP');
 		console.log('CONNECTED');
 		console.log(result.rows);
 		process.exit(0);

@@ -1,5 +1,5 @@
 // src/data/dataStore.js
-// Persists market data to MySQL and provides clean read APIs for strategy modules.
+// Persists market data to PostgreSQL/CockroachDB and provides clean read APIs for strategy modules.
 
 'use strict';
 
@@ -10,7 +10,7 @@ const logger = require('../config/logger');
 
 /**
  * Upserts an array of OHLCV rows into daily_prices.
- * Uses INSERT … ON DUPLICATE KEY UPDATE for idempotency — safe to re-run.
+ * Uses INSERT ... ON CONFLICT DO UPDATE for idempotency.
  *
  * @param {Array<Object>} rows - Normalised rows from nseFetcher
  * @returns {Promise<number>} Rows affected
@@ -40,21 +40,21 @@ async function saveDailyPrices(rows) {
       (symbol, exchange, trade_date, open_price, high_price, low_price,
        close_price, vwap, volume, delivery_qty, delivery_pct, num_trades)
     VALUES ${placeholders}
-    ON DUPLICATE KEY UPDATE
-      open_price   = VALUES(open_price),
-      high_price   = VALUES(high_price),
-      low_price    = VALUES(low_price),
-      close_price  = VALUES(close_price),
-      vwap         = VALUES(vwap),
-      volume       = VALUES(volume),
-      delivery_qty = VALUES(delivery_qty),
-      delivery_pct = VALUES(delivery_pct),
-      num_trades   = VALUES(num_trades)
+    ON CONFLICT (symbol, exchange, trade_date) DO UPDATE
+    SET open_price   = EXCLUDED.open_price,
+        high_price   = EXCLUDED.high_price,
+        low_price    = EXCLUDED.low_price,
+        close_price  = EXCLUDED.close_price,
+        vwap         = EXCLUDED.vwap,
+        volume       = EXCLUDED.volume,
+        delivery_qty = EXCLUDED.delivery_qty,
+        delivery_pct = EXCLUDED.delivery_pct,
+        num_trades   = EXCLUDED.num_trades
   `;
 
-  const [result] = await db.query(sql, values);
-  logger.info(`[DataStore] Upserted ${result.affectedRows} price rows for ${rows[0]?.symbol}`);
-  return result.affectedRows;
+  const [, result] = await db.query(sql, values);
+  logger.info(`[DataStore] Upserted ${result.rowCount} price rows for ${rows[0]?.symbol}`);
+  return result.rowCount;
 }
 
 // ─── Read ─────────────────────────────────────────────────────────────────────
@@ -104,9 +104,6 @@ async function getClosePrices(symbol, limit = 0) {
     WHERE symbol = ?
     ORDER BY trade_date ASC
   `;
-  if (limit > 0) {
-    sql = `SELECT * FROM (${sql} LIMIT ${limit}) t ORDER BY date ASC`;
-  }
   const params = [symbol];
   if (limit > 0) { sql += ' LIMIT ?'; params.push(limit); }
   const [rows] = await db.query(sql, params);

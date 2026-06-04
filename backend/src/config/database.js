@@ -17,7 +17,7 @@ async function testConnection() {
 	const client = await pool.connect();
 
 	try {
-		await client.query('SELECT NOW()');
+		await client.query('SELECT CURRENT_TIMESTAMP');
 		logger.info('[DB] CockroachDB connected');
 		return true;
 	} finally {
@@ -32,12 +32,8 @@ function convertPlaceholders(sql) {
 
 async function query(sql, params = []) {
 	sql = convertPlaceholders(sql);
-
-	console.log('SQL:', sql);
-	console.log('PARAMS:', params);
-
 	const result = await pool.query(sql, params);
-
+	result.affectedRows = result.rowCount;
 	return [result.rows, result];
 }
 
@@ -46,30 +42,35 @@ async function closePool() {
 }
 
 async function transaction(callback) {
-    const client = await pool.connect();
+	const client = await pool.connect();
 
-    try {
-        await client.query('BEGIN');
+	try {
+		await client.query('BEGIN');
 
-        const tx = {
-            query: async (sql, params = []) => {
-                sql = convertPlaceholders(sql);
-                const result = await client.query(sql, params);
-                return [result.rows, result];
-            }
-        };
+		const tx = {
+			query: async (sql, params = []) => {
+				sql = convertPlaceholders(sql);
+				const result = await client.query(sql, params);
+				result.affectedRows = result.rowCount;
+				return [result.rows, result];
+			},
+		};
 
-        const result = await callback(tx);
+		const result = await callback(tx);
 
-        await client.query('COMMIT');
+		await client.query('COMMIT');
 
-        return result;
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
-    }
+		return result;
+	} catch (err) {
+		try {
+			await client.query('ROLLBACK');
+		} catch (rollbackErr) {
+			logger.error(`[DB] Rollback failed: ${rollbackErr.message}`);
+		}
+		throw err;
+	} finally {
+		client.release();
+	}
 }
 
 module.exports = {

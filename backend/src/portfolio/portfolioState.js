@@ -35,7 +35,10 @@ function _isFresh(c) {
 async function _hydrate(userId) {
   const c  = _get(userId);
   const pf = await repo.getActivePortfolio(userId);
-  if (!pf) { c.initialized = false; return false; }
+  if (!pf) {
+    Object.assign(c, _emptyCache());
+    return false;
+  }
 
   c.portfolioId    = pf.id;
   c.initialCapital = parseFloat(pf.initial_capital);
@@ -67,9 +70,10 @@ async function initialize(capital, userId = null) {
 async function resetToInitial(userId = null) {
   const c = _get(userId);
   if (!c.initialized && !(await _hydrate(userId))) {
-    // Auto-initialize with default capital instead of hard-failing
-    await initialize(1000000, userId);
-    }
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
+    err.statusCode = 400;
+    throw err;
+  }
   const restoredCapital = await repo.resetPortfolio(c.portfolioId);
   c.currentCapital = restoredCapital;
   c.positions      = {};
@@ -106,9 +110,10 @@ async function isInitialized(userId = null) {
 async function executeBuy(symbol, qty, price, priceSource = 'SIM', userId = null) {
   const c = _get(userId);
   if (!c.initialized && !(await _hydrate(userId))) {
-    // Auto-initialize with default capital instead of hard-failing
-    await initialize(1000000, userId);
-    }
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
+    err.statusCode = 400;
+    throw err;
+  }
   const sym = symbol.toUpperCase();
   const { newCapital, trade } = await repo.saveTrade({ portfolioId: c.portfolioId, symbol: sym, action: 'BUY', qty, price, pnl: null, priceSource });
   c.currentCapital = newCapital;
@@ -119,9 +124,10 @@ async function executeBuy(symbol, qty, price, priceSource = 'SIM', userId = null
 async function executeSell(symbol, qty, price, priceSource = 'SIM', userId = null) {
   const c = _get(userId);
   if (!c.initialized && !(await _hydrate(userId))) {
-    // Auto-initialize with default capital instead of hard-failing
-    await initialize(1000000, userId);
-    }
+    const err = new Error('Portfolio not initialized. Call POST /api/sim/start first.');
+    err.statusCode = 400;
+    throw err;
+  }
   const sym = symbol.toUpperCase();
 
   // Verify position

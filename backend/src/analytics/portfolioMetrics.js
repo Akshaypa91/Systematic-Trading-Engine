@@ -17,7 +17,7 @@ function calcTradeStats(trades) {
   return {totalTrades:closed.length,winCount:wins.length,lossCount:losses.length,winRate:+(wr*100).toFixed(2),profitFactor:gl?+(gw/gl).toFixed(4):gw>0?99:0,avgWin:+aw.toFixed(2),avgLoss:+al.toFixed(2),expectancy:+(wr*aw-(1-wr)*al).toFixed(2)};
 }
 function equityToDailyReturns(eq) { const r=[]; for(let i=1;i<eq.length;i++){if(eq[i-1]>0)r.push((eq[i]-eq[i-1])/eq[i-1]);} return r; }
-async function getBenchmarkReturn(start,end) { try { const [rows]=await db.query(`SELECT close FROM daily_prices WHERE symbol='NIFTY50' AND date BETWEEN ? AND ? ORDER BY date`,[start,end]); if(rows.length<2)return null; return +((rows[rows.length-1].close-rows[0].close)/rows[0].close*100).toFixed(4); } catch{return null;} }
+async function getBenchmarkReturn(start,end) { try { const [rows]=await db.query(`SELECT close_price AS close FROM daily_prices WHERE symbol='NIFTY50' AND trade_date BETWEEN ? AND ? ORDER BY trade_date`,[start,end]); if(rows.length<2)return null; return +((rows[rows.length-1].close-rows[0].close)/rows[0].close*100).toFixed(4); } catch{return null;} }
 async function computeFullMetrics({equityCurve,trades,initialCapital,startDate,endDate}) {
   const final=equityCurve[equityCurve.length-1]||initialCapital;
   const days=equityCurve.length, r=equityToDailyReturns(equityCurve);
