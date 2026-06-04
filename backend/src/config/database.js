@@ -33,6 +33,9 @@ function convertPlaceholders(sql) {
 async function query(sql, params = []) {
 	sql = convertPlaceholders(sql);
 
+	console.log('SQL:', sql);
+	console.log('PARAMS:', params);
+
 	const result = await pool.query(sql, params);
 
 	return [result.rows, result];
