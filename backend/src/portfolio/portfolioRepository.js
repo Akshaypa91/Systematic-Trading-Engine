@@ -32,7 +32,7 @@
 
 'use strict';
 
-const db     = require('../config/database');
+const db = require('../config/database');
 const logger = require('../config/logger');
 
 // ── Portfolio CRUD ────────────────────────────────────────────────────────────
@@ -49,19 +49,23 @@ async function createPortfolio(capital, userId = null) {
   return db.transaction(async (conn) => {
     // Close any existing active portfolio for this user
     await conn.query(
-      `UPDATE portfolios SET status = 'CLOSED', updated_at = NOW()
-       WHERE status = 'ACTIVE' AND (user_id = ? OR (user_id IS NULL AND ? IS NULL))`,
-      [userId, userId]
+      `UPDATE portfolios
+   SET status = 'CLOSED', updated_at = NOW()
+   WHERE status = 'ACTIVE'
+   AND COALESCE(user_id, -1) = COALESCE(?, -1)`,
+      [userId]
     );
 
     // Insert new portfolio
-    const [result] = await conn.query(
-      `INSERT INTO portfolios (user_id, initial_capital, current_capital, status)
-       VALUES (?, ?, ?, 'ACTIVE')`,
+    const [rows] = await conn.query(
+      `INSERT INTO portfolios
+   (user_id, initial_capital, current_capital, status)
+   VALUES (?, ?, ?, 'ACTIVE')
+   RETURNING id`,
       [userId, capital, capital]
     );
 
-    const portfolioId = result.insertId;
+    const portfolioId = rows[0].id;
     logger.info(`[PortfolioRepo] Created portfolio #${portfolioId} capital=₹${capital}`);
     return portfolioId;
   });
@@ -166,7 +170,7 @@ async function saveTrade(trade) {
     action,
     qty,
     price,
-    pnl         = null,
+    pnl = null,
     priceSource = 'SIM',
   } = trade;
 
@@ -177,7 +181,7 @@ async function saveTrade(trade) {
   function _normalizeSource(src) {
     const s = (src || '').toUpperCase();
     if (s.startsWith('LIVE') || s === 'API' || s === 'UPSTOX' ||
-        s === 'NSE' || s === 'TWELVE' || s === 'FINNHUB' || s === 'YAHOO_FINANCE') return 'API';
+      s === 'NSE' || s === 'TWELVE' || s === 'FINNHUB' || s === 'YAHOO_FINANCE') return 'API';
     if (s === 'MANUAL' || s === 'USER') return 'MANUAL';
     return 'SIM';
   }
@@ -194,7 +198,7 @@ async function saveTrade(trade) {
     if (!pfRows[0]) throw new Error(`Portfolio #${portfolioId} not found`);
 
     const prevCapital = parseFloat(pfRows[0].current_capital);
-    const newCapital  = action === 'BUY'
+    const newCapital = action === 'BUY'
       ? parseFloat((prevCapital - value).toFixed(2))
       : parseFloat((prevCapital + value).toFixed(2));
 
@@ -211,9 +215,9 @@ async function saveTrade(trade) {
          (portfolio_id, symbol, action, qty, price, value, pnl, price_source)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [portfolioId, symbol.toUpperCase(), action, qty,
-       parseFloat(price.toFixed(4)), value,
-       pnl !== null ? parseFloat(pnl.toFixed(4)) : null,
-       safeSource]
+        parseFloat(price.toFixed(4)), value,
+        pnl !== null ? parseFloat(pnl.toFixed(4)) : null,
+        safeSource]
     );
 
     // 3. Update capital
@@ -223,16 +227,16 @@ async function saveTrade(trade) {
     );
 
     const savedTrade = {
-      id:          result.insertId,
+      id: result.insertId,
       portfolioId,
-      symbol:      symbol.toUpperCase(),
+      symbol: symbol.toUpperCase(),
       action,
       qty,
-      price:       parseFloat(price.toFixed(2)),
-      value:       parseFloat(value.toFixed(2)),
-      pnl:         pnl !== null ? parseFloat(pnl.toFixed(2)) : null,
+      price: parseFloat(price.toFixed(2)),
+      value: parseFloat(value.toFixed(2)),
+      pnl: pnl !== null ? parseFloat(pnl.toFixed(2)) : null,
       priceSource,
-      executedAt:  new Date().toISOString(),
+      executedAt: new Date().toISOString(),
     };
 
     logger.info(
@@ -277,19 +281,19 @@ async function getPositions(portfolioId) {
   const positions = {};
   for (const row of rows) {
     // MySQL returns DECIMAL/SUM fields as strings — coerce all to numbers first
-    const netQty        = parseInt(row.net_qty, 10);
+    const netQty = parseInt(row.net_qty, 10);
     const totalBuyValue = parseFloat(row.total_buy_value) || 0;
-    const totalBuyQty   = parseFloat(row.total_buy_qty)   || 0;
-    const realisedPnl   = parseFloat(row.realised_pnl)    || 0;
+    const totalBuyQty = parseFloat(row.total_buy_qty) || 0;
+    const realisedPnl = parseFloat(row.realised_pnl) || 0;
 
     const avgCost = totalBuyQty > 0
       ? parseFloat((totalBuyValue / totalBuyQty).toFixed(4))
       : 0;
 
     positions[row.symbol] = {
-      qty:         netQty,
-      entryPrice:  parseFloat(avgCost.toFixed(2)),
-      totalCost:   parseFloat(totalBuyValue.toFixed(2)),
+      qty: netQty,
+      entryPrice: parseFloat(avgCost.toFixed(2)),
+      totalCost: parseFloat(totalBuyValue.toFixed(2)),
       realisedPnl: parseFloat(realisedPnl.toFixed(2)),
     };
   }
@@ -319,18 +323,18 @@ async function getPosition(portfolioId, symbol) {
 
   if (!rows[0] || parseInt(rows[0].net_qty, 10) <= 0) return null;
 
-  const netQty        = parseInt(rows[0].net_qty, 10);
+  const netQty = parseInt(rows[0].net_qty, 10);
   const totalBuyValue = parseFloat(rows[0].total_buy_value) || 0;
-  const totalBuyQty   = parseFloat(rows[0].total_buy_qty)   || 0;
+  const totalBuyQty = parseFloat(rows[0].total_buy_qty) || 0;
 
   const avgCost = totalBuyQty > 0
     ? parseFloat((totalBuyValue / totalBuyQty).toFixed(4))
     : 0;
 
   return {
-    qty:        netQty,
+    qty: netQty,
     entryPrice: parseFloat(avgCost.toFixed(2)),
-    totalCost:  parseFloat(totalBuyValue.toFixed(2)),
+    totalCost: parseFloat(totalBuyValue.toFixed(2)),
   };
 }
 
@@ -354,15 +358,15 @@ async function getTrades(portfolioId, limit = 50) {
   );
 
   return rows.map(r => ({
-    id:          r.id,
-    symbol:      r.symbol,
-    action:      r.action,
-    qty:         r.qty,
-    price:       parseFloat(r.price),
-    value:       parseFloat(r.value),
-    pnl:         r.pnl !== null ? parseFloat(r.pnl) : null,
+    id: r.id,
+    symbol: r.symbol,
+    action: r.action,
+    qty: r.qty,
+    price: parseFloat(r.price),
+    value: parseFloat(r.value),
+    pnl: r.pnl !== null ? parseFloat(r.pnl) : null,
     priceSource: r.price_source,
-    executedAt:  r.executed_at instanceof Date
+    executedAt: r.executed_at instanceof Date
       ? r.executed_at.toISOString()
       : String(r.executed_at),
   }));
@@ -384,7 +388,7 @@ async function getRealisedPnlBySymbol(portfolioId) {
     [portfolioId]
   );
   return rows.map(r => ({
-    symbol:      r.symbol,
+    symbol: r.symbol,
     realisedPnl: parseFloat(r.realised_pnl),
   }));
 }
