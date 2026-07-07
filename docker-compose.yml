@@ -1,10 +1,19 @@
 # docker-compose.yml — root of project
+#
+# NOTE: previously provisioned a MySQL container here, but the backend
+# (backend/src/config/database.js) only ever speaks Postgres wire protocol
+# via the `pg` driver, and the schema (backend/scripts/schema.sql,
+# src/config/initDB.js) uses Postgres/CockroachDB-only syntax (RETURNING,
+# ON CONFLICT, JSONB, GENERATED AS IDENTITY). The MySQL container could
+# never actually be reached by the app. Switched to Postgres to match what
+# the code actually uses. Also fixed: `build.dockerfile` pointed at
+# backend/Dockerfile, which doesn't exist — only the root Dockerfile does.
 version: '3.9'
 
 services:
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -12,10 +21,9 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
-      - DB_HOST=mysql
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_started
@@ -36,19 +44,18 @@ services:
       - backend
     restart: unless-stopped
 
-  mysql:
-    image: mysql:9.4
+  postgres:
+    image: postgres:16-alpine
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: trading_engine
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "3306:3306"
+      - "5432:5432"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,6 +71,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  mysql_data:
+  postgres_data:
   redis_data:
-  

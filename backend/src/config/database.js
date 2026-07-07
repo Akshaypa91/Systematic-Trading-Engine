@@ -3,10 +3,16 @@
 const { Pool } = require('pg');
 const logger = require('./logger');
 
+// SSL cert validation is off by default (rejectUnauthorized: false), which
+// accepts self-signed/unverified certs and is vulnerable to MITM on the DB
+// connection. Left as the default here to avoid breaking the existing
+// managed-Postgres/CockroachDB connection sight-unseen, but it should be
+// set to 'true' in production once the DB host's CA chain is confirmed to
+// validate cleanly — see DB_SSL_REJECT_UNAUTHORIZED in .env.example.
 const pool = new Pool({
 	connectionString: process.env.DATABASE_URL,
 	ssl: {
-		rejectUnauthorized: false,
+		rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true',
 	},
 	max: 10,
 	idleTimeoutMillis: 30000,

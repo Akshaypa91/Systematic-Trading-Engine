@@ -1,9 +1,10 @@
 // src/controllers/liveController.js
 'use strict';
 
-const lts    = require('../services/liveTradingService');
-const db     = require('../config/database');
-const logger = require('../config/logger');
+const lts      = require('../services/liveTradingService');
+const db       = require('../config/database');
+const logger   = require('../config/logger');
+const auditLog = require('../middleware/auditLog');
 
 function uid(req) { return req.user?.userId ?? req.user?.id ?? null; }
 
@@ -27,6 +28,7 @@ async function placeOrder(req, res) {
       confirmed: !!confirmed,
       currentPrice: parseFloat(currentPrice || 0),
     });
+    auditLog('live.order_placed', req, { userId, symbol, side: side.toUpperCase(), qty });
     return res.status(201).json(result);
   } catch (err) {
     logger.warn(`[LiveCtrl] placeOrder error: ${err.message} code=${err.code}`);
@@ -112,14 +114,19 @@ async function setMode(req, res) {
     'UPDATE users SET trading_mode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
     [mode.toLowerCase(), uid(req)]
   );
+  auditLog('live.mode_changed', req, { userId: uid(req), mode });
   return res.json({ success: true, mode });
 }
 
 // ── POST /api/live/admin/kill-switch (admin only) ─────────────────────────────
+// Route-level requireAdmin (routes/live.js) is now the primary guard — this
+// inline check is kept as defense-in-depth in case the route is ever
+// re-wired without it.
 async function killSwitch(req, res) {
   if (req.user?.role !== 'admin') return res.status(403).json({ success: false, error: 'Admin only' });
   const { enabled } = req.body;
   await lts.setKillSwitch(!!enabled);
+  auditLog('live.kill_switch', req, { userId: uid(req), enabled: !!enabled });
   return res.json({ success: true, liveEnabled: !!enabled });
 }
 

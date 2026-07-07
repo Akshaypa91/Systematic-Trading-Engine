@@ -1,15 +1,20 @@
 // src/routes/index.js
+//
+// Mounted last, at /api, as a catch-all (see app.js). Because dedicated
+// routers for /api/data, /api/signal, /api/backtest, /api/trade and
+// /api/screener are mounted BEFORE this one, any route here that duplicates
+// those paths is unreachable — Express never falls through to a later
+// router once an earlier one has matched and responded. Those duplicates
+// (previously ~21 routes) have been removed; only routes with no dedicated
+// router (analytics/alerts/scheduler/info/health) live here.
 'use strict';
 
 const express = require('express');
 const router  = express.Router();
 
-const dataCtrl     = require('../controllers/dataController');
-const signalCtrl   = require('../controllers/signalController');
-const backtestCtrl = require('../controllers/backtestController');
-const tradeCtrl    = require('../controllers/tradeController');
-const screenerCtrl = require('../controllers/screenerController');
-const { requireAuth } = require('../middleware/authMiddleware');
+const analyticsCtrl = require('../controllers/analyticsController');
+const { requireAuth }  = require('../middleware/authMiddleware');
+const { requireAdmin } = require('../middleware/rbac');
 
 // ─── Health ───────────────────────────────────────────────────────────────────
 router.get('/health', (req, res) => res.json({
@@ -17,40 +22,6 @@ router.get('/health', (req, res) => res.json({
   ts:     new Date().toISOString(),
   uptime: process.uptime(),
 }));
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-router.get ('/data/search',  dataCtrl.searchStocks);
-router.get ('/data/health',              dataCtrl.getDataHealth);
-router.get ('/data/quote/:symbol',           dataCtrl.getQuote);
-router.get ('/data/historical/:symbol',      dataCtrl.getHistorical);
-router.post('/data/fetch-and-store/:symbol', dataCtrl.fetchAndStore);
-router.get ('/data/prices/:symbol',          dataCtrl.getPrices);
-router.get ('/data/nifty50',                 dataCtrl.getNifty50);
-router.get ('/data/market-status',           dataCtrl.getMarketStatus);
-
-// ─── Signals ──────────────────────────────────────────────────────────────────
-router.get('/signal/describe',          signalCtrl.describeStrategies);
-router.get('/signal/history/:symbol',   requireAuth, signalCtrl.getSignalHistory);
-router.get('/signal/:symbol',           requireAuth, signalCtrl.getSignal);
-
-// ─── Backtest ─────────────────────────────────────────────────────────────────
-router.post('/backtest',                 requireAuth, backtestCtrl.runBacktest);
-router.get ('/backtest/runs',            requireAuth, backtestCtrl.getBacktestRuns);
-router.get ('/backtest/runs/:runId/trades', requireAuth, backtestCtrl.getBacktestTrades);
-
-// ─── Paper Trading ────────────────────────────────────────────────────────────
-router.post('/trade/order',              requireAuth, tradeCtrl.placeOrder);
-router.get ('/trade/portfolio',          requireAuth, tradeCtrl.getPortfolio);
-router.get ('/trade/orders',             requireAuth, tradeCtrl.getOrders);
-router.get ('/trade/check/:symbol',      requireAuth, tradeCtrl.checkPosition);
-
-// ─── Screener ─────────────────────────────────────────────────────────────────
-router.get ('/screener',                 requireAuth, screenerCtrl.runScreener);
-router.post('/screener',                 requireAuth, screenerCtrl.runScreener);
-router.get ('/screener/score/:symbol',   requireAuth, screenerCtrl.scoreSymbol);
-
-// ─── Analytics & Optimizer ───────────────────────────────────────────────────
-const analyticsCtrl = require('../controllers/analyticsController');
 
 router.get ('/analytics/backtest/:runId', requireAuth, analyticsCtrl.getBacktestAnalytics);
 router.get ('/analytics/portfolio',       requireAuth, analyticsCtrl.getLiveAnalytics);
@@ -110,7 +81,10 @@ router.get('/info', (req, res) => res.json({
 const scheduler = require('../engine/scheduler');
 router.get('/scheduler/status', (req, res) =>
   res.json({ success: true, data: scheduler.getJobStatus() }));
-router.post('/scheduler/job/:name/stop', requireAuth, (req, res) => {
+// Was requireAuth only — any logged-in user (not just admins) could stop
+// background jobs (market data refresh, signal generation, etc.) that
+// affect every user of the platform. Now admin-only.
+router.post('/scheduler/job/:name/stop', requireAuth, requireAdmin, (req, res) => {
   const ok = scheduler.stopJob(req.params.name);
   res.json({ success: ok, message: ok ? 'Job stopped' : 'Job not found' });
 });

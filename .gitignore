@@ -1,4 +1,13 @@
 node_modules/
 .env
 package-lock.json
-.env
+
+# OS
+.DS_Store
+
+# Logs — these were previously tracked in git (backend/logs/*, logs/*),
+# which means every run adds noisy diffs. Ignored going forward; run
+# `git rm -r --cached logs backend/logs` once to untrack the existing ones.
+logs/
+backend/logs/
+*.log

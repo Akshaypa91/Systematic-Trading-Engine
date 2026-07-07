@@ -6,13 +6,15 @@ require('dotenv').config();
 const http     = require('http');
 const express  = require('express');
 const cors     = require('cors');
+const helmet   = require('helmet');
 const morgan   = require('morgan');
 const os       = require('os');
 
-const logger   = require('./config/logger');
-const db       = require('./config/database');
-const { initDB } = require('./config/initDB');
-const C        = require('./config/constants');
+const logger      = require('./config/logger');
+const db          = require('./config/database');
+const { initDB }  = require('./config/initDB');
+const C           = require('./config/constants');
+const validateEnv = require('./config/validateEnv');
 
 const { apiLimiter, nseProxyLimiter, authLimiter, backtestLimiter } = require('./middleware/rateLimiter');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
@@ -28,33 +30,27 @@ const simRoutes      = require('./routes/sim');
 const liveRoutes     = require('./routes/live');
 const feedbackRoutes = require('./routes/feedback');
 const tradeJournalRoutes = require('./routes/tradeJournal');
+const portfolioRoutes = require('./routes/portfolio');
 
 const liveDataFeed = require('./data/liveDataFeed');
 const scheduler    = require('./engine/scheduler');
 const simEngine    = require('./engine/simulationEngine');
 const requestTrace = require('./middleware/requestTrace');
 
-// ── Validate critical env vars at startup ─────────────────────────────────────
-function validateEnv() {
-  const warnings = [];
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'systra-secret-change-in-production') {
-    warnings.push('JWT_SECRET is using the default insecure value — set a strong secret in production');
-  }
-  if (!process.env.DB_PASSWORD || process.env.DB_PASSWORD === '') {
-    warnings.push('DB_PASSWORD is not set');
-  }
-  if (C.NODE_ENV === 'production' && !(process.env.JWT_SECRET?.length >= 32)) {
-    warnings.push('JWT_SECRET should be at least 32 characters in production');
-  }
-  warnings.forEach(w => logger.warn(`[Config] ⚠️  ${w}`));
-  return warnings;
-}
-
 // ── App setup ─────────────────────────────────────────────────────────────────
 const app    = express();
 const server = http.createServer(app);
 
 app.set('trust proxy', 1);  // Required on Render for real IP
+
+// ── Security headers ─────────────────────────────────────────────────────────
+// helmet was already a dependency but was never mounted — no CSP/HSTS/frame
+// protection etc. was actually being sent. crossOriginResourcePolicy is
+// relaxed to cross-origin so the frontend (different origin) can load
+// API responses/assets; CORS above is the real access-control boundary.
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED = (process.env.ALLOWED_ORIGINS || '')
@@ -74,6 +70,13 @@ app.use(cors({
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
+// ── Request tracing ───────────────────────────────────────────────────────────
+// Was previously registered after errorHandler (see git history), which meant
+// it never ran — Express doesn't fall through to middleware registered after
+// a response has already been sent. Moved here, before routes, so every
+// request gets a traceId and a timing/status log line as originally intended.
+app.use(requestTrace);
 
 app.use(morgan(C.NODE_ENV === 'production' ? 'combined' : 'dev', {
   stream: { write: msg => logger.http(msg.trim()) },
@@ -132,16 +135,16 @@ app.use('/api/trade-journal', tradeJournalRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
 app.use('/api/live',     liveRoutes);
+app.use('/api/portfolio', portfolioRoutes);  // previously built but never mounted
 app.use('/api',          allRoutes);        // catch-all last
 
 // ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
-app.use(requestTrace);
 
 // ── Startup ───────────────────────────────────────────────────────────────────
 async function start() {
-  validateEnv();
+  validateEnv({ logger });
 
   try {
     await db.testConnection();
