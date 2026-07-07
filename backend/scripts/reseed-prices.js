@@ -65,13 +65,14 @@ async function main() {
       const chunk = rows.slice(i, i + 200);
       const placeholders = chunk.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',');
       try {
+        // ON CONFLICT ... DO NOTHING (Postgres) -> INSERT IGNORE (MySQL/TiDB):
+        // silently skips rows that would violate the unique constraint.
         await db.query(
-          `INSERT INTO daily_prices
+          `INSERT IGNORE INTO daily_prices
             (symbol, exchange, trade_date, open_price, high_price, low_price,
              close_price, vwap, volume, delivery_qty, delivery_pct,
              num_trades, prev_close, change_pct)
-           VALUES ${placeholders}
-           ON CONFLICT (symbol, exchange, trade_date) DO NOTHING`,
+           VALUES ${placeholders}`,
           chunk.flat()
         );
         inserted += chunk.length;

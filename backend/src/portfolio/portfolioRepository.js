@@ -4,7 +4,7 @@
 // PORTFOLIO REPOSITORY
 // ─────────────────────────────────────────────────────────────────────────────
 //
-// All PostgreSQL/CockroachDB I/O for portfolio persistence.
+// All TiDB Cloud (MySQL protocol) I/O for portfolio persistence.
 // Zero business logic here — pure data access layer.
 //
 // TABLES USED
@@ -47,25 +47,26 @@ const logger = require('../config/logger');
  */
 async function createPortfolio(capital, userId = null) {
   return db.transaction(async (conn) => {
-    // Close any existing active portfolio for this user
+    // Close any existing active portfolio for this user.
+    // IS NOT DISTINCT FROM is Postgres-only null-safe equality — MySQL/TiDB
+    // equivalent is the <=> (null-safe equal) operator.
     await conn.query(
       `UPDATE portfolios
    SET status = 'CLOSED', updated_at = CURRENT_TIMESTAMP
    WHERE status = 'ACTIVE'
-     AND user_id IS NOT DISTINCT FROM ?`,
+     AND user_id <=> ?`,
       [userId]
     );
 
     // Insert new portfolio
-    const [rows] = await conn.query(
+    const [, insertResult] = await conn.query(
       `INSERT INTO portfolios
    (user_id, initial_capital, current_capital, status)
-   VALUES (?, ?, ?, 'ACTIVE')
-   RETURNING id`,
+   VALUES (?, ?, ?, 'ACTIVE')`,
       [userId, capital, capital]
     );
 
-    const portfolioId = rows[0].id;
+    const portfolioId = insertResult.insertId;
     logger.info(`[PortfolioRepo] Created portfolio #${portfolioId} capital=₹${capital}`);
     return portfolioId;
   });
@@ -79,11 +80,12 @@ async function createPortfolio(capital, userId = null) {
  */
 async function getActivePortfolio(userId = null) {
   // Strict nullable equality: user_id = NULL never works in SQL.
+  // <=> is MySQL/TiDB's null-safe equal (replaces Postgres IS NOT DISTINCT FROM).
   const [rows] = await db.query(
     `SELECT id, user_id, initial_capital, current_capital, status, created_at, updated_at
      FROM portfolios
      WHERE status = 'ACTIVE'
-       AND user_id IS NOT DISTINCT FROM ?
+       AND user_id <=> ?
      ORDER BY created_at DESC
      LIMIT 1`,
     [userId]
@@ -210,18 +212,23 @@ async function saveTrade(trade) {
     }
 
     // 2. Insert trade
-    const [tradeRows] = await conn.query(
+    const [, insertResult] = await conn.query(
       `INSERT INTO sim_trades
          (portfolio_id, symbol, action, qty, price, value, pnl, price_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-       RETURNING id, executed_at`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [portfolioId, symbol.toUpperCase(), action, qty,
         parseFloat(price.toFixed(4)), value,
         pnl !== null ? parseFloat(pnl.toFixed(4)) : null,
         safeSource]
     );
-    const savedId = tradeRows[0].id;
-    const executedAt = tradeRows[0].executed_at;
+    const savedId = insertResult.insertId;
+    // No RETURNING — executed_at defaults to CURRENT_TIMESTAMP on insert,
+    // so read it back rather than guessing at the DB's clock value.
+    const [tradeRows] = await conn.query(
+      'SELECT executed_at FROM sim_trades WHERE id = ?',
+      [savedId]
+    );
+    const executedAt = tradeRows[0]?.executed_at;
 
     // 3. Update capital
     await conn.query(

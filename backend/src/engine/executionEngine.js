@@ -792,7 +792,7 @@ async function getRecentOrders(limit = 50, userId = null) {
   try {
     const [rows] = await db.query(
       `SELECT * FROM paper_trades
-       WHERE user_id IS NOT DISTINCT FROM ?
+       WHERE user_id <=> ?
        ORDER BY created_at DESC
        LIMIT ?`,
       [userId, limit]

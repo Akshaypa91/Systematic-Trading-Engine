@@ -41,14 +41,13 @@ async function signup(req, res) {
       return res.status(409).json({ success: false, error: 'Email already registered' });
 
     const hashed = hashPassword(password);
-    const [rows] = await db.query(
+    const [, result] = await db.query(
       `INSERT INTO users (email, password, name, role, provider)
-   VALUES (?, ?, ?, 'user', 'local')
-   RETURNING id`,
+   VALUES (?, ?, ?, 'user', 'local')`,
       [email, hashed, name || null]
     );
 
-    const userId = rows[0].id;
+    const userId = result.insertId;
     await portfolioRepo.createPortfolio(1000000, userId);
 
     // Send welcome email (non-blocking)
@@ -145,13 +144,15 @@ async function forgotPassword(req, res) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
+    // user_id is the PRIMARY KEY on password_resets, so this upserts on
+    // that collision (equivalent to the old ON CONFLICT (user_id) DO UPDATE).
     await db.query(
       `INSERT INTO password_resets (user_id, token, expires_at)
        VALUES (?, ?, ?)
-       ON CONFLICT (user_id) DO UPDATE
-       SET token = EXCLUDED.token,
-           expires_at = EXCLUDED.expires_at,
-           created_at = CURRENT_TIMESTAMP`,
+       ON DUPLICATE KEY UPDATE
+         token = VALUES(token),
+         expires_at = VALUES(expires_at),
+         created_at = CURRENT_TIMESTAMP`,
       [rows[0].id, token, expiry]
     );
 

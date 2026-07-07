@@ -10,7 +10,7 @@ const logger = require('../config/logger');
 
 /**
  * Upserts an array of OHLCV rows into daily_prices.
- * Uses INSERT ... ON CONFLICT DO UPDATE for idempotency.
+ * Uses INSERT ... ON DUPLICATE KEY UPDATE for idempotency.
  *
  * @param {Array<Object>} rows - Normalised rows from nseFetcher
  * @returns {Promise<number>} Rows affected
@@ -35,26 +35,33 @@ async function saveDailyPrices(rows) {
     r.trades   || null,
   ]);
 
+  // ON CONFLICT ... DO UPDATE / EXCLUDED are Postgres-only. MySQL/TiDB
+  // equivalent is ON DUPLICATE KEY UPDATE / VALUES(col), keyed off the
+  // uq_daily_prices_symbol_date unique constraint.
   const sql = `
     INSERT INTO daily_prices
       (symbol, exchange, trade_date, open_price, high_price, low_price,
        close_price, vwap, volume, delivery_qty, delivery_pct, num_trades)
     VALUES ${placeholders}
-    ON CONFLICT (symbol, exchange, trade_date) DO UPDATE
-    SET open_price   = EXCLUDED.open_price,
-        high_price   = EXCLUDED.high_price,
-        low_price    = EXCLUDED.low_price,
-        close_price  = EXCLUDED.close_price,
-        vwap         = EXCLUDED.vwap,
-        volume       = EXCLUDED.volume,
-        delivery_qty = EXCLUDED.delivery_qty,
-        delivery_pct = EXCLUDED.delivery_pct,
-        num_trades   = EXCLUDED.num_trades
+    ON DUPLICATE KEY UPDATE
+      open_price   = VALUES(open_price),
+      high_price   = VALUES(high_price),
+      low_price    = VALUES(low_price),
+      close_price  = VALUES(close_price),
+      vwap         = VALUES(vwap),
+      volume       = VALUES(volume),
+      delivery_qty = VALUES(delivery_qty),
+      delivery_pct = VALUES(delivery_pct),
+      num_trades   = VALUES(num_trades)
   `;
 
   const [, result] = await db.query(sql, values);
-  logger.info(`[DataStore] Upserted ${result.rowCount} price rows for ${rows[0]?.symbol}`);
-  return result.rowCount;
+  // Note: MySQL/TiDB affectedRows counts 1 per inserted row but 2 per row
+  // that hit the ON DUPLICATE KEY UPDATE branch (a driver-level quirk, not
+  // a bug here) — this count is informational only, nothing depends on it
+  // being an exact row count.
+  logger.info(`[DataStore] Upserted ${result.affectedRows} price rows for ${rows[0]?.symbol}`);
+  return result.affectedRows;
 }
 
 // ─── Read ─────────────────────────────────────────────────────────────────────

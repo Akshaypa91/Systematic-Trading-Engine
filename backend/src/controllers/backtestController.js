@@ -110,14 +110,13 @@ async function runBacktest(req, res) {
     // Persist run summary
     let runId = null;
     try {
-      const [runRows] = await db.query(`
+      const [, runResult] = await db.query(`
         INSERT INTO backtest_runs
           (user_id, symbol, strategy, start_date, end_date, initial_capital, final_capital,
            total_return_pct, annualised_return_pct, sharpe_ratio, max_drawdown_pct,
            win_rate_pct, total_trades, winning_trades, losing_trades,
            avg_profit_pct, avg_loss_pct, profit_factor, parameters)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        RETURNING id
       `, [
         userId,
         summary.symbol, summary.strategy, summary.startDate, summary.endDate,
@@ -127,7 +126,7 @@ async function runBacktest(req, res) {
         summary.avgWinPct, summary.avgLossPct, summary.profitFactor,
         JSON.stringify({ stopLossPct, takeProfitPct, riskPerTrade }),
       ]);
-      runId = runRows[0].id;
+      runId = runResult.insertId;
 
       // FIX Bug 14: Persist individual trades — were NEVER inserted, causing
       // GET /api/backtest/runs/:id/trades and analytics to always return empty.
@@ -179,7 +178,7 @@ async function getBacktestRuns(req, res) {
   try {
     const userId = req.user?.userId ?? req.user?.id ?? null;
     const { symbol, limit = 10 } = req.query;
-    let sql    = 'SELECT * FROM backtest_runs WHERE user_id IS NOT DISTINCT FROM ?';
+    let sql    = 'SELECT * FROM backtest_runs WHERE user_id <=> ?';
     const params = [userId];
     if (symbol) { sql += ' AND symbol = ?'; params.push(symbol.toUpperCase()); }
     sql += ' ORDER BY created_at DESC LIMIT ?';
@@ -202,7 +201,7 @@ async function getBacktestTrades(req, res) {
       `SELECT bt.*
        FROM backtest_trades bt
        JOIN backtest_runs br ON br.id = bt.run_id
-       WHERE bt.run_id = ? AND br.user_id IS NOT DISTINCT FROM ?
+       WHERE bt.run_id = ? AND br.user_id <=> ?
        ORDER BY bt.entry_date ASC`,
       [runId, userId]
     );

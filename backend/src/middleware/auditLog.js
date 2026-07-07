@@ -14,7 +14,7 @@ const logger = require('../config/logger');
 /**
  * @param {string} action    short machine-readable action name, e.g. 'auth.login'
  * @param {object} req       express request (used for ip/user-agent/traceId/user)
- * @param {object} metadata  extra context to store as JSONB; pass { userId }
+ * @param {object} metadata  extra context to store as JSON; pass { userId }
  *                           explicitly for pre-auth actions (signup/login)
  *                           where req.user isn't populated yet.
  */

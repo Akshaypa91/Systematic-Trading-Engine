@@ -32,11 +32,12 @@ async function _isLiveTradingEnabled() {
 
 // ── Duplicate order guard (same user+symbol+side within 10s) ─────────────────
 async function _isDuplicate(userId, symbol, side) {
+  // INTERVAL '10 seconds' is Postgres syntax — MySQL/TiDB uses INTERVAL 10 SECOND.
   const [rows] = await db.query(
     `SELECT id FROM live_orders
      WHERE user_id = ? AND symbol = ? AND side = ?
        AND status NOT IN ('REJECTED','CANCELLED')
-       AND created_at > CURRENT_TIMESTAMP - INTERVAL '10 seconds'
+       AND created_at > CURRENT_TIMESTAMP - INTERVAL 10 SECOND
      LIMIT 1`,
     [userId, symbol, side]
   );
@@ -45,12 +46,11 @@ async function _isDuplicate(userId, symbol, side) {
 
 // ── Save order to DB ──────────────────────────────────────────────────────────
 async function _saveOrder(data) {
-  const [rows] = await db.query(
+  const [, insertResult] = await db.query(
     `INSERT INTO live_orders
        (user_id, broker_order_id, symbol, side, qty, price, order_type,
         status, provider, raw_response, error_message, confirmed)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     RETURNING id`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.userId, data.brokerOrderId || null,
       data.symbol, data.side, data.qty,
@@ -62,7 +62,7 @@ async function _saveOrder(data) {
       Boolean(data.confirmed),
     ]
   );
-  return rows[0].id;
+  return insertResult.insertId;
 }
 
 // ── Main: placeOrder ──────────────────────────────────────────────────────────
@@ -173,12 +173,14 @@ async function cancelOrder(userId, brokerOrderId) {
 
 // ── Admin: kill switch ────────────────────────────────────────────────────────
 async function setKillSwitch(enabled) {
+  // flag_key is the PRIMARY KEY on system_flags, so this upserts on that
+  // collision (equivalent to the old ON CONFLICT (flag_key) DO UPDATE).
   await db.query(
     `INSERT INTO system_flags (flag_key, flag_value, updated_at)
      VALUES ('live_trading_enabled', ?, CURRENT_TIMESTAMP)
-     ON CONFLICT (flag_key) DO UPDATE
-     SET flag_value = EXCLUDED.flag_value,
-         updated_at = CURRENT_TIMESTAMP`,
+     ON DUPLICATE KEY UPDATE
+       flag_value = VALUES(flag_value),
+       updated_at = CURRENT_TIMESTAMP`,
     [enabled ? 'true' : 'false']
   );
 }

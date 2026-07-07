@@ -61,9 +61,9 @@ async function upsertInstruments() {
     await db.query(
       `INSERT INTO instruments (symbol, exchange, is_active)
        VALUES (?, 'NSE', true)
-       ON CONFLICT (symbol, exchange) DO UPDATE
-       SET is_active = true,
-           updated_at = CURRENT_TIMESTAMP`,
+       ON DUPLICATE KEY UPDATE
+         is_active = true,
+         updated_at = CURRENT_TIMESTAMP`,
       [symbol]
     );
   }
