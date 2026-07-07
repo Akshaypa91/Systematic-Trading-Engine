@@ -30,6 +30,6 @@ RUN mkdir -p logs && chown trading:nodejs logs
 
 USER trading
 
-EXPOSE 5000
+EXPOSE 3000
 
 CMD ["node", "src/app.js"]

@@ -3,7 +3,7 @@
 version: '3.9'
 
 services:
-  app:
+  backend:
     image: trading-engine:${APP_VERSION:-latest}
     deploy:
       resources:

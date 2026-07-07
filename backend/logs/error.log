@@ -798,3 +798,6 @@
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:04.870"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:16.216"}
 {"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-06-04 15:26:33.152"}
+{"level":"error","message":"[UpstoxWS] Error: getaddrinfo EAI_AGAIN api.upstox.com","timestamp":"2026-07-07 20:49:52.852"}
+{"ip":"::ffff:127.0.0.1","level":"error","message":"GET /health → 503 (2ms)","ms":2,"timestamp":"2026-07-07 20:49:56.465","traceId":"mrasp4j3-0001","userId":null}
+{"level":"error","message":"[UpstoxWS] Error: getaddrinfo EAI_AGAIN api.upstox.com","timestamp":"2026-07-07 20:50:24.746"}

@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const db = require('../config/database');
 const logger = require('../config/logger');
 const portfolioRepo = require('../portfolio/portfolioRepository');
+const auditLog = require('../middleware/auditLog');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_min_32_chars_please!!';
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY_SECONDS || '604800', 10);
@@ -58,6 +59,7 @@ async function signup(req, res) {
 
     const token = signJWT({ userId, email, role: 'user' });
     logger.info(`[Auth] Signup: ${email}`);
+    auditLog('auth.signup', req, { userId, email });
     return res.status(201).json({
       success: true, token,
       user: { id: userId, email, name: name || null, role: 'user', provider: 'local' },
@@ -77,12 +79,16 @@ async function login(req, res) {
   try {
     const [rows] = await db.query('SELECT * FROM users WHERE email = ? LIMIT 1', [email]);
     const user = rows[0];
-    if (!user || !user.password)
+    if (!user || !user.password) {
+      auditLog('auth.login_failed', req, { email, reason: 'no_such_user' });
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid)
+    if (!valid) {
+      auditLog('auth.login_failed', req, { userId: user.id, email, reason: 'bad_password' });
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
 
     const token = signJWT({ userId: user.id, email: user.email, role: user.role });
 
@@ -90,6 +96,7 @@ async function login(req, res) {
     db.query('UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [user.id]).catch(() => { });
 
     logger.info(`[Auth] Login: ${email}`);
+    auditLog('auth.login', req, { userId: user.id, email });
     return res.json({
       success: true, token, expiresIn: JWT_EXPIRY,
       user: {
@@ -191,6 +198,7 @@ async function resetPassword(req, res) {
     await db.query('DELETE FROM password_resets WHERE user_id = ?', [rows[0].user_id]);
 
     logger.info(`[Auth] Password reset complete for user ${rows[0].user_id}`);
+    auditLog('auth.password_reset', req, { userId: rows[0].user_id });
     return res.json({ success: true, message: 'Password updated. Please log in.' });
   } catch (err) {
     logger.error(`[Auth] resetPassword: ${err.message}`);
