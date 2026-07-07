@@ -48,14 +48,13 @@ async function googleAuth(req, res) {
       logger.info(`[GoogleAuth] Login: ${email}`);
     } else {
       // New user — create
-      const [newUserRows] = await db.query(
+      const [, insertResult] = await db.query(
         `INSERT INTO users (email, name, password, provider, google_id, picture, role, created_at)
-         VALUES (?, ?, NULL, 'google', ?, ?, 'user', CURRENT_TIMESTAMP)
-         RETURNING id`,
+         VALUES (?, ?, NULL, 'google', ?, ?, 'user', CURRENT_TIMESTAMP)`,
         [email, name || email.split('@')[0], googleId, picture]
       );
 
-      const userId = newUserRows[0].id;
+      const userId = insertResult.insertId;
       await portfolioRepo.createPortfolio(1000000, userId);
 
       const [newRows] = await db.query(

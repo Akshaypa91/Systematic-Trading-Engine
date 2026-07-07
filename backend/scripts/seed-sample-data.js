@@ -76,13 +76,13 @@ async function seedSymbol({ symbol, startPrice, mu, sigma }) {
       INSERT INTO daily_prices
         (symbol,exchange,trade_date,open_price,high_price,low_price,close_price,vwap,volume)
       VALUES ${ph}
-      ON CONFLICT (symbol, exchange, trade_date) DO UPDATE
-      SET open_price = EXCLUDED.open_price,
-          high_price = EXCLUDED.high_price,
-          low_price = EXCLUDED.low_price,
-          close_price = EXCLUDED.close_price,
-          vwap = EXCLUDED.vwap,
-          volume = EXCLUDED.volume
+      ON DUPLICATE KEY UPDATE
+        open_price = VALUES(open_price),
+        high_price = VALUES(high_price),
+        low_price = VALUES(low_price),
+        close_price = VALUES(close_price),
+        vwap = VALUES(vwap),
+        volume = VALUES(volume)
     `, vals);
     saved += chunk.length;
   }
@@ -97,9 +97,9 @@ async function run() {
     await db.query(
       `INSERT INTO instruments (symbol, exchange, is_active)
        VALUES (?, 'NSE', true)
-       ON CONFLICT (symbol, exchange) DO UPDATE
-       SET is_active = true,
-           updated_at = CURRENT_TIMESTAMP`,
+       ON DUPLICATE KEY UPDATE
+         is_active = true,
+         updated_at = CURRENT_TIMESTAMP`,
       [symbol]
     );
   }

@@ -92,12 +92,11 @@ async function createJournal(req, res) {
       return res.status(400).json({ success: false, error: 'confidenceScore must be between 0 and 100' });
     }
 
-    const [rows] = await db.query(`
+    const [, insertResult] = await db.query(`
       INSERT INTO trade_journal
         (user_id, trade_id, symbol, side, entry_reason, exit_reason, notes,
          confidence_score, screenshot_url, tags, lessons_learned)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?)
-      RETURNING *
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       userId,
       tradeId,
@@ -112,6 +111,8 @@ async function createJournal(req, res) {
       lessonsLearned,
     ]);
 
+    // No RETURNING in MySQL/TiDB — fetch the row we just wrote by its new id.
+    const [rows] = await db.query('SELECT * FROM trade_journal WHERE id = ? LIMIT 1', [insertResult.insertId]);
     res.status(201).json({ success: true, data: serialize(rows[0]) });
   } catch (err) {
     logger.error(`[TradeJournal] create: ${err.message}`);
@@ -132,7 +133,7 @@ async function updateJournal(req, res) {
       return res.status(400).json({ success: false, error: 'confidenceScore must be between 0 and 100' });
     }
 
-    const [rows] = await db.query(`
+    await db.query(`
       UPDATE trade_journal
       SET symbol = COALESCE(?, symbol),
           side = COALESCE(?, side),
@@ -141,11 +142,10 @@ async function updateJournal(req, res) {
           notes = COALESCE(?, notes),
           confidence_score = COALESCE(?, confidence_score),
           screenshot_url = COALESCE(?, screenshot_url),
-          tags = COALESCE(?::jsonb, tags),
+          tags = COALESCE(?, tags),
           lessons_learned = COALESCE(?, lessons_learned),
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND user_id = ?
-      RETURNING *
     `, [
       body.symbol ? String(body.symbol).trim().toUpperCase() : null,
       body.side ? String(body.side).trim().toUpperCase() : null,
@@ -160,6 +160,11 @@ async function updateJournal(req, res) {
       userId,
     ]);
 
+    // affectedRows is 0 if no row matched id+user_id (not found / not yours).
+    // Note: MySQL/TiDB only counts a row as "affected" if a value actually
+    // changed — if the update was a no-op (identical values), affectedRows
+    // can be 0 even though the row exists. Re-check existence explicitly.
+    const [rows] = await db.query('SELECT * FROM trade_journal WHERE id = ? AND user_id = ? LIMIT 1', [id, userId]);
     if (!rows[0]) return res.status(404).json({ success: false, error: 'Journal entry not found' });
     res.json({ success: true, data: serialize(rows[0]) });
   } catch (err) {
@@ -172,7 +177,7 @@ async function deleteJournal(req, res) {
   try {
     const userId = userIdFrom(req);
     const [, result] = await db.query('DELETE FROM trade_journal WHERE id = ? AND user_id = ?', [req.params.id, userId]);
-    res.json({ success: result.rowCount > 0 });
+    res.json({ success: result.affectedRows > 0 });
   } catch (err) {
     logger.error(`[TradeJournal] delete: ${err.message}`);
     res.status(500).json({ success: false, error: err.message });
@@ -182,24 +187,37 @@ async function deleteJournal(req, res) {
 async function getJournalAnalytics(req, res) {
   try {
     const userId = userIdFrom(req);
+    // FILTER (WHERE ...) is Postgres-only — MySQL/TiDB equivalent is a
+    // conditional SUM/CASE.
     const [rows] = await db.query(`
       SELECT
         COUNT(*) AS total_entries,
         AVG(confidence_score) AS avg_confidence,
-        COUNT(*) FILTER (WHERE side = 'BUY') AS buy_notes,
-        COUNT(*) FILTER (WHERE side = 'SELL') AS sell_notes
+        SUM(CASE WHEN side = 'BUY' THEN 1 ELSE 0 END) AS buy_notes,
+        SUM(CASE WHEN side = 'SELL' THEN 1 ELSE 0 END) AS sell_notes
       FROM trade_journal
       WHERE user_id = ?
     `, [userId]);
 
-    const [tagRows] = await db.query(`
-      SELECT tag, COUNT(*) AS count
-      FROM trade_journal, jsonb_array_elements_text(tags) AS tag
-      WHERE user_id = ?
-      GROUP BY tag
-      ORDER BY count DESC, tag ASC
-      LIMIT 10
-    `, [userId]);
+    // jsonb_array_elements_text() (Postgres) has no reliable MySQL/TiDB
+    // equivalent — JSON_TABLE() exists in MySQL 8 but isn't consistently
+    // available across TiDB versions. Aggregate tags in application code
+    // instead: portable, and journal counts are small enough this is cheap.
+    const [tagSource] = await db.query(
+      `SELECT tags FROM trade_journal WHERE user_id = ? AND tags IS NOT NULL`,
+      [userId]
+    );
+    const tagCounts = new Map();
+    for (const row of tagSource) {
+      const tags = Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags || '[]');
+      for (const tag of tags) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      }
+    }
+    const topTags = [...tagCounts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 10)
+      .map(([tag, count]) => ({ tag, count }));
 
     const summary = rows[0] || {};
     res.json({
@@ -209,7 +227,7 @@ async function getJournalAnalytics(req, res) {
         avgConfidence: summary.avg_confidence != null ? Number(Number(summary.avg_confidence).toFixed(2)) : null,
         buyNotes: Number(summary.buy_notes || 0),
         sellNotes: Number(summary.sell_notes || 0),
-        topTags: tagRows.map(r => ({ tag: r.tag, count: Number(r.count) })),
+        topTags,
       },
     });
   } catch (err) {

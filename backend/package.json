@@ -31,7 +31,7 @@
     "knex": "^3.2.10",
     "mathjs": "^12.2.1",
     "morgan": "^1.10.0",
-    "pg": "^8.21.0",
+    "mysql2": "^3.22.6",
     "resend": "^6.12.3",
     "technicalindicators": "^3.1.0",
     "uuid": "^14.0.0",

@@ -30,7 +30,7 @@ const logger = require('../config/logger');
  */
 async function analyseBacktestRun(runId, userId = null) {
   const [[run]] = await db.query(
-    'SELECT * FROM backtest_runs WHERE id = ? AND user_id IS NOT DISTINCT FROM ?',
+    'SELECT * FROM backtest_runs WHERE id = ? AND user_id <=> ?',
     [runId, userId]
   );
   if (!run) throw new Error(`Backtest run ${runId} not found`);
@@ -216,7 +216,7 @@ async function getLivePortfolioAnalytics(userId = null) {
   const [trades] = await db.query(`
     SELECT * FROM paper_trades
     WHERE status = 'EXECUTED'
-      AND user_id IS NOT DISTINCT FROM ?
+      AND user_id <=> ?
     ORDER BY executed_at ASC
   `, [userId]);
 
