@@ -54613,3 +54613,1538 @@
 {"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 10:28:36.140"}
 {"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 10:28:36.371"}
 {"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 10:28:36.372"}
+{"level":"info","message":"[Config] ✅ Environment validated","timestamp":"2026-07-08 11:26:54.597"}
+{"level":"warn","message":"[Config] ⚠️  Missing recommended env vars: RESEND_API_KEY","timestamp":"2026-07-08 11:26:54.597"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-08 11:26:56.141"}
+{"level":"info","message":"[App] ✅ Database connected","timestamp":"2026-07-08 11:26:56.142"}
+{"level":"info","message":"[InitDB] Running TiDB Cloud table initialisation...","timestamp":"2026-07-08 11:26:56.142"}
+{"level":"debug","message":"[InitDB] exists  - users","timestamp":"2026-07-08 11:26:57.003"}
+{"level":"debug","message":"[InitDB] exists  - instruments","timestamp":"2026-07-08 11:26:57.496"}
+{"level":"debug","message":"[InitDB] exists  - daily_prices","timestamp":"2026-07-08 11:26:57.846"}
+{"level":"debug","message":"[InitDB] exists  - intraday_prices","timestamp":"2026-07-08 11:26:57.989"}
+{"level":"debug","message":"[InitDB] exists  - signals","timestamp":"2026-07-08 11:26:58.720"}
+{"level":"debug","message":"[InitDB] exists  - backtest_runs","timestamp":"2026-07-08 11:26:59.504"}
+{"level":"debug","message":"[InitDB] exists  - backtest_trades","timestamp":"2026-07-08 11:26:59.979"}
+{"level":"debug","message":"[InitDB] exists  - paper_trades","timestamp":"2026-07-08 11:27:01.151"}
+{"level":"debug","message":"[InitDB] exists  - portfolio","timestamp":"2026-07-08 11:27:01.463"}
+{"level":"debug","message":"[InitDB] exists  - performance_metrics","timestamp":"2026-07-08 11:27:01.892"}
+{"level":"debug","message":"[InitDB] exists  - data_fetch_log","timestamp":"2026-07-08 11:27:02.188"}
+{"level":"debug","message":"[InitDB] exists  - system_health","timestamp":"2026-07-08 11:27:02.394"}
+{"level":"debug","message":"[InitDB] exists  - portfolios","timestamp":"2026-07-08 11:27:02.810"}
+{"level":"debug","message":"[InitDB] exists  - password_resets","timestamp":"2026-07-08 11:27:03.106"}
+{"level":"debug","message":"[InitDB] exists  - feedback","timestamp":"2026-07-08 11:27:03.383"}
+{"level":"debug","message":"[InitDB] exists  - sim_trades","timestamp":"2026-07-08 11:27:03.736"}
+{"level":"debug","message":"[InitDB] exists  - watchlists","timestamp":"2026-07-08 11:27:04.036"}
+{"level":"debug","message":"[InitDB] exists  - trade_journal","timestamp":"2026-07-08 11:27:04.422"}
+{"level":"debug","message":"[InitDB] exists  - broker_accounts","timestamp":"2026-07-08 11:27:04.642"}
+{"level":"debug","message":"[InitDB] exists  - live_orders","timestamp":"2026-07-08 11:27:04.930"}
+{"level":"debug","message":"[InitDB] exists  - system_flags","timestamp":"2026-07-08 11:27:05.072"}
+{"level":"debug","message":"[InitDB] exists  - audit_logs","timestamp":"2026-07-08 11:27:05.431"}
+{"level":"info","message":"[InitDB] Done - 0 created, 22 existed, 0 failed","timestamp":"2026-07-08 11:27:05.431"}
+{"level":"info","message":"[WS] WebSocket server attached at /ws","timestamp":"2026-07-08 11:27:05.432"}
+{"level":"info","message":"[Scheduler] Registered job \"LIVE_SIGNALS\" every 300s","timestamp":"2026-07-08 11:27:05.432"}
+{"level":"info","message":"[Scheduler] Registered job \"PAPER_EXIT_CHECK\" every 120s","timestamp":"2026-07-08 11:27:05.432"}
+{"level":"info","message":"[Scheduler] Registered job \"MARKET_SCAN\" every 900s","timestamp":"2026-07-08 11:27:05.432"}
+{"level":"info","message":"[Scheduler] Registered job \"SIGNAL_SNAPSHOT\" every 3600s","timestamp":"2026-07-08 11:27:05.433"}
+{"level":"info","message":"[Scheduler] Registered job \"DATA_SYNC\" every 86400s","timestamp":"2026-07-08 11:27:05.433"}
+{"level":"info","message":"[Scheduler] Started 5 jobs","timestamp":"2026-07-08 11:27:05.433"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:27:05.434"}
+{"level":"info","message":"[App] 🤖 Simulation engine started","timestamp":"2026-07-08 11:27:05.447"}
+{"level":"info","message":"[App] 🚀 Running on port 3000 [development]","timestamp":"2026-07-08 11:27:05.450"}
+{"level":"info","message":"[App] 🔗 Health: http://localhost:3000/health","timestamp":"2026-07-08 11:27:05.450"}
+{"level":"info","message":"[App] 🔗 WS:     ws://localhost:3000/ws","timestamp":"2026-07-08 11:27:05.451"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:27:05.525"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:27:05.526"}
+{"level":"info","message":"[UpstoxWS] Reconnect #1 in 5s","timestamp":"2026-07-08 11:27:05.526"}
+{"level":"warn","message":"[App] Upstox WS failed: Unexpected server response: 401","timestamp":"2026-07-08 11:27:05.526"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-07-08 11:27:05.624"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-08 11:27:05.710"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:05.980"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub bad price 0","timestamp":"2026-07-08 11:27:06.285"}
+{"level":"warn","message":"[MarketData] NSE TCS: Request failed with status code 403","timestamp":"2026-07-08 11:27:06.397"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:06.621"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub bad price 0","timestamp":"2026-07-08 11:27:06.954"}
+{"level":"warn","message":"[MarketData] CB OPEN nse — 15min cooldown","timestamp":"2026-07-08 11:27:06.989"}
+{"level":"warn","message":"[MarketData] NSE INFY: Request failed with status code 403","timestamp":"2026-07-08 11:27:06.989"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:07.260"}
+{"level":"warn","message":"[MarketData] CB OPEN finnhub — 15min cooldown","timestamp":"2026-07-08 11:27:07.483"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub bad price 0","timestamp":"2026-07-08 11:27:07.483"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:07.483"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:07.710"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:07.710"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:07.711"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:07.930"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:07.931"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:07.931"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.153"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:08.153"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:08.154"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:08.448"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.493"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:08.494"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:08.494"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.730"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:08.730"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:08.730"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.733"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:08.733"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:08.734"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.952"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:08.952"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:08.952"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:08.953"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:08.953"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:08.953"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:09.176"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:09.176"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:09.185"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:09.185"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:27:10.526"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:27:10.590"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:27:10.590"}
+{"level":"info","message":"[UpstoxWS] Reconnect #2 in 8s","timestamp":"2026-07-08 11:27:10.590"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:27:10.590"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:14.449"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:14.698"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:14.698"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:27:17.450"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:17.809"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:27:17.810"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:27:17.810"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:27:18.091"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:18.114"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:27:18.115"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:18.115"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:27:18.171"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:27:18.172"}
+{"level":"info","message":"[UpstoxWS] Reconnect #3 in 11s","timestamp":"2026-07-08 11:27:18.172"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:27:18.172"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:18.339"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:18.339"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:18.339"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:18.566"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:18.567"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:18.567"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:18.799"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:18.799"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:18.800"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:19.024"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:19.025"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:19.025"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:19.252"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:19.252"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:19.252"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:19.472"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:19.472"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:19.472"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:19.692"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:19.693"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:23.452"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:23.679"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:23.679"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:27:26.453"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:26.717"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:27:26.718"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:27:26.718"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:26.939"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:27:26.939"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:26.940"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:27.165"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:27.165"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:27.165"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:27.383"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:27.383"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:27.383"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:27.634"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:27.634"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:27.635"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:27.885"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:27.885"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:27.886"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:28.108"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:28.108"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:28.108"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:28.411"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:28.412"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:28.412"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:28.636"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:28.636"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:27:29.424"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:27:29.518"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:27:29.519"}
+{"level":"info","message":"[UpstoxWS] Reconnect #4 in 17s","timestamp":"2026-07-08 11:27:29.519"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:27:29.519"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:32.455"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:32.679"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:32.680"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:27:35.457"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:35.749"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:27:35.749"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:27:35.750"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:35.967"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:27:35.968"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:35.968"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:36.274"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:36.275"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:36.275"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:36.542"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:36.543"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:36.543"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:36.798"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:36.798"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:36.798"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:37.472"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:37.472"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:37.472"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:37.697"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:37.697"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:37.698"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:37.920"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:37.921"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:37.921"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:38.145"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:38.145"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:41.457"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:41.733"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:41.734"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:27:44.458"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:44.740"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:27:44.740"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:27:44.740"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:44.960"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:27:44.960"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:44.961"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:45.176"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:45.176"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:45.176"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:45.398"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:45.398"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:45.399"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:45.696"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:45.697"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:45.697"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:45.919"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:45.920"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:45.920"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:46.139"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:46.140"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:46.140"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:46.362"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:46.362"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:46.362"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:27:46.396"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:27:46.466"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:27:46.466"}
+{"level":"info","message":"[UpstoxWS] Reconnect #5 in 25s","timestamp":"2026-07-08 11:27:46.466"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:27:46.466"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:46.584"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:46.585"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:50.460"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:50.696"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:50.697"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:27:53.462"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:27:53.749"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:27:53.749"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:27:53.749"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:27:54.058"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:27:54.058"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:27:54.059"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:54.286"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:54.286"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:27:54.286"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:54.508"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:54.508"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:27:54.508"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:27:54.728"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:27:54.729"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:27:54.729"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:27:54.943"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:27:54.943"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:27:54.943"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:55.161"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:55.161"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:27:55.161"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:55.378"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:55.378"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:27:55.378"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:27:55.596"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:27:55.596"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:27:59.464"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:27:59.685"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:27:59.686"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:02.465"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:02.693"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:02.694"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:02.694"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:02.915"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:02.916"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:02.916"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:03.146"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:03.146"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:03.146"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:03.375"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:03.375"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:03.375"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:03.682"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:03.682"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:03.683"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:04.100"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:04.100"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:04.100"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:04.326"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:04.326"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:04.326"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:04.555"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:04.556"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:04.556"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:04.777"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:04.777"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:08.468"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:08.689"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:08.689"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:11.468"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:11.691"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:11.691"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:11.691"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:28:11.782"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:28:11.840"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:28:11.841"}
+{"level":"info","message":"[UpstoxWS] Reconnect #6 in 38s","timestamp":"2026-07-08 11:28:11.841"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:28:11.841"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:11.914"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:11.915"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:11.915"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:12.130"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:12.131"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:12.131"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:12.354"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:12.354"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:12.354"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:12.590"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:12.590"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:12.590"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:12.897"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:12.897"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:12.897"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:13.118"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:13.118"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:13.118"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:13.419"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:13.419"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:13.419"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:13.641"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:13.641"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:17.468"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:17.696"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:17.696"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:20.470"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:20.695"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:20.695"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:20.695"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:20.917"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:20.917"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:20.918"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:21.142"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:21.142"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:21.142"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:21.363"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:21.363"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:21.363"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:21.608"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:21.608"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:21.608"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:21.910"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:21.910"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:21.910"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:22.127"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:22.127"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:22.127"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:22.420"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:22.420"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:22.420"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:22.638"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:22.639"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:26.470"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:26.698"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:26.698"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:29.471"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:29.707"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:29.707"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:29.708"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:29.930"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:29.931"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:29.931"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:30.205"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:30.206"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:30.206"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:30.429"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:30.429"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:30.429"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:30.649"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:30.650"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:30.650"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:30.874"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:30.874"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:30.875"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:31.134"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:31.134"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:31.134"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:31.415"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:31.415"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:31.415"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:31.631"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:31.631"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:35.470"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:35.690"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:35.690"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:38.471"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:38.694"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:38.694"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:38.694"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:38.924"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:38.925"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:38.925"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:39.215"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:39.215"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:39.215"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:39.430"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:39.431"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:39.431"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:39.649"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:39.650"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:39.650"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:39.871"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:39.871"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:39.872"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:40.098"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:40.098"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:40.099"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:40.317"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:40.317"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:40.317"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:40.576"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:40.577"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:44.472"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:44.690"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:44.690"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:47.473"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:47.696"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:47.696"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:47.696"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:47.944"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:47.944"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:47.944"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:48.169"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:48.169"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:48.170"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:48.429"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:48.429"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:48.429"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:48.654"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:48.655"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:48.655"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:48.876"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:48.876"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:48.877"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:49.150"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:49.150"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:49.150"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:49.373"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:49.374"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:49.374"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:49.672"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:49.672"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:28:49.809"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:28:49.925"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:28:49.925"}
+{"level":"info","message":"[UpstoxWS] Reconnect #7 in 57s","timestamp":"2026-07-08 11:28:49.925"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:28:49.925"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:28:53.475"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:53.698"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:53.698"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:28:56.475"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:28:56.726"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:28:56.726"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:28:56.726"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:28:57.013"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:28:57.013"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:28:57.013"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:57.237"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:57.237"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:28:57.238"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:57.539"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:57.539"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:28:57.539"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:28:57.759"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:28:57.759"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:28:57.759"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:28:58.067"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:28:58.067"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:28:58.067"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:58.294"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:58.294"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:28:58.294"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:28:58.585"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:28:58.585"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:28:58.585"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:28:58.876"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:28:58.877"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:02.477"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:02.696"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:02.696"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-07-08 11:29:05.434"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:05.478"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:05.701"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:05.701"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:05.702"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:05.927"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:05.927"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:05.927"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:06.248"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:06.249"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:06.249"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:06.466"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:06.466"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:06.466"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:06.691"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:06.691"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:06.691"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:06.916"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:06.916"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:06.917"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:07.139"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:07.140"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:07.140"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:07.360"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:07.361"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:07.361"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:07.586"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:07.586"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:11.480"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:11.704"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:11.705"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:14.481"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:14.704"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:14.704"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:14.704"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:14.925"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:14.925"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:14.926"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:15.147"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:15.148"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:15.148"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:15.378"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:15.378"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:15.379"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:15.604"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:15.604"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:15.604"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:15.827"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:15.828"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:15.828"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:16.082"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:16.082"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:16.083"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:16.383"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:16.383"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:16.383"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:16.607"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:16.607"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:20.482"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:20.707"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:20.708"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:23.483"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:23.717"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:23.717"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:23.717"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:23.935"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:23.935"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:23.935"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:24.167"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:24.168"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:24.168"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:24.397"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:24.397"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:24.398"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:24.618"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:24.618"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:24.618"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:24.835"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:24.835"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:24.836"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:25.063"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:25.063"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:25.063"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:25.304"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:25.304"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:25.304"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:25.583"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:25.583"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:29.484"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:29.707"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:29.707"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:32.485"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:32.708"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:32.708"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:32.708"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:32.928"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:32.928"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:32.928"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:33.150"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:33.150"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:33.150"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:33.380"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:33.380"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:33.380"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:33.592"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:33.592"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:33.593"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:33.810"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:33.810"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:33.810"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:34.028"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:34.028"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:34.029"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:34.249"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:34.249"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:34.249"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:34.472"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:34.472"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:38.487"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:38.720"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:38.720"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:41.488"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:41.710"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:41.710"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:41.710"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:41.939"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:41.939"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:41.939"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:42.202"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:42.203"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:42.203"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:42.419"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:42.419"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:42.419"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:42.639"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:42.639"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:42.639"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:42.908"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:42.909"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:42.909"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:43.126"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:43.126"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:43.126"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:43.346"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:43.346"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:43.346"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:43.571"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:43.571"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:29:46.878"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:29:46.959"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:29:46.959"}
+{"level":"info","message":"[UpstoxWS] Reconnect #8 in 85s","timestamp":"2026-07-08 11:29:46.959"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:29:46.959"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:47.488"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:47.710"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:47.711"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:50.489"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:50.709"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:50.709"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:50.710"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:50.929"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:50.929"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:50.929"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:51.155"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:51.155"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:29:51.156"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:51.377"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:51.377"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:29:51.377"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:29:51.596"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:29:51.596"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:29:51.597"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:29:51.815"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:29:51.815"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:29:51.816"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:52.036"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:52.036"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:29:52.036"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:52.258"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:52.258"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:29:52.258"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:29:52.475"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:29:52.476"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:29:56.490"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:29:56.715"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:29:56.716"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:29:59.490"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:29:59.709"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:29:59.709"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:29:59.709"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:29:59.945"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:29:59.946"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:29:59.946"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:00.172"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:00.172"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:00.172"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:00.450"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:00.450"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:00.451"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:00.692"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:00.692"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:00.692"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:00.976"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:00.977"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:00.977"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:01.818"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:01.818"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:01.818"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:02.132"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:02.132"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:02.132"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:02.491"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:02.552"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:02.552"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:03.732"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:03.733"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:05.491"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:06.561"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:06.561"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:08.491"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:08.919"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:08.919"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:08.920"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:10.582"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:10.582"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:10.583"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:10.940"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:10.940"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:10.940"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:11.287"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:11.287"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:11.288"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:11.492"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:11.591"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:11.591"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:11.591"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:12.104"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:12.105"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:12.105"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:12.416"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:12.416"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:12.416"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:12.827"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:12.827"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:12.827"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:12.950"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:12.950"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:12.950"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:13.202"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:13.202"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:13.202"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:13.586"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:13.586"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:13.677"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:13.677"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:17.494"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:17.777"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:17.777"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:17.777"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:18.235"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:18.235"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:20.495"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:20.804"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:20.804"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:20.804"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:21.813"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:21.813"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:21.813"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:22.562"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:22.562"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:22.562"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:22.918"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:22.918"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:22.918"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:23.262"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:23.262"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:23.262"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:23.495"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:23.572"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:23.572"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:23.572"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:23.971"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:23.971"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:23.971"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:23.972"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:23.972"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:23.972"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:24.756"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:24.757"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:26.356"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:26.356"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:26.496"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:26.784"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:26.784"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:26.784"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:27.076"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:27.076"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:29.498"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:29.793"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:29.793"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:32.498"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:32.792"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:32.792"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:32.792"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:33.188"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:33.188"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:33.188"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:33.480"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:33.480"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:33.480"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:33.803"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:33.803"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:33.803"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:34.095"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:34.096"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:34.096"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:34.380"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:34.380"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:35.498"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:36.057"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:36.057"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:36.058"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:36.339"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:36.339"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:36.340"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:37.388"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:37.388"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:38.499"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:38.817"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:38.817"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:41.501"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:41.868"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:41.868"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:41.868"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:42.156"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:42.156"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:42.156"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:42.442"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:42.442"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:42.442"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:42.956"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:42.956"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:42.956"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:43.246"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:43.246"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:43.247"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:43.527"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:43.527"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:44.501"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:44.794"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:44.794"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:44.794"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:45.077"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:45.077"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:47.502"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:48.245"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:48.245"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:48.245"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:48.526"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:48.526"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:50.503"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:50.790"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:50.790"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:50.791"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:51.081"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:51.081"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:30:51.081"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:30:51.384"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:30:51.384"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:30:51.384"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:30:51.709"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:30:51.709"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:30:51.709"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:51.985"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:51.985"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:30:51.985"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:52.275"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:52.275"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:30:53.504"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:53.789"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:53.789"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:30:53.789"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:30:54.178"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:30:54.178"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:30:56.504"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:30:57.243"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:30:57.243"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:30:57.243"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:30:57.537"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:30:57.537"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:30:59.505"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:30:59.775"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:30:59.775"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:30:59.775"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:00.063"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:00.064"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:00.064"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:00.368"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:00.368"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:00.368"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:00.730"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:00.730"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:00.730"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:02.504"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:02.882"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:02.883"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:02.883"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:03.434"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:03.435"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:03.435"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:04.230"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:04.230"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:04.230"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:04.311"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:04.311"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:04.311"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:04.625"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:04.625"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:04.626"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:04.626"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-07-08 11:31:05.433"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:05.505"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:05.801"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:05.801"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:05.801"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:06.158"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:06.158"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:08.506"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:08.803"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:08.803"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:08.803"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:09.093"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:09.093"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:09.093"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:09.444"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:09.444"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:09.444"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:09.734"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:09.734"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:11.506"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:12.322"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:12.322"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:12.322"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:31:12.390"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:31:12.464"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:31:12.465"}
+{"level":"info","message":"[UpstoxWS] Reconnect #9 in 120s","timestamp":"2026-07-08 11:31:12.465"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:31:12.465"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:12.616"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:12.617"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:12.617"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:12.920"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:12.920"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:12.920"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:13.245"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:13.245"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:14.508"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:14.868"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:14.868"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:14.868"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:15.450"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:15.450"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:17.508"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:17.784"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:17.785"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:17.785"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:18.073"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:18.073"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:18.074"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:18.364"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:18.365"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:18.365"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:18.699"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:18.699"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:20.510"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:20.806"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:20.806"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:20.806"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:21.091"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:21.092"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:21.092"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:21.361"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:21.361"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:21.362"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:21.715"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:21.715"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:23.511"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:23.815"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:23.815"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:23.815"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:24.108"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:24.109"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:26.512"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:26.789"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:26.789"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:26.790"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:27.060"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:27.061"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:27.061"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:27.567"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:27.567"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:27.567"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:27.849"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:27.850"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:29.512"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:30.122"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:30.122"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:30.122"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:30.890"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:30.891"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:30.891"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:31.165"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:31.166"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:31.166"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:31.531"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:31.532"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:32.514"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:32.786"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:32.786"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:32.786"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:33.091"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:33.091"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:35.515"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:35.804"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:35.804"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:35.805"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:36.090"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:36.091"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:36.091"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:36.365"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:36.365"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:36.365"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:36.679"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:36.680"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:38.515"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:38.788"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:38.789"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:41.516"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:41.800"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:41.800"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:41.800"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:42.100"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:42.100"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:42.100"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:42.410"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:42.410"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:42.411"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:42.676"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:42.676"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:42.676"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:42.943"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:42.943"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:44.516"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:44.867"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:44.867"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:44.868"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:45.122"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:45.122"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:45.123"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:45.380"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:45.380"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:45.381"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:45.600"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:45.600"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:47.518"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:47.743"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:47.743"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:50.518"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:50.742"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:50.742"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:50.742"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:31:50.971"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:31:50.971"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:31:50.971"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:51.191"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:51.191"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:31:51.191"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:51.522"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:51.522"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:31:51.522"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:51.745"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:51.745"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:31:53.520"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:53.740"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:53.740"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:31:53.740"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:31:53.962"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:31:53.962"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:31:53.962"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:31:54.183"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:31:54.184"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:31:54.184"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:31:54.411"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:31:54.412"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:31:56.520"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:31:56.753"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:31:56.753"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:31:59.522"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:31:59.831"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:31:59.831"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:31:59.831"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:00.132"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:00.132"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:00.132"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:00.432"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:00.432"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:00.432"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:00.745"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:00.746"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:00.746"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:01.060"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:01.061"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:02.526"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:02.794"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:02.795"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:02.795"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:03.052"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:03.053"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:03.053"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:03.272"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:03.272"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:03.273"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:03.493"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:03.494"}
+{"level":"debug","message":"[LiveSignal] runOnce: watchlist empty — nothing to process","timestamp":"2026-07-08 11:32:05.439"}
+{"level":"info","message":"[Scheduler] Live signals: 0 generated, 0 errors","timestamp":"2026-07-08 11:32:05.439"}
+{"level":"debug","message":"[Scheduler] \"LIVE_SIGNALS\" completed in 1ms — OK","timestamp":"2026-07-08 11:32:05.439"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:05.529"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:05.754"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:05.754"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:08.533"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:08.759"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:08.759"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:08.759"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:08.980"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:08.981"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:08.981"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:09.202"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:09.202"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:09.203"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:09.420"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:09.420"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:09.421"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:09.657"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:09.657"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:11.536"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:11.808"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:11.808"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:11.808"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:12.026"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:12.027"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:12.027"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:12.320"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:12.320"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:12.320"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:12.628"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:12.628"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:14.536"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:14.766"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:14.766"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:17.539"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:17.852"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:17.852"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:17.853"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:18.160"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:18.160"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:18.161"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:18.384"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:18.384"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:18.384"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:18.601"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:18.601"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:18.601"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:18.825"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:18.826"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:20.541"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:20.767"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:20.767"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:20.767"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:20.989"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:20.989"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:20.989"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:21.202"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:21.202"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:21.202"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:21.539"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:21.539"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:23.542"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:23.765"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:23.765"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:26.543"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:26.760"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:26.760"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:26.760"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:26.974"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:26.974"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:26.975"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:27.199"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:27.199"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:27.199"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:27.482"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:27.482"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:27.482"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:27.789"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:27.789"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:29.545"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:29.760"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:29.760"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:29.760"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:29.986"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:29.986"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:29.987"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:30.211"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:30.211"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:30.212"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:30.434"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:30.434"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:32.546"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:32.767"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:32.767"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:35.547"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:35.760"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:35.761"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:35.761"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:36.051"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:36.052"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:36.053"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:36.274"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:36.274"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:36.274"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:36.573"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:36.573"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:36.573"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:36.797"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:36.797"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:38.548"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:38.763"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:38.763"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:38.764"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:38.987"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:38.987"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:38.987"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:39.215"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:39.215"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:39.215"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:39.444"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:39.444"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:41.550"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:41.820"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:41.820"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:44.551"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:44.795"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:44.796"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:44.796"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:45.019"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:45.019"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:45.019"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:45.300"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:45.301"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:45.301"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:45.536"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:45.536"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:45.536"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:45.757"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:45.757"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:47.552"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:47.792"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:47.792"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:47.792"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:48.013"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:48.013"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:48.014"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:48.372"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:48.373"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:48.373"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:48.633"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:48.633"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:50.553"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:50.781"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:50.781"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:32:53.554"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:32:53.775"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:32:53.775"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:32:53.776"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:32:54.000"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:32:54.000"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:32:54.000"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:54.223"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:54.223"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:32:54.223"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:54.439"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:54.440"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:32:54.440"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:54.667"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:54.667"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:32:56.556"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:56.776"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:56.776"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:32:56.776"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:32:56.997"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:32:56.997"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:32:56.997"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:32:57.223"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:32:57.223"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:32:57.223"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:32:57.439"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:32:57.439"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:32:59.556"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:32:59.786"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:32:59.786"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:02.558"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:02.787"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:02.787"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:02.787"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:03.118"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:03.118"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:03.118"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:03.424"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:03.424"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:03.424"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:03.732"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:03.733"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:03.733"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:03.957"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:03.957"}
+{"level":"debug","message":"[Scheduler] \"PAPER_EXIT_CHECK\" completed in 0ms — OK","timestamp":"2026-07-08 11:33:05.452"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:05.558"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:05.782"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:05.782"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:05.782"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:05.995"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:05.995"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:05.995"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:06.221"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:06.221"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:06.221"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:06.496"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:06.496"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:08.557"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:08.784"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:08.784"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:11.558"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:11.824"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:11.824"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:11.825"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:12.142"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:12.142"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:12.142"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:12.362"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:12.362"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:12.362"}
+{"level":"info","message":"[UpstoxWS] Connecting (20 instruments) token_len=313","timestamp":"2026-07-08 11:33:12.484"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:12.587"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:12.587"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:12.587"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 11:33:12.615"}
+{"level":"warn","message":"[UpstoxWS] Closed 1006: ","timestamp":"2026-07-08 11:33:12.615"}
+{"level":"info","message":"[UpstoxWS] Reconnect #10 in 120s","timestamp":"2026-07-08 11:33:12.615"}
+{"level":"warn","message":"[UpstoxWS] Reconnect failed: Unexpected server response: 401","timestamp":"2026-07-08 11:33:12.615"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:12.814"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:12.814"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:14.560"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:14.776"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:14.776"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:14.776"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:14.997"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:14.997"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:14.998"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:15.303"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:15.304"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:15.304"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:15.599"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:15.599"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:17.561"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:17.781"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:17.781"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:20.562"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:20.787"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:20.787"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:20.787"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:21.037"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:21.037"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:21.037"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:21.354"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:21.354"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:21.354"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:21.656"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:21.657"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:21.657"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:21.959"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:21.959"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:23.563"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:23.795"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:23.795"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:23.795"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:24.012"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:24.012"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:24.013"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:24.235"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:24.235"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:24.235"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:24.455"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:24.455"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:26.564"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:26.781"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:26.781"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:29.564"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:29.784"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:29.785"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:29.785"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:30.016"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:30.016"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:30.016"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:30.255"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:30.255"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:30.256"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:30.574"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:30.574"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:30.574"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:30.871"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:30.871"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:32.564"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:32.792"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:32.793"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:32.793"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:33.019"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:33.019"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:33.019"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:33.238"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:33.238"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:33.238"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:33.536"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:33.536"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:35.565"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:35.794"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:35.794"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:38.566"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:38.788"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:38.788"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:38.788"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:39.009"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:39.009"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:39.009"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:39.233"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:39.233"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:39.233"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:39.573"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:39.573"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:39.573"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:39.794"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:39.795"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:41.567"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:41.796"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:41.796"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:41.796"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:42.025"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:42.025"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:42.025"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:42.241"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:42.241"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:42.241"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:42.569"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:42.569"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:44.567"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:44.900"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:44.901"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:47.568"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:47.787"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:47.787"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:47.787"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:48.010"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:48.010"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:48.010"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:48.235"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:48.235"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:48.235"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:48.449"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:48.449"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:48.449"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:48.676"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:48.676"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:50.568"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:50.784"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:50.784"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:50.785"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:51.025"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:51.025"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:33:51.025"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:33:51.254"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:33:51.254"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:33:51.254"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:33:51.548"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:33:51.549"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:33:53.569"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:53.860"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:53.860"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:33:56.569"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:33:56.795"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:33:56.795"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:33:56.795"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:33:57.022"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:33:57.023"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:33:57.023"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:57.317"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:57.318"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:33:57.318"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:33:57.540"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:33:57.541"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:33:57.541"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:57.840"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:57.840"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:33:59.571"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:33:59.828"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:33:59.829"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:33:59.829"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:34:00.133"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:34:00.133"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:34:00.134"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:34:00.458"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:34:00.458"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:34:00.459"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:34:01.082"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:34:01.082"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:34:02.570"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:34:02.832"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:34:02.832"}
+{"level":"warn","message":"[MarketData] NSE TCS: NSE CB open","timestamp":"2026-07-08 11:34:05.571"}
+{"level":"warn","message":"[MarketData] TwelveData TCS: Request failed with status code 429","timestamp":"2026-07-08 11:34:05.792"}
+{"level":"warn","message":"[MarketData] Finnhub TCS: Finnhub CB open","timestamp":"2026-07-08 11:34:05.792"}
+{"level":"warn","message":"[MarketData] NSE INFY: NSE CB open","timestamp":"2026-07-08 11:34:05.792"}
+{"level":"warn","message":"[MarketData] TwelveData INFY: Request failed with status code 429","timestamp":"2026-07-08 11:34:06.028"}
+{"level":"warn","message":"[MarketData] Finnhub INFY: Finnhub CB open","timestamp":"2026-07-08 11:34:06.028"}
+{"level":"warn","message":"[MarketData] NSE AXISBANK: NSE CB open","timestamp":"2026-07-08 11:34:06.029"}
+{"level":"warn","message":"[MarketData] TwelveData AXISBANK: Request failed with status code 429","timestamp":"2026-07-08 11:34:06.249"}
+{"level":"warn","message":"[MarketData] Finnhub AXISBANK: Finnhub CB open","timestamp":"2026-07-08 11:34:06.249"}
+{"level":"warn","message":"[MarketData] NSE BAJFINANCE: NSE CB open","timestamp":"2026-07-08 11:34:06.249"}
+{"level":"warn","message":"[MarketData] TwelveData BAJFINANCE: Request failed with status code 429","timestamp":"2026-07-08 11:34:06.504"}
+{"level":"warn","message":"[MarketData] Finnhub BAJFINANCE: Finnhub CB open","timestamp":"2026-07-08 11:34:06.504"}
+{"level":"warn","message":"[MarketData] NSE KOTAKBANK: NSE CB open","timestamp":"2026-07-08 11:34:06.504"}
+{"level":"warn","message":"[MarketData] TwelveData KOTAKBANK: Request failed with status code 429","timestamp":"2026-07-08 11:34:06.752"}
+{"level":"warn","message":"[MarketData] Finnhub KOTAKBANK: Finnhub CB open","timestamp":"2026-07-08 11:34:06.752"}
+{"level":"warn","message":"[MarketData] NSE HDFCBANK: NSE CB open","timestamp":"2026-07-08 11:34:08.573"}
+{"level":"warn","message":"[MarketData] TwelveData HDFCBANK: Request failed with status code 429","timestamp":"2026-07-08 11:34:08.860"}
+{"level":"warn","message":"[MarketData] Finnhub HDFCBANK: Finnhub CB open","timestamp":"2026-07-08 11:34:08.860"}
+{"level":"warn","message":"[MarketData] NSE ICICIBANK: NSE CB open","timestamp":"2026-07-08 11:34:08.861"}
+{"level":"warn","message":"[MarketData] TwelveData ICICIBANK: Request failed with status code 429","timestamp":"2026-07-08 11:34:09.277"}
+{"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-08 11:34:09.277"}
+{"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-08 11:34:09.277"}
+{"level":"warn","message":"[MarketData] TwelveData WIPRO: Request failed with status code 429","timestamp":"2026-07-08 11:34:09.490"}
+{"level":"warn","message":"[MarketData] Finnhub WIPRO: Finnhub CB open","timestamp":"2026-07-08 11:34:09.490"}
+{"level":"warn","message":"[MarketData] NSE SBIN: NSE CB open","timestamp":"2026-07-08 11:34:09.490"}
+{"level":"warn","message":"[MarketData] TwelveData SBIN: Request failed with status code 429","timestamp":"2026-07-08 11:34:09.705"}
+{"level":"warn","message":"[MarketData] Finnhub SBIN: Finnhub CB open","timestamp":"2026-07-08 11:34:09.706"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:34:11.572"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:34:11.792"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:34:11.792"}

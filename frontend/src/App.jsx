@@ -82,8 +82,8 @@ export default function App() {
                 <Route path="/backtest" element={<ProtectedRoute><Backtest /></ProtectedRoute>} />
                 <Route path="/signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
                 <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
-                <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
                 <Route path="/journal" element={<ProtectedRoute><TradeJournal /></ProtectedRoute>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

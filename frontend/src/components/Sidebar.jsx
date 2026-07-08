@@ -14,8 +14,8 @@ const NAV = [
   { to:'/backtest', icon:TrendingUp,      label:'Backtest' },
   { to:'/trade',    icon:ArrowLeftRight,  label:'Trade' },
   { to:'/journal',  icon:BookOpen,        label:'Journal' },
-  { to:'/feedback',  icon:MessageSquare,   label:'Feedback' },
   { to: '/analytics', icon: BarChart2, label: 'Analytics' },
+  { to:'/feedback',  icon:MessageSquare,   label:'Feedback' },
 ];
 
 function isMarketOpen() {
