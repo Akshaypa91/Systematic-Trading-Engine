@@ -771,3 +771,109 @@ body.nav-open { overflow:hidden; }
 @media (min-width: 1024px) {
   .mobile-nav-wrap { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM v3.1 — primitive layer tokens (additive)
+   Consumed by src/components/ui/*. Extends the existing token set above;
+   nothing here overrides prior variables.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Spacing scale (4px base) — replaces scattered magic numbers */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Type scale */
+  --text-2xs: 9px;
+  --text-xs:  11px;
+  --text-sm:  13px;
+  --text-md:  15px;
+  --text-lg:  18px;
+  --text-xl:  22px;
+
+  /* Focus ring — single source of truth for keyboard accessibility */
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--cyan);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.12s;
+  --dur-med:  0.2s;
+}
+
+/* ── Accessible focus-visible ring (keyboard only, never on mouse) ─────────── */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+/* Inputs already draw their own soft ring on :focus; strengthen for keyboard */
+.input:focus-visible,
+.ui-input:focus-visible,
+.ui-select:focus-visible,
+.ui-textarea:focus-visible {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 22%, transparent);
+}
+
+/* Respect reduced-motion preference across the whole app */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Layout helpers used by primitives ────────────────────────────────────── */
+.ui-hstack { display: flex; align-items: center; }
+.ui-vstack { display: flex; flex-direction: column; }
+.ui-between { display: flex; align-items: center; justify-content: space-between; }
+.ui-wrap { flex-wrap: wrap; }
+.ui-grow { flex: 1; min-width: 0; }
+
+/* ── Chip (quick-select / quick-add) — dedupes 3 hand-rolled variants ─────── */
+.ui-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
+  min-height: 30px;
+}
+.ui-chip:hover { border-color: var(--border-bright); color: var(--text-secondary); }
+.ui-chip[data-active="true"] {
+  background: color-mix(in srgb, var(--cyan) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cyan) 38%, transparent);
+  color: var(--cyan);
+}
+
+/* ── Metric tile accent glow (theme-aware, replaces drifted rgba literals) ── */
+.ui-metric-glow {
+  position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--metric-accent, var(--cyan)) 20%, transparent),
+    transparent 70%);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+.ui-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 56px 24px;
+  background: var(--bg-card); border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+.ui-empty-icon {
+  width: 48px; height: 48px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--cyan) 7%, transparent);
+  border: 1px solid var(--border); margin-bottom: var(--space-3);
+  color: var(--text-muted);
+}
