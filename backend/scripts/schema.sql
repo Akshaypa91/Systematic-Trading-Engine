@@ -347,8 +347,7 @@ CREATE TABLE IF NOT EXISTS portfolios (
         active_user_key INT AS (CASE WHEN status = 'ACTIVE' THEN COALESCE(user_id, -1) ELSE NULL END) STORED,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT uq_portfolios_active_user UNIQUE (active_user_key),
-        CONSTRAINT fk_portfolios_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        CONSTRAINT uq_portfolios_active_user UNIQUE (active_user_key)
       );
 
 ALTER TABLE portfolios ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;

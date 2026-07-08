@@ -801,3 +801,22 @@
 {"level":"error","message":"[UpstoxWS] Error: getaddrinfo EAI_AGAIN api.upstox.com","timestamp":"2026-07-07 20:49:52.852"}
 {"ip":"::ffff:127.0.0.1","level":"error","message":"GET /health → 503 (2ms)","ms":2,"timestamp":"2026-07-07 20:49:56.465","traceId":"mrasp4j3-0001","userId":null}
 {"level":"error","message":"[UpstoxWS] Error: getaddrinfo EAI_AGAIN api.upstox.com","timestamp":"2026-07-07 20:50:24.746"}
+{"level":"error","message":"[InitDB] failed  - portfolios: Cannot add foreign key constraint","timestamp":"2026-07-08 10:09:20.205"}
+{"level":"error","message":"[InitDB] failed  - sim_trades: Failed to open the referenced table 'portfolios'","timestamp":"2026-07-08 10:09:21.841"}
+{"level":"error","message":"[InitDB] failed  - portfolios: 'Adding generated stored column through ALTER TABLE' is not supported for generated columns.","timestamp":"2026-07-08 10:13:40.734"}
+{"level":"error","message":"[InitDB] failed  - portfolios: Cannot add foreign key constraint","timestamp":"2026-07-08 10:16:18.365"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:19:10.884"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:19:15.957"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:19:23.552"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:19:34.875"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:19:51.825"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:20:17.200"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:20:55.313"}
+{"level":"error","message":"[App] uncaughtException: listen EADDRINUSE: address already in use :::3000","timestamp":"2026-07-08 10:25:51.340"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:26:25.178"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:26:30.244"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:26:37.800"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:26:49.111"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:27:06.057"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:27:31.451"}
+{"level":"error","message":"[UpstoxWS] Error: Unexpected server response: 401","timestamp":"2026-07-08 10:28:09.484"}
