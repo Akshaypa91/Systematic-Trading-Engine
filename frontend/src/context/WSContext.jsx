@@ -15,6 +15,11 @@ function getWsUrl() {
   return token ? `${WS_BASE}?token=${encodeURIComponent(token)}` : WS_BASE;
 }
 
+// Lightweight debug logging — enable with localStorage.setItem('WS_DEBUG','1')
+function dbg(...args) {
+  try { if (localStorage.getItem('WS_DEBUG')) console.debug('[WS]', ...args); } catch { /* ignore */ }
+}
+
 // Safe number helper
 const n = (v, fb = 0) => (isFinite(Number(v)) ? Number(v) : fb);
 
@@ -47,6 +52,19 @@ export function WSProvider({ children }) {
   const wsRef      = useRef(null);
   const timerRef   = useRef(null);
   const mountedRef = useRef(true);
+  // symbol → subscriber count. Reference-counted so multiple components can
+  // subscribe to the same symbol without duplicate server subscriptions, and
+  // so we can re-send every active subscription after a reconnect.
+  const subsRef    = useRef(new Map());
+
+  // Send a JSON action if the socket is open. Returns true if sent.
+  const sendJSON = useCallback((obj) => {
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) {
+      try { ws.send(JSON.stringify(obj)); return true; } catch { /* ignore */ }
+    }
+    return false;
+  }, []);
 
   const connect = useCallback(() => {
     if (!mountedRef.current) return;
@@ -67,6 +85,14 @@ export function WSProvider({ children }) {
       if (!mountedRef.current) return;
       setStatus('connected');
       clearTimeout(timerRef.current);
+      dbg('connected');
+      // Re-subscribe to every active symbol. Critical after a reconnect —
+      // otherwise prices silently go stale once the socket drops and recovers.
+      const symbols = [...subsRef.current.keys()];
+      if (symbols.length) {
+        dbg('resubscribe', symbols);
+        try { ws.send(JSON.stringify({ action: 'SUBSCRIBE', symbols })); } catch { /* ignore */ }
+      }
     };
 
     ws.onmessage = (evt) => {
@@ -112,7 +138,8 @@ export function WSProvider({ children }) {
           case 'PRICE': {
             const { symbol, price, source, ts } = msg;
             if (symbol && isFinite(Number(price))) {
-              setPrices(prev => ({ ...prev, [symbol]: { price: Number(price), source, ts } }));
+              dbg('tick', symbol, price, source);
+              setPrices(prev => ({ ...prev, [symbol]: { price: Number(price), source, ts: ts || new Date().toISOString() } }));
             }
             break;
           }
@@ -156,8 +183,54 @@ export function WSProvider({ children }) {
     setTimeout(connect, 100);
   }, [connect]);
 
+  // ── Subscription API (reference-counted) ──────────────────────────────────
+  // Components call subscribe([sym]) on mount / symbol-change and
+  // unsubscribe([sym]) on cleanup. The server starts a 5s poll per symbol on
+  // first subscribe and stops it when the last subscriber leaves.
+  const subscribe = useCallback((symbols = []) => {
+    const map = subsRef.current;
+    const toSend = [];
+    for (const raw of symbols) {
+      const sym = String(raw || '').toUpperCase().trim();
+      if (!sym) continue;
+      const count = map.get(sym) || 0;
+      map.set(sym, count + 1);
+      if (count === 0) toSend.push(sym);   // first subscriber → tell the server
+    }
+    if (toSend.length) {
+      dbg('subscribe', toSend);
+      sendJSON({ action: 'SUBSCRIBE', symbols: toSend });
+    }
+  }, [sendJSON]);
+
+  const unsubscribe = useCallback((symbols = []) => {
+    const map = subsRef.current;
+    const toSend = [];
+    for (const raw of symbols) {
+      const sym = String(raw || '').toUpperCase().trim();
+      if (!sym) continue;
+      const count = map.get(sym) || 0;
+      if (count <= 1) {
+        map.delete(sym);
+        toSend.push(sym);                  // last subscriber left → free the poll
+      } else {
+        map.set(sym, count - 1);
+      }
+    }
+    if (toSend.length) {
+      dbg('unsubscribe', toSend);
+      sendJSON({ action: 'UNSUBSCRIBE', symbols: toSend });
+      // Drop cached prices for symbols nobody is watching anymore.
+      setPrices(prev => {
+        const next = { ...prev };
+        for (const sym of toSend) delete next[sym];
+        return next;
+      });
+    }
+  }, [sendJSON]);
+
   return (
-    <WSContext.Provider value={{ status, signals, portfolio, trades, lastTick, newTrade, prices, reconnect }}>
+    <WSContext.Provider value={{ status, signals, portfolio, trades, lastTick, newTrade, prices, reconnect, subscribe, unsubscribe }}>
       {children}
     </WSContext.Provider>
   );

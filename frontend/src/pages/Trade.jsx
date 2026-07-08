@@ -12,6 +12,7 @@ import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../servic
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 import TradingModeToggle from '../components/TradingModeToggle';
 import LiveOrderModal    from '../components/LiveOrderModal';
+import useLivePrice      from '../hooks/useLivePrice';
 
 const MAX_HISTORY = 8;
 
@@ -30,6 +31,12 @@ export default function Trade() {
   const [brokerLinked,  setBrokerLinked]  = useState(false);
   const [liveModal,     setLiveModal]     = useState(null);   // pending order
   const [liveLoading,   setLiveLoading]   = useState(false);
+
+  // ── Live price feed ─────────────────────────────────────────────────────────
+  // Subscribes to the currently displayed symbol over the shared WebSocket and
+  // returns continuously-updating ticks. Symbol changes are handled inside the
+  // hook (unsubscribe old → subscribe new).
+  const live = useLivePrice(data?.symbol);
 
   useEffect(() => {
     liveAPI.status().then(r => {
@@ -125,6 +132,18 @@ export default function Trade() {
     showToast(`${action} order placed — ${qty} × ${sym}`, action === 'BUY' ? 'success' : 'error');
     return res;
   }, [fetchStock, showToast]);
+
+  // Merge the live tick over the one-shot REST quote so the LTP + timestamp
+  // update on every WebSocket tick instead of freezing at fetch time.
+  const displayData = data
+    ? {
+        ...data,
+        price:     live.price ?? data.price,
+        source:    live.isLive ? live.source : data.source,
+        fetchedAt: live.ts ?? data.fetchedAt,
+      }
+    : data;
+  const isSimSource = displayData?.source === 'SIMULATION' || displayData?.source === 'SIM';
 
   const ToastEl = toast && (
     <div style={{ position: 'fixed', bottom: 24, right: 16, zIndex: 9999, maxWidth: 'calc(100vw - 32px)' }}>
@@ -242,11 +261,11 @@ export default function Trade() {
 
             {/* Left column: stock info + chart + portfolio */}
             <div className="trade-left">
-              <StockCard data={data} loading={loading} onRefresh={symbol ? () => fetchStock(symbol) : undefined} />
+              <StockCard data={displayData} loading={loading} onRefresh={symbol ? () => fetchStock(symbol) : undefined} />
 
-              {data?.symbol && <TradingChart symbol={data.symbol} priceSource={data.source} />}
+              {data?.symbol && <TradingChart symbol={data.symbol} priceSource={displayData?.source} />}
 
-              {data?.source === 'SIMULATION' && (
+              {isSimSource && (
                 <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(255,176,32,0.06)', border: '1px solid rgba(255,176,32,0.20)' }}>
                   <Info size={13} style={{ color: 'var(--amber)', flexShrink: 0, marginTop: 1 }} />
                   <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -262,7 +281,7 @@ export default function Trade() {
             <div className="trade-right">
               <TradePanel
                 symbol={data?.symbol ?? symbol}
-                currentPrice={data?.price}
+                currentPrice={displayData?.price}
                 onTrade={handleTrade}
                 disabled={loading}
               />

@@ -94,6 +94,8 @@ export default function StockCard({ data, loading, onRefresh }) {
   const zScore    = data.zScore;
   const source    = data.source;
   const fetchedAt = data.fetchedAt ?? data.timestamp;
+  // Any non-simulated source counts as a live feed (UPSTOX, LIVE_NSE, API, …).
+  const isLiveSource = source != null && !['SIM', 'SIMULATION'].includes(String(source).toUpperCase());
 
   return (
     <div className="card fade-up" style={{
@@ -116,11 +118,11 @@ export default function StockCard({ data, loading, onRefresh }) {
             {source && (
               <span className="font-mono" style={{
                 fontSize: 9, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.08em',
-                background: source === 'API' ? 'rgba(0,229,160,0.10)' : 'rgba(255,176,32,0.10)',
-                border: `1px solid ${source === 'API' ? 'rgba(0,229,160,0.25)' : 'rgba(255,176,32,0.25)'}`,
-                color: source === 'API' ? 'var(--green)' : 'var(--amber)',
+                background: isLiveSource ? 'color-mix(in srgb, var(--green) 10%, transparent)' : 'color-mix(in srgb, var(--amber) 10%, transparent)',
+                border: `1px solid ${isLiveSource ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--amber) 25%, transparent)'}`,
+                color: isLiveSource ? 'var(--green)' : 'var(--amber)',
               }}>
-                {source === 'API' ? '● LIVE' : '◌ SIM'}
+                {isLiveSource ? '● LIVE' : '◌ SIM'}
               </span>
             )}
           </div>
