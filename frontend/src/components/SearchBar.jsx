@@ -78,7 +78,7 @@ function Highlight({ text, query }) {
   return (
     <span>
       {text.slice(0, idx)}
-      <mark style={{ background: 'rgba(0,212,255,0.22)', color: 'var(--cyan)', borderRadius: 2, padding: '0 1px' }}>
+      <mark style={{ background: 'color-mix(in srgb, var(--cyan) 22%, transparent)', color: 'var(--cyan)', borderRadius: 2, padding: '0 1px' }}>
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -218,7 +218,7 @@ export default function SearchBar({ onSearch, loading }) {
           background: 'var(--bg-elevated)',
           border: `1px solid ${focused ? 'var(--border-accent)' : 'var(--border)'}`,
           borderRadius: showList ? '10px 10px 0 0' : 10,
-          boxShadow: focused ? '0 0 0 3px rgba(0,212,255,0.07)' : 'none',
+          boxShadow: focused ? '0 0 0 3px color-mix(in srgb, var(--cyan) 7%, transparent)' : 'none',
           transition: 'border-radius 0.1s, box-shadow 0.15s',
         }}>
           {(loading || fetching)
@@ -288,7 +288,7 @@ export default function SearchBar({ onSearch, loading }) {
                 width: '100%', padding: '8px 14px',
                 border: 'none',
                 borderTop: '1px solid rgba(255,255,255,0.03)',
-                background: i === activeIdx ? 'rgba(0,212,255,0.07)' : 'transparent',
+                background: i === activeIdx ? 'color-mix(in srgb, var(--cyan) 7%, transparent)' : 'transparent',
                 cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.08s',
               }}

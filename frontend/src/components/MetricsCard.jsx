@@ -1,9 +1,9 @@
 export default function MetricsCard({ label, value, sub, color = 'cyan', icon: Icon, trend, loading }) {
   const palette = {
-    cyan:   { c:'var(--cyan)',   bg:'rgba(0,212,255,0.07)',   border:'rgba(0,212,255,0.18)' },
-    green:  { c:'var(--green)',  bg:'rgba(0,229,160,0.07)',   border:'rgba(0,229,160,0.18)' },
-    red:    { c:'var(--red)',    bg:'rgba(255,77,106,0.07)',   border:'rgba(255,77,106,0.18)' },
-    amber:  { c:'var(--amber)',  bg:'rgba(255,176,32,0.07)',  border:'rgba(255,176,32,0.18)' },
+    cyan:   { c:'var(--cyan)',   bg:'color-mix(in srgb, var(--cyan) 7%, transparent)',   border:'color-mix(in srgb, var(--cyan) 18%, transparent)' },
+    green:  { c:'var(--green)',  bg:'color-mix(in srgb, var(--green) 7%, transparent)',   border:'color-mix(in srgb, var(--green) 18%, transparent)' },
+    red:    { c:'var(--red)',    bg:'color-mix(in srgb, var(--red) 7%, transparent)',   border:'color-mix(in srgb, var(--red) 18%, transparent)' },
+    amber:  { c:'var(--amber)',  bg:'color-mix(in srgb, var(--amber) 7%, transparent)',  border:'color-mix(in srgb, var(--amber) 18%, transparent)' },
     purple: { c:'var(--purple)', bg:'rgba(139,92,246,0.07)',  border:'rgba(139,92,246,0.18)' },
   };
   const p = palette[color] || palette.cyan;

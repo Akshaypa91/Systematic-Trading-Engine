@@ -1,31 +1,33 @@
-// src/components/Navbar.jsx — Premium redesign v3
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/components/Navbar.jsx — v4 trading-terminal top bar
+// Brand · ⌘K search · live feed status · IST clock · quick order ·
+// notifications (real WS trade events) · theme · user menu.
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useWS }   from '../context/WSContext';
-import { LogOut, Zap, WifiOff, RefreshCw, Menu, X } from 'lucide-react';
+import { useWS } from '../context/WSContext';
+import {
+  LogOut, Zap, WifiOff, RefreshCw, Menu, X, Search, Bell,
+  BookOpen, MessageSquare, ChevronDown, ArrowLeftRight,
+} from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import CommandPalette from './CommandPalette';
 
 function LiveClock() {
   const [time, setTime] = useState('');
   useEffect(() => {
-    const tick = () => setTime(new Date().toLocaleTimeString('en-IN', { hour12:false }));
+    const tick = () => setTime(new Date().toLocaleTimeString('en-IN', { hour12: false }));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-  return (
-    <span className="font-mono" style={{ fontSize:12, color:'var(--text-muted)', letterSpacing:'0.04em' }}>
-      {time}
-    </span>
-  );
+  return <>{time}</>;
 }
 
 function WSPill({ status, onReconnect }) {
   if (status === 'connected')
     return (
-      <div className="ws-pill connected">
-        <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', display:'inline-block' }} />
+      <div className="ws-pill connected" title="Live WebSocket feed">
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
         LIVE
       </div>
     );
@@ -38,19 +40,52 @@ function WSPill({ status, onReconnect }) {
   );
 }
 
+function useClickOutside(ref, onOutside, enabled) {
+  useEffect(() => {
+    if (!enabled) return;
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onOutside(); }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [ref, onOutside, enabled]);
+}
+
 export default function Navbar({ onMenuToggle, menuOpen }) {
-  const { user, logout }    = useAuth();
-  const { status, reconnect } = useWS();
+  const { user, logout } = useAuth();
+  const { status, reconnect, trades } = useWS();
   const navigate = useNavigate();
+
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [seenCount, setSeenCount] = useState(0);
+  const userRef = useRef(null);
+  const notifRef = useRef(null);
+
+  useClickOutside(userRef, () => setUserOpen(false), userOpen);
+  useClickOutside(notifRef, () => setNotifOpen(false), notifOpen);
+
+  // Global ⌘K / Ctrl+K
+  useEffect(() => {
+    function onKey(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const unseen = Math.max(0, trades.length - seenCount);
 
   function handleLogout() { logout(); navigate('/login'); }
   const initials = user?.name
-    ? user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
+    ? user.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
     : (user?.email || 'U')[0].toUpperCase();
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center px-4 gap-3"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center px-3 gap-2"
       style={{
         height: 'var(--navbar-h)',
         background: 'var(--navbar-bg)',
@@ -59,94 +94,172 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
         borderBottom: '1px solid var(--navbar-border)',
       }}
     >
-      {/* Hamburger */}
+      {/* Hamburger (mobile) */}
       <button
         onClick={onMenuToggle}
-        className="lg:hidden flex items-center justify-center"
-        style={{
-          width:32, height:32, borderRadius:8, flexShrink:0, cursor:'pointer',
-          background: menuOpen ? 'rgba(59,130,246,0.08)' : 'transparent',
-          border: `1px solid ${menuOpen ? 'rgba(59,130,246,0.2)' : 'var(--border)'}`,
-          color: menuOpen ? 'var(--cyan)' : 'var(--text-muted)',
-          transition: 'all 0.12s',
-        }}
+        className="nb-lg-down nb-icon-btn"
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={menuOpen}
+        style={menuOpen ? { color: 'var(--cyan)', borderColor: 'color-mix(in srgb, var(--cyan) 30%, transparent)' } : undefined}
       >
         {menuOpen ? <X size={14} /> : <Menu size={14} />}
       </button>
 
-      {/* Logo */}
-      <div className="flex items-center gap-2">
+      {/* Brand */}
+      <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none', flexShrink: 0 }}>
         <div style={{
-          width:28, height:28, borderRadius:8, flexShrink:0,
-          background:'rgba(59,130,246,0.12)', border:'1px solid rgba(59,130,246,0.2)',
-          display:'flex', alignItems:'center', justifyContent:'center',
+          width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+          background: 'color-mix(in srgb, var(--cyan) 12%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--cyan) 22%, transparent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Zap size={13} style={{ color:'var(--cyan)' }} />
+          <Zap size={12} style={{ color: 'var(--cyan)' }} />
         </div>
-        <div className="flex items-baseline gap-1.5">
-          <span style={{ fontFamily:'var(--font-ui)', fontSize:14, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.08em' }}>
-            SYSTRA
-          </span>
-          <span style={{
-            fontSize:9, padding:'1px 5px', borderRadius:4,
-            background:'var(--bg-elevated)', color:'var(--text-muted)',
-            border:'1px solid var(--border)', fontFamily:'var(--font-mono)',
-          }}>v2</span>
-        </div>
-      </div>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.07em' }}>
+          SYSTRA
+        </span>
+      </Link>
 
-      <div style={{ flex:1 }} />
+      {/* Search / command palette trigger */}
+      <button
+        className="nb-search nb-sm-up"
+        onClick={() => setPaletteOpen(true)}
+        aria-label="Search symbols and pages (Ctrl+K)"
+        style={{ marginLeft: 10 }}
+      >
+        <Search size={13} />
+        <span className="nb-search-text">Search symbols, pages…</span>
+        <span className="kbd">⌘K</span>
+      </button>
+      {/* Mobile search icon */}
+      <button className="nb-sm-down nb-icon-btn" onClick={() => setPaletteOpen(true)} aria-label="Search">
+        <Search size={14} />
+      </button>
+
+      <div style={{ flex: 1 }} />
 
       {/* Right controls */}
       <div className="flex items-center gap-2">
         <WSPill status={status} onReconnect={reconnect} />
 
         {/* Clock */}
-        <div className="hidden md:flex items-center gap-2"
-          style={{ padding:'4px 10px', borderRadius:6, background:'var(--bg-elevated)', border:'1px solid var(--border)' }}>
+        <div className="nb-md-up nb-chip" title="IST — Indian Standard Time">
           <LiveClock />
-          <span style={{ color:'var(--border-bright)', fontSize:10 }}>·</span>
-          <span className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>
-            {new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}
-          </span>
+          <span style={{ color: 'var(--text-dim)' }}>IST</span>
         </div>
 
-        <ThemeToggle />
+        {/* Quick order */}
+        <button
+          className="nb-md-up nb-chip clickable"
+          onClick={() => navigate('/trade')}
+          style={{ color: 'var(--cyan)', borderColor: 'color-mix(in srgb, var(--cyan) 26%, transparent)' }}
+          title="Open the order terminal (g t)"
+        >
+          <ArrowLeftRight size={12} />
+          Quick Order
+        </button>
 
-        {/* User */}
+        {/* Notifications — real WS trade events */}
+        <div style={{ position: 'relative' }} ref={notifRef}>
+          <button
+            className="nb-icon-btn"
+            aria-label={`Notifications${unseen ? ` (${unseen} new)` : ''}`}
+            aria-expanded={notifOpen}
+            onClick={() => setNotifOpen((o) => { if (!o) setSeenCount(trades.length); return !o; })}
+          >
+            <Bell size={13} />
+            {unseen > 0 && (
+              <span className="status-badge-count" aria-hidden="true">{unseen > 9 ? '9+' : unseen}</span>
+            )}
+          </button>
+          {notifOpen && (
+            <div className="nb-menu" style={{ width: 290, maxHeight: 340, overflowY: 'auto' }} role="menu">
+              <div className="nb-menu-head ui-between">
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Trade alerts</span>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>this session</span>
+              </div>
+              <div className="nb-menu-sep" />
+              {trades.length === 0 ? (
+                <div className="notif-empty">No trades yet this session</div>
+              ) : (
+                trades.slice(0, 8).map((t, i) => (
+                  <div key={i} className="notif-row">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span className="mono" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {t.symbol || t.action}
+                      </span>
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                        {t.action} · qty {t.qty ?? t.quantity ?? '—'}
+                      </span>
+                    </div>
+                    <span className={`badge ${t.action === 'BUY' ? 'badge-buy' : 'badge-sell'}`}>{t.action}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        <ThemeToggle compact />
+
+        {/* User menu */}
         {user && (
-          <div className="flex items-center gap-2">
-            {user.picture ? (
-              <img
-                src={user.picture} alt={user.name || user.email}
-                referrerPolicy="no-referrer"
-                style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', flexShrink:0, border:'1px solid var(--border)' }}
-              />
-            ) : (
-              <div style={{
-                width:28, height:28, borderRadius:'50%', flexShrink:0,
-                background:'rgba(59,130,246,0.12)', border:'1px solid rgba(59,130,246,0.2)',
-                color:'var(--cyan)', fontSize:11, fontWeight:600,
-                display:'flex', alignItems:'center', justifyContent:'center',
-              }}>
-                {initials}
+          <div style={{ position: 'relative' }} ref={userRef}>
+            <button
+              onClick={() => setUserOpen((o) => !o)}
+              aria-label="Account menu"
+              aria-expanded={userOpen}
+              className="flex items-center gap-1.5"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, borderRadius: 8 }}
+            >
+              {user.picture ? (
+                <img
+                  src={user.picture} alt=""
+                  referrerPolicy="no-referrer"
+                  style={{ width: 27, height: 27, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border)' }}
+                />
+              ) : (
+                <div style={{
+                  width: 27, height: 27, borderRadius: '50%', flexShrink: 0,
+                  background: 'color-mix(in srgb, var(--cyan) 12%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--cyan) 22%, transparent)',
+                  color: 'var(--cyan)', fontSize: 10.5, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {initials}
+                </div>
+              )}
+              <ChevronDown size={11} style={{ color: 'var(--text-muted)' }} />
+            </button>
+
+            {userOpen && (
+              <div className="nb-menu" role="menu">
+                <div className="nb-menu-head">
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.name || 'Trader'}
+                  </div>
+                  <div className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.email}
+                  </div>
+                </div>
+                <div className="nb-menu-sep" />
+                <Link to="/journal" className="nb-menu-item" role="menuitem">
+                  <BookOpen size={13} /> Trade journal
+                </Link>
+                <Link to="/feedback" className="nb-menu-item" role="menuitem">
+                  <MessageSquare size={13} /> Send feedback
+                </Link>
+                <div className="nb-menu-sep" />
+                <button onClick={handleLogout} className="nb-menu-item danger" role="menuitem">
+                  <LogOut size={13} /> Log out
+                </button>
               </div>
             )}
-            <span className="hidden xl:block" style={{ fontSize:13, color:'var(--text-secondary)', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {user.name || user.email}
-            </span>
           </div>
         )}
-
-        <button
-          onClick={handleLogout}
-          className="btn btn-ghost"
-          style={{ padding:'5px 10px', fontSize:12 }}
-        >
-          <LogOut size={13} />
-          <span className="hidden sm:inline">Logout</span>
-        </button>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </header>
   );
 }

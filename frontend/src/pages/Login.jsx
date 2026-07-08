@@ -96,7 +96,7 @@ export default function Login() {
         {isDark ? <Sun size={15} /> : <Moon size={15} />}
       </button>
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06), transparent)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in srgb, var(--cyan) 6%, transparent), transparent)' }} />
 
       <div className="w-full max-w-sm mx-4 fade-in">
         {/* Logo */}
@@ -115,7 +115,7 @@ export default function Login() {
 
           {error && (
             <div className="flex items-start gap-2 text-xs font-mono px-3 py-2.5 rounded-lg mb-4"
-              style={{ background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', color: 'var(--red)' }}>
+              style={{ background: 'color-mix(in srgb, var(--red) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 20%, transparent)', color: 'var(--red)' }}>
               <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -146,7 +146,7 @@ export default function Login() {
                 placeholder="trader@example.com" autoComplete="email"
                 className="w-full px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
+                onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 50%, transparent)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
             </div>
 
@@ -159,7 +159,7 @@ export default function Login() {
                   autoComplete="current-password"
                   className="w-full px-4 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
-                  onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
+                  onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 50%, transparent)'}
                   onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -177,9 +177,9 @@ export default function Login() {
 
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-lg text-sm font-semibold tracking-wide transition-all disabled:opacity-60"
-              style={{ background: loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(0,212,255,0.2)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = loading ? 'var(--bg-elevated)' : 'rgba(0,212,255,0.12)'; }}>
+              style={{ background: loading ? 'var(--bg-elevated)' : 'color-mix(in srgb, var(--cyan) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 40%, transparent)', color: 'var(--cyan)' }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 20%, transparent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = loading ? 'var(--bg-elevated)' : 'color-mix(in srgb, var(--cyan) 12%, transparent)'; }}>
               {loading ? 'Authenticating...' : 'Sign In →'}
             </button>
           </form>

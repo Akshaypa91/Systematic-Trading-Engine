@@ -19,7 +19,7 @@ const pct = (v, dec = 2) => `${n(v) >= 0 ? '+' : ''}${n(v).toFixed(dec)}%`;
 // ── Data source badge ─────────────────────────────────────────────────────────
 function SourceBadge({ source }) {
   const cfg = {
-    LIVE_UPSTOX: { label: 'LIVE', dot: 'var(--green)',  bg: 'rgba(0,229,160,0.08)' },
+    LIVE_UPSTOX: { label: 'LIVE', dot: 'var(--green)',  bg: 'color-mix(in srgb, var(--green) 8%, transparent)' },
     LIVE_NSE:    { label: 'NSE',  dot: 'var(--amber)',  bg: 'rgba(255,179,0,0.08)'  },
     SIM:         { label: 'SIM',  dot: 'var(--text-muted)', bg: 'rgba(255,255,255,0.04)' },
   }[source] || { label: source || 'SIM', dot: 'var(--text-muted)', bg: 'rgba(255,255,255,0.04)' };
@@ -41,11 +41,11 @@ function StatCard({ label, value, sub, color, Icon, delay = 0, loading = false }
   return (
     <div className="card fade-up" style={{ padding: 20, position: 'relative', overflow: 'hidden', animationDelay: `${delay}s` }}>
       <div style={{ position: 'absolute', top: -24, right: -24, width: 80, height: 80, borderRadius: '50%',
-        background: `radial-gradient(circle, ${color}18, transparent 70%)`, pointerEvents: 'none' }} />
+        background: `radial-gradient(circle, color-mix(in srgb, ${color} 12%, transparent), transparent 70%)`, pointerEvents: 'none' }} />
       <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
         <span className="section-label">{label}</span>
         {Icon && (
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}14`, border: `1px solid ${color}30`,
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: `color-mix(in srgb, ${color} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon size={13} style={{ color }} />
           </div>
@@ -110,8 +110,8 @@ function PositionRow({ sym, pos }) {
         {pos.qty ?? 0} shares · Entry ₹{entry > 0 ? entry.toLocaleString('en-IN') : '—'} → ₹{curr > 0 ? curr.toLocaleString('en-IN') : '—'}
       </div>
       <div className="flex gap-3 font-mono" style={{ fontSize: 10, marginTop: 5 }}>
-        <span style={{ color: 'rgba(255,77,106,0.7)' }}>SL ₹{n(pos.stopLoss).toLocaleString('en-IN') || '—'}</span>
-        <span style={{ color: 'rgba(0,229,160,0.7)' }}>TP ₹{n(pos.takeProfit).toLocaleString('en-IN') || '—'}</span>
+        <span style={{ color: 'color-mix(in srgb, var(--red) 70%, transparent)' }}>SL ₹{n(pos.stopLoss).toLocaleString('en-IN') || '—'}</span>
+        <span style={{ color: 'color-mix(in srgb, var(--green) 70%, transparent)' }}>TP ₹{n(pos.takeProfit).toLocaleString('en-IN') || '—'}</span>
         {pos.source && <SourceBadge source={pos.source} />}
       </div>
     </div>
@@ -123,8 +123,8 @@ function PaperTradeRow({ t, isNew }) {
   if (!t) return null;
   const pnl      = n(t.pnl);
   const green    = pnl >= 0;
-  const reasonBg = t.reason === 'STOP_LOSS'   ? 'rgba(255,77,106,0.10)'
-                 : t.reason === 'TAKE_PROFIT' ? 'rgba(0,229,160,0.10)'
+  const reasonBg = t.reason === 'STOP_LOSS'   ? 'color-mix(in srgb, var(--red) 10%, transparent)'
+                 : t.reason === 'TAKE_PROFIT' ? 'color-mix(in srgb, var(--green) 10%, transparent)'
                  :                              'rgba(255,255,255,0.04)';
   return (
     <tr className={`trade-row ${isNew ? 'trade-flash' : ''}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
@@ -314,8 +314,8 @@ export default function LiveTrading() {
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2" style={{ padding: '6px 12px', borderRadius: 99,
-              background: running ? 'rgba(0,229,160,0.07)' : 'rgba(255,77,106,0.07)',
-              border: `1px solid ${running ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}` }}>
+              background: running ? 'color-mix(in srgb, var(--green) 7%, transparent)' : 'color-mix(in srgb, var(--red) 7%, transparent)',
+              border: `1px solid ${running ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--red) 25%, transparent)'}` }}>
               <span className={`live-dot ${running ? '' : 'stopped'}`} style={{ width: 6, height: 6 }} />
               <span className="font-mono" style={{ fontSize: 11, fontWeight: 600, color: running ? 'var(--green)' : 'var(--red)' }}>
                 {running ? 'LIVE' : 'STOPPED'}

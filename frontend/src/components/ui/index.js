@@ -20,3 +20,4 @@ export { default as Sparkline } from './Sparkline';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as Tooltip } from './Tooltip';
 export { default as DataTable } from './DataTable';
+export { default as Modal } from './Modal';

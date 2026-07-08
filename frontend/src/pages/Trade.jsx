@@ -1,5 +1,6 @@
 // src/pages/Trade.jsx — fully responsive
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AppShell     from '../components/AppShell';
 import Toast        from '../components/Toast';
 import SearchBar    from '../components/SearchBar';
@@ -13,6 +14,7 @@ import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 import TradingModeToggle from '../components/TradingModeToggle';
 import LiveOrderModal    from '../components/LiveOrderModal';
 import useLivePrice      from '../hooks/useLivePrice';
+import { Chip }          from '../components/ui';
 
 const MAX_HISTORY = 8;
 
@@ -93,6 +95,11 @@ export default function Trade() {
     showToast(`Portfolio reset · ₹${Number(portfolio?.capital ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} restored`, 'info');
   }
 
+  // Deep link: /trade?symbol=RELIANCE (from ⌘K palette / dashboard links).
+  // Fetch once after the portfolio-initialized check settles.
+  const [searchParams] = useSearchParams();
+  const deepLinkDone = useRef(false);
+
   const fetchStock = useCallback(async (sym) => {
     // Guard: only accept valid NSE symbol format (letters, digits, hyphen, &)
     // Reject company names like "Bajaj Consumer Care Ltd"
@@ -124,6 +131,14 @@ export default function Trade() {
       showToast(err.response?.data?.error || err.message || 'Failed', 'error');
     } finally { setLoading(false); }
   }, [showToast]);
+
+  useEffect(() => {
+    const sym = searchParams.get('symbol');
+    if (sym && initialized && !deepLinkDone.current) {
+      deepLinkDone.current = true;
+      fetchStock(sym);
+    }
+  }, [searchParams, initialized, fetchStock]);
 
   const handleTrade = useCallback(async ({ symbol: sym, action, qty }) => {
     const res = await manualTradeAPI.place(sym, action, qty);
@@ -183,27 +198,19 @@ export default function Trade() {
               {!brokerLinked && (
                 <a
                   href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:3000'}/api/auth/upstox/login`}
+                  className="ws-pill"
                   style={{
-                    padding: '4px 12px', borderRadius: 99, fontSize: 11,
-                    fontFamily: 'var(--font-mono)', fontWeight: 600,
-                    background: 'rgba(99,102,241,0.12)',
-                    border: '1px solid rgba(99,102,241,0.4)',
-                    color: '#818cf8', textDecoration: 'none',
-                    display: 'flex', alignItems: 'center', gap: 5,
+                    background: 'color-mix(in srgb, var(--purple) 10%, transparent)',
+                    borderColor: 'color-mix(in srgb, var(--purple) 32%, transparent)',
+                    color: 'var(--purple)', textDecoration: 'none', fontWeight: 600,
                   }}
                 >
-                  🔗 Connect Upstox
+                  Connect Upstox →
                 </a>
               )}
               {brokerLinked && (
-                <span style={{
-                  padding: '4px 10px', borderRadius: 99, fontSize: 10,
-                  fontFamily: 'var(--font-mono)', fontWeight: 600,
-                  background: 'rgba(0,229,160,0.08)',
-                  border: '1px solid rgba(0,229,160,0.3)',
-                  color: 'var(--green)',
-                }}>
-                  ✓ Upstox
+                <span className="ws-pill connected" title="Broker linked">
+                  ● Upstox linked
                 </span>
               )}
               <TradingModeToggle
@@ -225,15 +232,9 @@ export default function Trade() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
               <span className="section-label">Recent:</span>
               {history.map(sym => (
-                <button key={sym} onClick={() => fetchStock(sym)} className="font-mono" style={{
-                  padding: '4px 10px', borderRadius: 6, fontSize: 11,
-                  background: sym === symbol ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
-                  border: `1px solid ${sym === symbol ? 'rgba(0,212,255,0.30)' : 'var(--border)'}`,
-                  color: sym === symbol ? 'var(--cyan)' : 'var(--text-secondary)',
-                  cursor: 'pointer', transition: 'all 0.12s', minHeight: 32,
-                }}>
+                <Chip key={sym} active={sym === symbol} onClick={() => fetchStock(sym)}>
                   {sym}
-                </button>
+                </Chip>
               ))}
             </div>
           )}
@@ -266,7 +267,7 @@ export default function Trade() {
               {data?.symbol && <TradingChart symbol={data.symbol} priceSource={displayData?.source} />}
 
               {isSimSource && (
-                <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(255,176,32,0.06)', border: '1px solid rgba(255,176,32,0.20)' }}>
+                <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'color-mix(in srgb, var(--amber) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 20%, transparent)' }}>
                   <Info size={13} style={{ color: 'var(--amber)', flexShrink: 0, marginTop: 1 }} />
                   <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                     Showing simulated price — market may be closed or API rate limit reached.

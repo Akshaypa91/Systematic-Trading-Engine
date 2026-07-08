@@ -102,8 +102,8 @@ function TradingChart({ symbol, height, priceSource }) {
                    : priceSource === 'SIM'          ? '🟡 SIM'
                    : '● NSE';
   const badgeColor = isLive ? 'var(--green)' : priceSource === 'SIM' ? 'var(--amber)' : 'var(--green)';
-  const badgeBg    = isLive ? 'rgba(0,229,160,0.08)' : priceSource === 'SIM' ? 'rgba(255,167,38,0.08)' : 'rgba(0,229,160,0.08)';
-  const badgeBdr   = isLive ? 'rgba(0,229,160,0.20)' : priceSource === 'SIM' ? 'rgba(255,167,38,0.20)' : 'rgba(0,229,160,0.20)';
+  const badgeBg    = isLive ? 'color-mix(in srgb, var(--green) 8%, transparent)' : priceSource === 'SIM' ? 'color-mix(in srgb, var(--amber) 8%, transparent)' : 'color-mix(in srgb, var(--green) 8%, transparent)';
+  const badgeBdr   = isLive ? 'color-mix(in srgb, var(--green) 20%, transparent)' : priceSource === 'SIM' ? 'color-mix(in srgb, var(--amber) 20%, transparent)' : 'color-mix(in srgb, var(--green) 20%, transparent)';
 
   const wrapStyle = fullscreen ? {
     position: 'fixed', inset: 0, zIndex: 9999,
@@ -127,8 +127,8 @@ function TradingChart({ symbol, height, priceSource }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 7,
-            background: 'rgba(0,212,255,0.08)',
-            border: '1px solid rgba(0,212,255,0.15)',
+            background: 'color-mix(in srgb, var(--cyan) 8%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--cyan) 15%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <BarChart2 size={13} style={{ color: 'var(--cyan)' }} />
@@ -157,7 +157,7 @@ function TradingChart({ symbol, height, priceSource }) {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 30, height: 30, borderRadius: 7, border: '1px solid var(--border)',
-              background: fullscreen ? 'rgba(0,212,255,0.10)' : 'var(--bg-elevated)',
+              background: fullscreen ? 'color-mix(in srgb, var(--cyan) 10%, transparent)' : 'var(--bg-elevated)',
               color: fullscreen ? 'var(--cyan)' : 'var(--text-secondary)',
               cursor: 'pointer', transition: 'all 0.15s',
             }}

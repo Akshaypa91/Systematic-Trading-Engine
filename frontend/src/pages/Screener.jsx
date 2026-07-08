@@ -26,9 +26,9 @@ function ScoreBadge({ score }) {
 
 function SignalChip({ signal, size = 'sm' }) {
   const map = {
-    BUY:  { bg: 'rgba(0,230,118,0.12)', border: 'rgba(0,230,118,0.3)',  color: 'var(--green)', icon: TrendingUp },
-    SELL: { bg: 'rgba(255,71,87,0.12)',  border: 'rgba(255,71,87,0.3)',  color: 'var(--red)',   icon: TrendingDown },
-    HOLD: { bg: 'rgba(255,167,38,0.12)', border: 'rgba(255,167,38,0.3)', color: 'var(--amber)', icon: Minus },
+    BUY:  { bg: 'color-mix(in srgb, var(--green) 12%, transparent)', border: 'color-mix(in srgb, var(--green) 30%, transparent)',  color: 'var(--green)', icon: TrendingUp },
+    SELL: { bg: 'color-mix(in srgb, var(--red) 12%, transparent)',  border: 'color-mix(in srgb, var(--red) 30%, transparent)',  color: 'var(--red)',   icon: TrendingDown },
+    HOLD: { bg: 'color-mix(in srgb, var(--amber) 12%, transparent)', border: 'color-mix(in srgb, var(--amber) 30%, transparent)', color: 'var(--amber)', icon: Minus },
   };
   const c = map[signal] || map.HOLD;
   const Icon = c.icon;
@@ -104,8 +104,8 @@ function DetailPanel({ row, onClose, onBacktest }) {
   const scoreColor = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
 
   return (
-    <div className="fixed right-0 top-14 bottom-0 w-80 z-40 flex flex-col fade-in overflow-y-auto"
-      style={{ background: 'var(--bg-surface)', borderLeft: '1px solid var(--border)' }}>
+    <div className="fixed right-0 bottom-0 w-80 z-40 flex flex-col fade-in overflow-y-auto"
+      style={{ top: 'var(--navbar-h)', background: 'var(--bg-surface)', borderLeft: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{row.symbol}</div>
@@ -176,8 +176,8 @@ function DetailPanel({ row, onClose, onBacktest }) {
         {row.rsi != null && (
           <div className="p-3 rounded-lg text-xs font-mono"
             style={{
-              background: row.rsi > 70 ? 'rgba(255,71,87,0.08)' : row.rsi < 30 ? 'rgba(0,230,118,0.08)' : 'var(--bg-card)',
-              border: `1px solid ${row.rsi > 70 ? 'rgba(255,71,87,0.3)' : row.rsi < 30 ? 'rgba(0,230,118,0.3)' : 'var(--border)'}`,
+              background: row.rsi > 70 ? 'color-mix(in srgb, var(--red) 8%, transparent)' : row.rsi < 30 ? 'color-mix(in srgb, var(--green) 8%, transparent)' : 'var(--bg-card)',
+              border: `1px solid ${row.rsi > 70 ? 'color-mix(in srgb, var(--red) 30%, transparent)' : row.rsi < 30 ? 'color-mix(in srgb, var(--green) 30%, transparent)' : 'var(--border)'}`,
               color: row.rsi > 70 ? 'var(--red)' : row.rsi < 30 ? 'var(--green)' : 'var(--text-muted)',
             }}>
             {row.rsi > 70 ? '⚠ Overbought — RSI above 70' : row.rsi < 30 ? '✓ Oversold — potential buy zone' : 'RSI in neutral zone (30–70)'}
@@ -187,9 +187,9 @@ function DetailPanel({ row, onClose, onBacktest }) {
         <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={() => onBacktest(row.symbol)}
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-semibold transition-all"
-            style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,255,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,212,255,0.12)'}>
+            style={{ background: 'color-mix(in srgb, var(--cyan) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 40%, transparent)', color: 'var(--cyan)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 20%, transparent)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 12%, transparent)'}>
             <Play size={13} /> Backtest {row.symbol}
           </button>
           <button
@@ -252,22 +252,22 @@ export default function Screener() {
       <main
         className="page-content"
         style={{ marginRight: panelOpen ? 320 : 0, transition: 'margin-right 0.3s' }}>
-        <div className="p-6 max-w-screen-xl">
+        <div className="max-w-screen-xl">
 
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Stock Screener</h1>
-              <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>Click any row for details · NIFTY 50 universe</p>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Stock Screener</h1>
+              <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Click any row for details · NIFTY 50 universe</p>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowWeights(v => !v)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
-                style={{ background: showWeights ? 'rgba(0,212,255,0.1)' : 'var(--bg-card)', border: showWeights ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: showWeights ? 'var(--cyan)' : 'var(--text-secondary)' }}>
+                style={{ background: showWeights ? 'color-mix(in srgb, var(--cyan) 10%, transparent)' : 'var(--bg-card)', border: showWeights ? '1px solid color-mix(in srgb, var(--cyan) 35%, transparent)' : '1px solid var(--border)', color: showWeights ? 'var(--cyan)' : 'var(--text-secondary)' }}>
                 <SlidersHorizontal size={12} /> Weights
               </button>
               <button onClick={fetchScreener} disabled={loading}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all disabled:opacity-50"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--cyan)' }}>
+                style={{ background: 'color-mix(in srgb, var(--cyan) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 30%, transparent)', color: 'var(--cyan)' }}>
                 <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
               </button>
             </div>
@@ -283,7 +283,7 @@ export default function Screener() {
                 <div key={label} className="rounded-xl p-4 flex items-center gap-3"
                   style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: `${color}18`, border: `1px solid ${color}40` }}>
+                    style={{ background: `color-mix(in srgb, ${color} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 26%, transparent)` }}>
                     <Icon size={14} style={{ color }} />
                   </div>
                   <div>
@@ -314,7 +314,7 @@ export default function Screener() {
                 ))}
               </div>
               <button onClick={fetchScreener} className="mt-3 px-4 py-1.5 rounded text-xs font-mono"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.3)', color: 'var(--cyan)' }}>
+                style={{ background: 'color-mix(in srgb, var(--cyan) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 30%, transparent)', color: 'var(--cyan)' }}>
                 Apply & Refresh
               </button>
             </div>
@@ -327,13 +327,13 @@ export default function Screener() {
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter symbol..."
                 className="w-full pl-8 pr-3 py-2 rounded-lg text-xs font-mono outline-none"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
+                onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 40%, transparent)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
             </div>
             <div className="flex gap-1">
               {FILTERS.map(f => (
                 <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded text-xs font-mono transition-all"
-                  style={{ background: filter === f ? 'rgba(0,212,255,0.12)' : 'var(--bg-elevated)', border: filter === f ? '1px solid rgba(0,212,255,0.35)' : '1px solid var(--border)', color: filter === f ? 'var(--cyan)' : 'var(--text-muted)' }}>
+                  style={{ background: filter === f ? 'color-mix(in srgb, var(--cyan) 12%, transparent)' : 'var(--bg-elevated)', border: filter === f ? '1px solid color-mix(in srgb, var(--cyan) 35%, transparent)' : '1px solid var(--border)', color: filter === f ? 'var(--cyan)' : 'var(--text-muted)' }}>
                   {f.replace(/_/g, ' ')}
                 </button>
               ))}
@@ -375,8 +375,8 @@ export default function Screener() {
                       return (
                         <tr key={row.symbol} onClick={() => setSelected(isSel ? null : row)}
                           className="transition-colors cursor-pointer"
-                          style={{ borderBottom: '1px solid rgba(30,45,69,0.5)', background: isSel ? 'rgba(0,212,255,0.06)' : 'transparent', borderLeft: isSel ? '2px solid var(--cyan)' : '2px solid transparent' }}
-                          onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'rgba(0,212,255,0.03)'; }}
+                          style={{ borderBottom: '1px solid var(--border)', background: isSel ? 'color-mix(in srgb, var(--cyan) 6%, transparent)' : 'transparent', borderLeft: isSel ? '2px solid var(--cyan)' : '2px solid transparent' }}
+                          onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 3%, transparent)'; }}
                           onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}>
                           <td className="py-3 px-4" style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
                           <td className="py-3 px-4 font-bold" style={{ color: isSel ? 'var(--cyan)' : 'var(--text-primary)' }}>{row.symbol}</td>

@@ -42,8 +42,8 @@ function Tile({ label, value, color, sub, highlight }) {
   return (
     <div style={{
       padding: '10px 12px',
-      background: highlight ? 'rgba(0,212,255,0.05)' : 'var(--bg-base)',
-      border: `1px solid ${highlight ? 'rgba(0,212,255,0.20)' : 'var(--border)'}`,
+      background: highlight ? 'color-mix(in srgb, var(--cyan) 5%, transparent)' : 'var(--bg-base)',
+      border: `1px solid ${highlight ? 'color-mix(in srgb, var(--cyan) 20%, transparent)' : 'var(--border)'}`,
       borderRadius: 9,
     }}>
       <div className="section-label" style={{ marginBottom: 5 }}>{label}</div>
@@ -68,8 +68,8 @@ function PnLTile({ label, value, pct }) {
   const pos    = num > 0;
   const neg    = num < 0;
   const color  = pnlColor(num);
-  const bg     = pos ? 'rgba(0,229,160,0.06)' : neg ? 'rgba(255,77,106,0.06)' : 'var(--bg-base)';
-  const border = pos ? 'rgba(0,229,160,0.18)' : neg ? 'rgba(255,77,106,0.18)' : 'var(--border)';
+  const bg     = pos ? 'color-mix(in srgb, var(--green) 6%, transparent)' : neg ? 'color-mix(in srgb, var(--red) 6%, transparent)' : 'var(--bg-base)';
+  const border = pos ? 'color-mix(in srgb, var(--green) 18%, transparent)' : neg ? 'color-mix(in srgb, var(--red) 18%, transparent)' : 'var(--border)';
   const Icon   = pos ? TrendingUp : neg ? TrendingDown : Activity;
 
   return (
@@ -105,8 +105,8 @@ function TradeRow({ trade }) {
           display: 'inline-flex', padding: '2px 7px', borderRadius: 5,
           fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
           letterSpacing: '0.08em',
-          background: isBuy ? 'rgba(0,229,160,0.10)' : 'rgba(255,77,106,0.10)',
-          border: `1px solid ${isBuy ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
+          background: isBuy ? 'color-mix(in srgb, var(--green) 10%, transparent)' : 'color-mix(in srgb, var(--red) 10%, transparent)',
+          border: `1px solid ${isBuy ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--red) 25%, transparent)'}`,
           color: isBuy ? 'var(--green)' : 'var(--red)',
         }}>
           {trade.action}
@@ -146,7 +146,7 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: 'rgba(255,176,32,0.10)', border: '1px solid rgba(255,176,32,0.25)',
+            background: 'color-mix(in srgb, var(--amber) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 25%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <AlertTriangle size={16} style={{ color: 'var(--amber)' }} />
@@ -167,8 +167,8 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
           </button>
           <button onClick={onConfirm} disabled={busy} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '9px 0', borderRadius: 8, border: '1px solid rgba(255,176,32,0.30)',
-            background: 'rgba(255,176,32,0.10)', cursor: busy ? 'wait' : 'pointer',
+            padding: '9px 0', borderRadius: 8, border: '1px solid color-mix(in srgb, var(--amber) 30%, transparent)',
+            background: 'color-mix(in srgb, var(--amber) 10%, transparent)', cursor: busy ? 'wait' : 'pointer',
             fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--amber)',
           }}>
             {busy ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
@@ -292,7 +292,7 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 8,
-              background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.15)',
+              background: 'color-mix(in srgb, var(--cyan) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 15%, transparent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Wallet size={14} style={{ color: 'var(--cyan)' }} />
@@ -316,8 +316,8 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
                   padding: '5px 10px', borderRadius: 7,
-                  border: '1px solid rgba(255,77,106,0.30)',
-                  background: 'rgba(255,77,106,0.08)',
+                  border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)',
+                  background: 'color-mix(in srgb, var(--red) 8%, transparent)',
                   cursor: exitBusy || loading ? 'wait' : 'pointer',
                   fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
                   color: 'var(--red)', opacity: exitBusy || loading ? 0.5 : 1,
@@ -329,8 +329,8 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
             )}
             <button onClick={() => setShowConfirm(true)} disabled={loading || resetBusy} style={{
               display: 'flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,176,32,0.22)',
-              background: 'rgba(255,176,32,0.06)', cursor: 'pointer',
+              padding: '5px 10px', borderRadius: 7, border: '1px solid color-mix(in srgb, var(--amber) 22%, transparent)',
+              background: 'color-mix(in srgb, var(--amber) 6%, transparent)', cursor: 'pointer',
               fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600,
               color: 'var(--amber)', opacity: loading || resetBusy ? 0.5 : 1,
             }}>
@@ -349,7 +349,7 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 12px', borderRadius: 8,
-              background: 'rgba(255,77,106,0.06)', border: '1px solid rgba(255,77,106,0.20)',
+              background: 'color-mix(in srgb, var(--red) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 20%, transparent)',
             }}>
               <AlertCircle size={13} style={{ color: 'var(--red)', flexShrink: 0 }} />
               <span className="font-mono" style={{ fontSize: 11, color: 'var(--red)' }}>
@@ -357,7 +357,7 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
               </span>
               <button onClick={load} style={{
                 marginLeft: 'auto', padding: '2px 8px', borderRadius: 5,
-                border: '1px solid rgba(255,77,106,0.30)', background: 'transparent',
+                border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)', background: 'transparent',
                 fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--red)', cursor: 'pointer',
               }}>Retry</button>
             </div>
@@ -455,8 +455,8 @@ export default function PortfolioCard({ refreshTrigger, onReset }) {
               {exitResult && (
                 <div style={{
                   padding: '8px 12px', borderRadius: 8, animation: 'fadeUp 0.2s ease-out',
-                  background: n(exitResult.pnl) >= 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,106,0.08)',
-                  border: `1px solid ${n(exitResult.pnl) >= 0 ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
+                  background: n(exitResult.pnl) >= 0 ? 'color-mix(in srgb, var(--green) 8%, transparent)' : 'color-mix(in srgb, var(--red) 8%, transparent)',
+                  border: `1px solid ${n(exitResult.pnl) >= 0 ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--red) 25%, transparent)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>

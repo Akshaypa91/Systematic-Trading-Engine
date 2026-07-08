@@ -26,7 +26,7 @@ function MetricCard({ label, value, sub, color = 'var(--cyan)', icon: Icon, load
         {Icon && (
           <div style={{
             width: 32, height: 32, borderRadius: 8,
-            background: `${color}18`, border: `1px solid ${color}30`,
+            background: `color-mix(in srgb, ${color} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Icon size={14} style={{ color }} />

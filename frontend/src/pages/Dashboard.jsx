@@ -8,6 +8,7 @@ import SignalsPanel from '../components/SignalsPanel';
 import PortfolioHero from '../components/PortfolioHero';
 import OpenPositions from '../components/OpenPositions';
 import MarketWatch from '../components/MarketWatch';
+import AllocationCard from '../components/AllocationCard';
 import Toast from '../components/Toast';
 import {
   Button, Card, CardHeader, Field, Input, Select, Metric, Chip,
@@ -15,7 +16,7 @@ import {
 } from '../components/ui';
 import {
   TrendingUp, Activity, Shield, BarChart2,
-  Play, ChevronDown, Clock, Zap, Layers, Radio, LineChart,
+  Play, ChevronDown, Clock, Zap, Layers, Radio, LineChart, PieChart,
 } from 'lucide-react';
 import { pct } from '../utils/format';
 
@@ -195,7 +196,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Open positions + Market watch */}
+        {/* Open positions + Market watch + Allocation */}
         <div className="dash-grid-2 dash-section">
           <Card className="fade-up stagger-1">
             <CardHeader
@@ -206,14 +207,25 @@ export default function Dashboard() {
             <OpenPositions openPositions={displayPort?.openPositions} />
           </Card>
 
-          <Card className="fade-up stagger-2">
-            <CardHeader
-              title="Market Watch"
-              sub="Live NSE quotes"
-              action={<span className="ui-hstack" style={{ gap: 6 }}><span className="live-dot" /><Radio size={13} style={{ color: 'var(--text-muted)' }} /></span>}
-            />
-            <MarketWatch symbols={WATCHLIST} />
-          </Card>
+          <div className="ui-vstack" style={{ gap: 16 }}>
+            <Card className="fade-up stagger-2">
+              <CardHeader
+                title="Market Watch"
+                sub="Live NSE quotes"
+                action={<span className="ui-hstack" style={{ gap: 6 }}><span className="live-dot" /><Radio size={13} style={{ color: 'var(--text-muted)' }} /></span>}
+              />
+              <MarketWatch symbols={WATCHLIST} />
+            </Card>
+
+            <Card className="fade-up stagger-3">
+              <CardHeader
+                title="Allocation"
+                sub="Cost basis by holding"
+                action={<PieChart size={13} style={{ color: 'var(--text-muted)' }} />}
+              />
+              <AllocationCard openPositions={displayPort?.openPositions} />
+            </Card>
+          </div>
         </div>
 
         {/* Trade history + Recent runs */}

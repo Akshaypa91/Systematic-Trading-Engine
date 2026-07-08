@@ -106,18 +106,18 @@ export default function CapitalSetup({ onInitialized }) {
       {/* Icon */}
       <div style={{
         width: 64, height: 64, borderRadius: 20, marginBottom: 24,
-        background: 'linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,229,160,0.08))',
-        border: '1px solid rgba(0,212,255,0.20)',
+        background: 'linear-gradient(135deg, color-mix(in srgb, var(--cyan) 12%, transparent), color-mix(in srgb, var(--green) 8%, transparent))',
+        border: '1px solid color-mix(in srgb, var(--cyan) 20%, transparent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 0 32px rgba(0,212,255,0.08)',
+        boxShadow: '0 0 32px color-mix(in srgb, var(--cyan) 8%, transparent)',
         position: 'relative',
       }}>
         <Wallet size={26} style={{ color: 'var(--cyan)' }} />
         <div style={{
           position: 'absolute', top: -4, right: -4,
           width: 18, height: 18, borderRadius: '50%',
-          background: 'rgba(0,229,160,0.15)',
-          border: '1px solid rgba(0,229,160,0.30)',
+          background: 'color-mix(in srgb, var(--green) 15%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--green) 30%, transparent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Sparkles size={9} style={{ color: 'var(--green)' }} />
@@ -163,11 +163,11 @@ export default function CapitalSetup({ onInitialized }) {
                     cursor: 'pointer', fontSize: 12, fontWeight: 600,
                     transition: 'all 0.15s',
                     background: active
-                      ? 'rgba(0,212,255,0.13)'
+                      ? 'color-mix(in srgb, var(--cyan) 13%, transparent)'
                       : 'var(--bg-elevated)',
-                    border: `1px solid ${active ? 'rgba(0,212,255,0.35)' : 'var(--border)'}`,
+                    border: `1px solid ${active ? 'color-mix(in srgb, var(--cyan) 35%, transparent)' : 'var(--border)'}`,
                     color: active ? 'var(--cyan)' : 'var(--text-secondary)',
-                    boxShadow: active ? '0 0 10px rgba(0,212,255,0.10)' : 'none',
+                    boxShadow: active ? '0 0 10px color-mix(in srgb, var(--cyan) 10%, transparent)' : 'none',
                   }}>
                   {p.label}
                 </button>
@@ -214,8 +214,8 @@ export default function CapitalSetup({ onInitialized }) {
                 position: 'absolute', right: 12, top: '50%',
                 transform: 'translateY(-50%)',
                 fontSize: 11, fontWeight: 600, color: 'var(--green)',
-                background: 'rgba(0,229,160,0.08)',
-                border: '1px solid rgba(0,229,160,0.20)',
+                background: 'color-mix(in srgb, var(--green) 8%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--green) 20%, transparent)',
                 padding: '2px 7px', borderRadius: 5,
                 pointerEvents: 'none',
               }}>
@@ -237,8 +237,8 @@ export default function CapitalSetup({ onInitialized }) {
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '10px 12px', borderRadius: 8,
-            background: 'rgba(255,77,106,0.07)',
-            border: '1px solid rgba(255,77,106,0.22)',
+            background: 'color-mix(in srgb, var(--red) 7%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--red) 22%, transparent)',
             animation: 'fadeUp 0.2s ease-out',
           }}>
             <AlertCircle size={13} style={{ color: 'var(--red)', flexShrink: 0 }} />
@@ -261,17 +261,17 @@ export default function CapitalSetup({ onInitialized }) {
             letterSpacing: '0.07em', transition: 'all 0.18s',
             opacity: valid && !busy ? 1 : 0.4,
             background: valid && !busy
-              ? 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(0,229,160,0.12))'
+              ? 'linear-gradient(135deg, color-mix(in srgb, var(--cyan) 18%, transparent), color-mix(in srgb, var(--green) 12%, transparent))'
               : 'var(--bg-elevated)',
             color: valid && !busy ? 'var(--cyan)' : 'var(--text-muted)',
-            border: `1px solid ${valid && !busy ? 'rgba(0,212,255,0.35)' : 'var(--border)'}`,
-            boxShadow: valid && !busy ? '0 0 20px rgba(0,212,255,0.10)' : 'none',
+            border: `1px solid ${valid && !busy ? 'color-mix(in srgb, var(--cyan) 35%, transparent)' : 'var(--border)'}`,
+            boxShadow: valid && !busy ? '0 0 20px color-mix(in srgb, var(--cyan) 10%, transparent)' : 'none',
           }}>
           {busy ? (
             <>
               <div style={{
                 width: 13, height: 13, borderRadius: '50%',
-                border: '2px solid rgba(0,212,255,0.3)',
+                border: '2px solid color-mix(in srgb, var(--cyan) 30%, transparent)',
                 borderTopColor: 'var(--cyan)',
                 animation: 'spin 0.8s linear infinite',
               }} />

@@ -73,7 +73,7 @@ export default function SignalsPanel({ signals: propSignals }) {
                 style={{ padding:'3px 8px', borderRadius:5, fontSize:10, cursor:'pointer',
                   background:'var(--bg-elevated)', border:'1px solid var(--border)', color:'var(--text-muted)',
                   transition:'all 0.15s' }}
-                onMouseEnter={e=>{ e.currentTarget.style.borderColor='rgba(0,212,255,0.4)'; e.currentTarget.style.color='var(--cyan)'; }}
+                onMouseEnter={e=>{ e.currentTarget.style.borderColor='color-mix(in srgb, var(--cyan) 40%, transparent)'; e.currentTarget.style.color='var(--cyan)'; }}
                 onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--text-muted)'; }}>
                 {sym}
               </button>
@@ -91,7 +91,7 @@ export default function SignalsPanel({ signals: propSignals }) {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 font-mono" style={{ padding:'8px 12px', borderRadius:7, background:'rgba(255,77,106,0.08)', border:'1px solid rgba(255,77,106,0.2)', color:'var(--red)', fontSize:11, marginBottom:8 }}>
+        <div className="flex items-center gap-2 font-mono" style={{ padding:'8px 12px', borderRadius:7, background:'color-mix(in srgb, var(--red) 8%, transparent)', border:'1px solid color-mix(in srgb, var(--red) 20%, transparent)', color:'var(--red)', fontSize:11, marginBottom:8 }}>
           <AlertCircle size={11} />{error}
         </div>
       )}

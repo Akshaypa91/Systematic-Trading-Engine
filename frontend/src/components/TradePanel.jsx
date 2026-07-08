@@ -13,8 +13,8 @@ function Result({ data, onDismiss }) {
     <div style={{
       padding: '12px 14px', borderRadius: 10,
       display: 'flex', alignItems: 'flex-start', gap: 10,
-      background: ok ? 'rgba(0,229,160,0.07)' : 'rgba(255,77,106,0.07)',
-      border: `1px solid ${ok ? 'rgba(0,229,160,0.25)' : 'rgba(255,77,106,0.25)'}`,
+      background: ok ? 'color-mix(in srgb, var(--green) 7%, transparent)' : 'color-mix(in srgb, var(--red) 7%, transparent)',
+      border: `1px solid ${ok ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--red) 25%, transparent)'}`,
       animation: 'fadeUp 0.2s ease-out',
     }}>
       {ok
@@ -107,8 +107,8 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
       <div style={{
         height: 3,
         background: isBuy
-          ? 'linear-gradient(90deg, transparent, rgba(0,229,160,0.8), transparent)'
-          : 'linear-gradient(90deg, transparent, rgba(255,77,106,0.8), transparent)',
+          ? 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--green) 80%, transparent), transparent)'
+          : 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--red) 80%, transparent), transparent)',
         transition: 'background 0.3s',
       }} />
 
@@ -150,10 +150,10 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
                 fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
                 letterSpacing: '0.1em', transition: 'all 0.18s',
                 background: active
-                  ? (s === 'BUY' ? 'rgba(0,229,160,0.13)' : 'rgba(255,77,106,0.13)')
+                  ? (s === 'BUY' ? 'color-mix(in srgb, var(--green) 13%, transparent)' : 'color-mix(in srgb, var(--red) 13%, transparent)')
                   : 'none',
                 color: active ? col : 'var(--text-muted)',
-                boxShadow: active ? `0 0 12px ${s === 'BUY' ? 'rgba(0,229,160,0.15)' : 'rgba(255,77,106,0.15)'}` : 'none',
+                boxShadow: active ? `0 0 12px ${s === 'BUY' ? 'color-mix(in srgb, var(--green) 15%, transparent)' : 'color-mix(in srgb, var(--red) 15%, transparent)'}` : 'none',
               }}>{s}</button>
             );
           })}
@@ -192,8 +192,8 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
                   style={{
                     padding: '4px 9px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
                     transition: 'all 0.12s',
-                    background: active ? 'rgba(0,212,255,0.13)' : 'var(--bg-elevated)',
-                    border: `1px solid ${active ? 'rgba(0,212,255,0.35)' : 'var(--border)'}`,
+                    background: active ? 'color-mix(in srgb, var(--cyan) 13%, transparent)' : 'var(--bg-elevated)',
+                    border: `1px solid ${active ? 'color-mix(in srgb, var(--cyan) 35%, transparent)' : 'var(--border)'}`,
                     color: active ? 'var(--cyan)' : 'var(--text-muted)',
                     fontWeight: active ? 700 : 400,
                     opacity: (!symbol || disabled) ? 0.35 : 1,
@@ -210,7 +210,7 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
           <div style={{
             padding: '12px 14px',
             background: 'var(--bg-base)',
-            border: `1px solid ${isBuy ? 'rgba(0,229,160,0.18)' : 'rgba(255,77,106,0.18)'}`,
+            border: `1px solid ${isBuy ? 'color-mix(in srgb, var(--green) 18%, transparent)' : 'color-mix(in srgb, var(--red) 18%, transparent)'}`,
             borderRadius: 10,
             animation: 'fadeUp 0.2s ease-out',
           }}>
@@ -255,14 +255,14 @@ export default function TradePanel({ symbol, currentPrice, onTrade, disabled }) 
             letterSpacing: '0.06em', transition: 'all 0.18s',
             opacity: canTrade ? 1 : 0.4,
             background: canTrade
-              ? (isBuy ? 'rgba(0,229,160,0.18)' : 'rgba(255,77,106,0.18)')
+              ? (isBuy ? 'color-mix(in srgb, var(--green) 18%, transparent)' : 'color-mix(in srgb, var(--red) 18%, transparent)')
               : 'var(--bg-elevated)',
             color: canTrade ? (isBuy ? 'var(--green)' : 'var(--red)') : 'var(--text-muted)',
             border: `1px solid ${canTrade
-              ? (isBuy ? 'rgba(0,229,160,0.35)' : 'rgba(255,77,106,0.35)')
+              ? (isBuy ? 'color-mix(in srgb, var(--green) 35%, transparent)' : 'color-mix(in srgb, var(--red) 35%, transparent)')
               : 'var(--border)'}`,
             boxShadow: canTrade
-              ? `0 0 16px ${isBuy ? 'rgba(0,229,160,0.12)' : 'rgba(255,77,106,0.12)'}`
+              ? `0 0 16px ${isBuy ? 'color-mix(in srgb, var(--green) 12%, transparent)' : 'color-mix(in srgb, var(--red) 12%, transparent)'}`
               : 'none',
           }}>
           {busy ? (

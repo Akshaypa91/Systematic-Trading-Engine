@@ -1,9 +1,9 @@
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Clock, Activity, BarChart2 } from 'lucide-react';
 
 const SIG = {
-  BUY:  { color: 'var(--green)', bg: 'rgba(0,229,160,0.10)', border: 'rgba(0,229,160,0.30)', icon: TrendingUp  },
-  SELL: { color: 'var(--red)',   bg: 'rgba(255,77,106,0.10)', border: 'rgba(255,77,106,0.30)', icon: TrendingDown },
-  HOLD: { color: 'var(--amber)', bg: 'rgba(255,176,32,0.10)', border: 'rgba(255,176,32,0.30)', icon: Minus       },
+  BUY:  { color: 'var(--green)', bg: 'color-mix(in srgb, var(--green) 10%, transparent)', border: 'color-mix(in srgb, var(--green) 30%, transparent)', icon: TrendingUp  },
+  SELL: { color: 'var(--red)',   bg: 'color-mix(in srgb, var(--red) 10%, transparent)', border: 'color-mix(in srgb, var(--red) 30%, transparent)', icon: TrendingDown },
+  HOLD: { color: 'var(--amber)', bg: 'color-mix(in srgb, var(--amber) 10%, transparent)', border: 'color-mix(in srgb, var(--amber) 30%, transparent)', icon: Minus       },
 };
 
 function Pill({ label, value, color }) {

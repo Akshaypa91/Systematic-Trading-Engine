@@ -34,12 +34,12 @@ export default function ThemeToggle({ compact = false }) {
         // No transition on the button itself — avoids icon flash during theme change
         transition:     'border-color 150ms ease, box-shadow 150ms ease',
         boxShadow:      isDark
-          ? 'inset 0 0 0 1px rgba(255,176,32,0.08)'
+          ? 'inset 0 0 0 1px color-mix(in srgb, var(--amber) 8%, transparent)'
           : 'inset 0 0 0 1px rgba(0,136,204,0.08)',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = isDark
-          ? 'rgba(255,176,32,0.35)'
+          ? 'color-mix(in srgb, var(--amber) 35%, transparent)'
           : 'rgba(0,136,204,0.35)';
       }}
       onMouseLeave={e => {

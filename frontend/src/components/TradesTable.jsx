@@ -1,88 +1,61 @@
+// src/components/TradesTable.jsx — v2 on the DataTable primitive.
+// Sticky header, sortable columns, pagination for long logs, colored PnL.
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { DataTable, Badge, EmptyState } from './ui';
+import { price } from '../utils/format';
 
 function PnlCell({ pnl }) {
-  if (pnl == null) return <span style={{ color:'var(--text-muted)' }}>—</span>;
+  if (pnl == null) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
   const pos = pnl >= 0;
   const Icon = pos ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className="flex items-center gap-0.5 font-mono" style={{ fontSize:11, color: pos ? 'var(--green)' : 'var(--red)' }}>
-      <Icon size={10} />{pos ? '+' : ''}{Number(pnl).toFixed(2)}%
+    <span className="num" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, color: pos ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
+      <Icon size={10} aria-hidden="true" />{pos ? '+' : ''}{Number(pnl).toFixed(2)}%
     </span>
   );
 }
 
-function SideBadge({ side }) {
-  const buy = side === 'BUY';
-  return (
-    <span className={`badge ${buy ? 'badge-buy' : 'badge-sell'}`} style={{ fontSize:10 }}>{side}</span>
-  );
-}
+const fmt = (d) => (d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }) : '—');
+const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
-const COLS = [
-  { key:'symbol',     label:'Symbol' },
-  { key:'side',       label:'Side' },
-  { key:'entryDate',  label:'Entry' },
-  { key:'exitDate',   label:'Exit' },
-  { key:'entryPrice', label:'Entry ₹' },
-  { key:'exitPrice',  label:'Exit ₹' },
-  { key:'pnlPct',     label:'P&L %' },
-  { key:'pnlAmount',  label:'P&L ₹' },
-];
-
-function fmt(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' }) : '—'; }
-function price(v) { return v != null ? `₹${Number(v).toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 })}` : '—'; }
-
-export default function TradesTable({ trades = [], loading = false }) {
-  if (loading) return (
-    <div style={{ display:'flex', flexDirection:'column', gap:8, padding:8 }}>
-      {[...Array(5)].map((_,i) => <div key={i} className="skeleton" style={{ height:36 }} />)}
-    </div>
-  );
-
-  if (!trades.length) return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'48px 0', gap:8 }}>
-      <div style={{ width:44, height:44, borderRadius:12, background:'var(--bg-elevated)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <ArrowUpRight size={18} style={{ color:'var(--text-muted)' }} />
-      </div>
-      <p className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>No trades yet</p>
-      <p style={{ fontSize:11, color:'var(--text-muted)' }}>Run a backtest to populate trade history</p>
-    </div>
-  );
+export default function TradesTable({ trades = [], loading = false, pageSize = 15 }) {
+  const columns = [
+    { key: 'symbol', label: 'Symbol', render: (t) => <span className="sym">{t.symbol || t.Symbol || '—'}</span>, sortValue: (t) => t.symbol || '' },
+    { key: 'side', label: 'Side', render: (t) => <Badge tone={(t.side || 'BUY') === 'SELL' ? 'sell' : 'buy'}>{t.side || t.Side || 'BUY'}</Badge>, sortValue: (t) => t.side || '' },
+    { key: 'entryDate', label: 'Entry', render: (t) => <span className="num" style={{ fontSize: 11 }}>{fmt(t.entryDate || t.entry_date)}</span>, sortValue: (t) => new Date(t.entryDate || t.entry_date || 0).getTime() },
+    { key: 'exitDate', label: 'Exit', render: (t) => <span className="num" style={{ fontSize: 11 }}>{fmt(t.exitDate || t.exit_date)}</span>, sortValue: (t) => new Date(t.exitDate || t.exit_date || 0).getTime() },
+    { key: 'entryPrice', label: 'Entry ₹', align: 'right', render: (t) => <span className="num">{price(num(t.entryPrice ?? t.entry_price))}</span>, sortValue: (t) => num(t.entryPrice ?? t.entry_price) ?? 0 },
+    { key: 'exitPrice', label: 'Exit ₹', align: 'right', render: (t) => <span className="num">{price(num(t.exitPrice ?? t.exit_price))}</span>, sortValue: (t) => num(t.exitPrice ?? t.exit_price) ?? 0 },
+    { key: 'pnlPct', label: 'P&L %', align: 'right', render: (t) => <PnlCell pnl={num(t.pnlPct ?? t.pnl_pct ?? t.returnPct)} />, sortValue: (t) => num(t.pnlPct ?? t.pnl_pct ?? t.returnPct) ?? 0 },
+    {
+      key: 'pnlAmount', label: 'P&L ₹', align: 'right',
+      render: (t) => {
+        const pnl = num(t.pnlAmount ?? t.pnl_amount);
+        return (
+          <span className="num" style={{ fontWeight: 600, color: pnl == null ? 'var(--text-muted)' : pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            {pnl != null ? `${pnl >= 0 ? '+' : ''}₹${pnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : '—'}
+          </span>
+        );
+      },
+      sortValue: (t) => num(t.pnlAmount ?? t.pnl_amount) ?? 0,
+    },
+  ];
 
   return (
-    <div style={{ overflowX:'auto' }}>
-      <table style={{ width:'100%', borderCollapse:'collapse' }}>
-        <thead>
-          <tr style={{ borderBottom:'1px solid var(--border)' }}>
-            {COLS.map(c => (
-              <th key={c.key} style={{ padding:'8px 12px', textAlign:'left', fontSize:10, fontFamily:'var(--font-mono)', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-muted)', whiteSpace:'nowrap' }}>
-                {c.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {trades.map((t, i) => {
-            const pnl = t.pnlAmount ?? t.pnl_amount ?? 0;
-            return (
-              <tr key={i} className="trade-row" style={{ borderBottom:'1px solid rgba(255,255,255,0.03)' }}>
-                <td style={{ padding:'10px 12px', fontSize:12, fontWeight:700, color:'var(--text-primary)', fontFamily:'var(--font-mono)' }}>
-                  {t.symbol || t.Symbol || '—'}
-                </td>
-                <td style={{ padding:'10px 12px' }}><SideBadge side={t.side || t.Side || 'BUY'} /></td>
-                <td style={{ padding:'10px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-secondary)' }}>{fmt(t.entryDate || t.entry_date)}</td>
-                <td style={{ padding:'10px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-secondary)' }}>{fmt(t.exitDate || t.exit_date)}</td>
-                <td style={{ padding:'10px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-primary)' }}>{price(t.entryPrice || t.entry_price)}</td>
-                <td style={{ padding:'10px 12px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-primary)' }}>{price(t.exitPrice || t.exit_price)}</td>
-                <td style={{ padding:'10px 12px' }}><PnlCell pnl={t.pnlPct ?? t.pnl_pct ?? t.returnPct} /></td>
-                <td style={{ padding:'10px 12px', fontSize:11, fontFamily:'var(--font-mono)', fontWeight:600, color: pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                  {pnl ? `${pnl >= 0 ? '+' : ''}₹${Number(pnl).toLocaleString('en-IN', { maximumFractionDigits:0 })}` : '—'}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={columns}
+      rows={trades}
+      loading={loading}
+      sortable
+      pageSize={pageSize}
+      empty={
+        <EmptyState
+          icon={ArrowUpRight}
+          title="No trades yet"
+          description="Run a backtest to populate trade history"
+          style={{ padding: '40px 0', border: 'none', background: 'transparent' }}
+        />
+      }
+    />
   );
 }

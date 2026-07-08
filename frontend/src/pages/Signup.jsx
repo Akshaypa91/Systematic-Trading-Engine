@@ -79,7 +79,7 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center grid-bg">
         <div className="text-center fade-in">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.3)' }}>
+            style={{ background: 'color-mix(in srgb, var(--green) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--green) 30%, transparent)' }}>
             <CheckCircle size={32} style={{ color: 'var(--green)' }} />
           </div>
           <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Account Created!</h2>
@@ -104,7 +104,7 @@ export default function Signup() {
         {isDark ? <Sun size={15} /> : <Moon size={15} />}
       </button>
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06), transparent)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in srgb, var(--cyan) 6%, transparent), transparent)' }} />
 
       <div className="w-full max-w-sm mx-4 fade-in">
         {/* Logo */}
@@ -122,7 +122,7 @@ export default function Signup() {
 
           {error && (
             <div className="flex items-start gap-2 text-xs font-mono px-3 py-2.5 rounded-lg mb-4"
-              style={{ background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', color: 'var(--red)' }}>
+              style={{ background: 'color-mix(in srgb, var(--red) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 20%, transparent)', color: 'var(--red)' }}>
               <AlertCircle size={13} className="mt-0.5 flex-shrink-0" /><span>{error}</span>
             </div>
           )}
@@ -148,7 +148,7 @@ export default function Signup() {
                 placeholder="trader@example.com" autoComplete="email"
                 className="w-full px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
+                onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 50%, transparent)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
             </div>
 
@@ -159,7 +159,7 @@ export default function Signup() {
                   placeholder="Min. 8 characters" autoComplete="new-password"
                   className="w-full px-4 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace' }}
-                  onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.5)'}
+                  onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 50%, transparent)'}
                   onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
                 <button type="button" onClick={() => setShowPw(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }}>
@@ -175,18 +175,18 @@ export default function Signup() {
                 className="w-full px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
                 style={{
                   background: 'var(--bg-elevated)',
-                  border: `1px solid ${confirm && confirm !== password ? 'rgba(255,71,87,0.5)' : 'var(--border)'}`,
+                  border: `1px solid ${confirm && confirm !== password ? 'color-mix(in srgb, var(--red) 50%, transparent)' : 'var(--border)'}`,
                   color: 'var(--text-primary)', fontFamily: 'var(--font-mono), monospace'
                 }}
-                onFocus={e => { if (!confirm || confirm === password) e.target.style.borderColor = 'rgba(0,212,255,0.5)'; }}
-                onBlur={e  => { e.target.style.borderColor = confirm && confirm !== password ? 'rgba(255,71,87,0.5)' : 'var(--border)'; }} />
+                onFocus={e => { if (!confirm || confirm === password) e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 50%, transparent)'; }}
+                onBlur={e  => { e.target.style.borderColor = confirm && confirm !== password ? 'color-mix(in srgb, var(--red) 50%, transparent)' : 'var(--border)'; }} />
             </div>
 
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-lg text-sm font-semibold tracking-wide transition-all disabled:opacity-60"
-              style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(0,212,255,0.2)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,212,255,0.12)'; }}>
+              style={{ background: 'color-mix(in srgb, var(--cyan) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--cyan) 40%, transparent)', color: 'var(--cyan)' }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 20%, transparent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'color-mix(in srgb, var(--cyan) 12%, transparent)'; }}>
               {loading ? 'Creating Account...' : 'Create Account →'}
             </button>
           </form>

@@ -1,20 +1,28 @@
+// src/pages/Backtest.jsx — v2 analytics workspace on the ui/ design system.
+// Config rail (left) · equity curve, KPI metrics, detailed stats, monthly
+// P&L heatmap and sortable trade log (right). Data flow unchanged.
 import { useState, useEffect } from 'react';
 import AppShell from '../components/AppShell';
 import { useSearchParams } from 'react-router-dom';
 import { backtestAPI } from '../services/api';
 import EquityChart from '../components/EquityChart';
 import TradesTable from '../components/TradesTable';
+import MonthlyReturns from '../components/MonthlyReturns';
 import Toast from '../components/Toast';
-import { Play, RefreshCw, TrendingUp, Activity, BarChart2, Shield, Clock } from 'lucide-react';
+import {
+  Button, Card, CardHeader, Field, Input, Select, Metric, Badge,
+  EmptyState, PageHeader,
+} from '../components/ui';
+import { Play, TrendingUp, Activity, BarChart2, Shield, Clock, CalendarDays } from 'lucide-react';
+import { inr, pct } from '../utils/format';
 
-const STRATEGIES = ['AGGREGATED','RSI','MA_CROSSOVER','MEAN_REVERSION'];
+const STRATEGIES = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
 
 function StatRow({ label, value, color }) {
   return (
-    <div className="flex items-center justify-between py-2"
-      style={{ borderBottom: '1px solid var(--border)' }}>
-      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{label}</span>
-      <span className="text-xs font-mono font-semibold" style={{ color: color || 'var(--text-primary)' }}>{value}</span>
+    <div className="ui-between" style={{ padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+      <span className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
+      <span className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: color || 'var(--text-primary)' }}>{value}</span>
     </div>
   );
 }
@@ -64,180 +72,170 @@ export default function Backtest() {
 
   const s = result?.summary;
 
+  const FIELDS = [
+    ['Symbol',          'symbol',         'text'],
+    ['Strategy',        'strategy',       'select', STRATEGIES],
+    ['Start Date',      'startDate',      'date'],
+    ['End Date',        'endDate',        'date'],
+    ['Initial Capital', 'initialCapital', 'number'],
+    ['Stop Loss %',     'stopLossPct',    'number'],
+    ['Take Profit %',   'takeProfitPct',  'number'],
+    ['Risk/Trade %',    'riskPerTrade',   'number'],
+  ];
+
   return (
     <AppShell>
-      <main className="page-content">
-        <div className="p-6 max-w-screen-xl">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Backtester</h1>
-            <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              Historical strategy simulation · NSE India
-            </p>
+      <main className="page-content" style={{ maxWidth: 1500 }}>
+        <PageHeader
+          title="Backtester"
+          subtitle="Historical strategy simulation · NSE India"
+        />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: 16, alignItems: 'start' }} className="bt-layout">
+          {/* ── Left rail: config + history ── */}
+          <div className="ui-vstack" style={{ gap: 16 }}>
+            <Card>
+              <CardHeader title="Configuration" sub="Simulation parameters" />
+              <form onSubmit={run} className="ui-vstack" style={{ gap: 12 }}>
+                {FIELDS.map(([label, key, type, opts]) => (
+                  <Field key={key} label={label}>
+                    {type === 'select' ? (
+                      <Select value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}>
+                        {opts.map(o => <option key={o}>{o}</option>)}
+                      </Select>
+                    ) : (
+                      <Input
+                        type={type}
+                        step={type === 'number' ? '0.01' : undefined}
+                        value={form[key]}
+                        onChange={e => setForm(p => ({ ...p, [key]: type === 'number' ? +e.target.value : e.target.value.toUpperCase() }))}
+                      />
+                    )}
+                  </Field>
+                ))}
+                <Button type="submit" variant="cyan" icon={Play} loading={loading} style={{ justifyContent: 'center', marginTop: 4 }}>
+                  {loading ? 'Running…' : 'Run Backtest'}
+                </Button>
+              </form>
+            </Card>
+
+            {runs.length > 0 && (
+              <Card>
+                <CardHeader title="History" sub="Saved runs" action={<Clock size={13} style={{ color: 'var(--text-muted)' }} />} />
+                <div className="ui-vstack" style={{ gap: 8 }}>
+                  {runs.map((r, i) => (
+                    <button
+                      key={r.id || i}
+                      onClick={() => loadRun(r.id)}
+                      className="mini-tile"
+                      style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4, cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit' }}
+                    >
+                      <div className="ui-between">
+                        <span className="sym">{r.symbol}</span>
+                        <span className="num" style={{ fontSize: 11.5, fontWeight: 700, color: Number(r.total_return_pct) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {pct(r.total_return_pct, { decimals: 1 })}
+                        </span>
+                      </div>
+                      <div className="ui-between">
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>{r.strategy}</span>
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                          {new Date(r.created_at).toLocaleDateString('en-IN')}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-            {/* Left: form + history */}
-            <div className="xl:col-span-1 space-y-4">
-              {/* Config form */}
-              <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <h3 className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Configuration</h3>
-                <form onSubmit={run} className="space-y-3">
-                  {[
-                    ['Symbol',          'symbol',         'text',   null],
-                    ['Strategy',        'strategy',       'select', STRATEGIES],
-                    ['Start Date',      'startDate',      'date',   null],
-                    ['End Date',        'endDate',        'date',   null],
-                    ['Initial Capital', 'initialCapital', 'number', null],
-                    ['Stop Loss %',     'stopLossPct',    'number', null],
-                    ['Take Profit %',   'takeProfitPct',  'number', null],
-                    ['Risk/Trade %',    'riskPerTrade',   'number', null],
-                  ].map(([label, key, type, opts]) => (
-                    <div key={key}>
-                      <label className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{label}</label>
-                      {type === 'select' ? (
-                        <select value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-                          className="w-full px-3 py-1.5 rounded text-xs font-mono outline-none"
-                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                          {opts.map(o => <option key={o}>{o}</option>)}
-                        </select>
-                      ) : (
-                        <input type={type} step={type === 'number' ? '0.01' : undefined}
-                          value={form[key]}
-                          onChange={e => setForm(p => ({ ...p, [key]: type === 'number' ? +e.target.value : e.target.value.toUpperCase() }))}
-                          className="w-full px-3 py-1.5 rounded text-xs font-mono outline-none transition-all"
-                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                          onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
-                          onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
-                      )}
-                    </div>
-                  ))}
-                  <button type="submit" disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all mt-2 disabled:opacity-50"
-                    style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', color: 'var(--cyan)' }}>
-                    {loading ? <><RefreshCw size={13} className="animate-spin" /> Running...</> : <><Play size={13} /> Run Backtest</>}
-                  </button>
-                </form>
+          {/* ── Right: results ── */}
+          <div className="ui-vstack" style={{ gap: 16 }}>
+            <Card>
+              <CardHeader
+                title="Equity Curve"
+                sub={s ? `${form.symbol} · ${form.strategy} · ${inr(form.initialCapital)} initial` : 'Run a backtest to visualize'}
+                action={s && <Badge>{form.symbol} · {form.strategy}</Badge>}
+              />
+              <EquityChart data={result?.equityCurve || []} initialCapital={form.initialCapital} height={250} />
+            </Card>
+
+            {s && (
+              <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+                <Metric label="Total Return" icon={TrendingUp}
+                  value={pct(s.totalReturnPct)}
+                  sub={`Final ${inr(s.finalCapital)}`}
+                  color={s.totalReturnPct >= 0 ? 'green' : 'red'} />
+                <Metric label="Win Rate" icon={Activity}
+                  value={`${s.winRatePct?.toFixed(1)}%`}
+                  sub={`${s.winningTrades}W / ${s.losingTrades}L`}
+                  color="cyan" />
+                <Metric label="Sharpe" icon={BarChart2}
+                  value={s.sharpeRatio?.toFixed(3)}
+                  sub="Risk-adjusted return"
+                  color={s.sharpeRatio >= 1 ? 'green' : 'amber'} />
+                <Metric label="Max Drawdown" icon={Shield}
+                  value={`${s.maxDrawdownPct?.toFixed(2)}%`}
+                  sub={`Profit factor ${s.profitFactor?.toFixed(2)}`}
+                  color="red" />
               </div>
+            )}
 
-              {/* Run history */}
-              {runs.length > 0 && (
-                <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                  <h3 className="text-xs font-mono uppercase tracking-widest mb-3 flex items-center gap-2"
-                    style={{ color: 'var(--text-muted)' }}>
-                    <Clock size={11} /> History
-                  </h3>
-                  <div className="space-y-1.5">
-                    {runs.map((r, i) => (
-                      <button key={r.id || i} onClick={() => loadRun(r.id)}
-                        className="w-full text-left p-2.5 rounded-lg tr-hover transition-all"
-                        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{r.symbol}</span>
-                          <span className="text-xs font-mono" style={{ color: Number(r.total_return_pct) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                            {Number(r.total_return_pct) >= 0 ? '+' : ''}{Number(r.total_return_pct).toFixed(1)}%
-                          </span>
-                        </div>
-                        <div className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                          {r.strategy} · {new Date(r.created_at).toLocaleDateString('en-IN')}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right: results */}
-            <div className="xl:col-span-3 space-y-4">
-              {/* Equity chart */}
-              <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Equity Curve</h3>
-                  {s && <span className="text-xs font-mono px-2 py-0.5 rounded"
-                    style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
-                    {form.symbol} · {form.strategy}
-                  </span>}
-                </div>
-                <EquityChart data={result?.equityCurve || []} initialCapital={form.initialCapital} height={240} />
+            {s && (
+              <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+                <Card>
+                  <CardHeader title="Performance" />
+                  <StatRow label="Initial Capital" value={inr(s.initialCapital)} />
+                  <StatRow label="Final Capital"   value={inr(s.finalCapital)} color={s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)'} />
+                  <StatRow label="Ann. Return"     value={pct(s.annualisedReturnPct)} />
+                  <StatRow label="Profit Factor"   value={s.profitFactor?.toFixed(2)} />
+                  <StatRow label="Avg Win"         value={pct(s.avgWinPct)}  color="var(--green)" />
+                  <StatRow label="Avg Loss"        value={pct(s.avgLossPct)} color="var(--red)" />
+                </Card>
+                <Card>
+                  <CardHeader title="Trade Stats" />
+                  <StatRow label="Total Trades"   value={s.totalTrades} />
+                  <StatRow label="Winning Trades" value={s.winningTrades} color="var(--green)" />
+                  <StatRow label="Losing Trades"  value={s.losingTrades}  color="var(--red)" />
+                  <StatRow label="Win Rate"       value={`${s.winRatePct?.toFixed(1)}%`} />
+                  <StatRow label="Period"         value={`${s.startDate} → ${s.endDate}`} />
+                </Card>
+                <Card>
+                  <CardHeader title="Risk Metrics" />
+                  <StatRow label="Sharpe Ratio" value={s.sharpeRatio?.toFixed(4)} />
+                  <StatRow label="Max Drawdown" value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--red)" />
+                  <StatRow label="Stop Loss"    value={`${(form.stopLossPct * 100).toFixed(1)}%`} />
+                  <StatRow label="Take Profit"  value={`${(form.takeProfitPct * 100).toFixed(1)}%`} />
+                  <StatRow label="Risk/Trade"   value={`${(form.riskPerTrade * 100).toFixed(1)}%`} />
+                </Card>
               </div>
+            )}
 
-              {/* Summary stats */}
-              {s && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 fade-in">
-                  {[
-                    { label: 'Total Return', value: `${s.totalReturnPct?.toFixed(2)}%`, color: s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)', icon: TrendingUp },
-                    { label: 'Win Rate',     value: `${s.winRatePct?.toFixed(1)}%`,     color: 'var(--cyan)',  icon: Activity },
-                    { label: 'Sharpe',       value: s.sharpeRatio?.toFixed(3),           color: 'var(--amber)', icon: BarChart2 },
-                    { label: 'Max DD',       value: `${s.maxDrawdownPct?.toFixed(2)}%`,  color: 'var(--red)',   icon: Shield },
-                  ].map(({ label, value, color, icon: Icon }) => (
-                    <div key={label} className="rounded-xl p-4"
-                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon size={13} style={{ color }} />
-                        <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{label}</span>
-                      </div>
-                      <div className="text-xl font-bold count-up" style={{ color }}>{value}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {trades.length > 0 && (
+              <Card className="fade-in">
+                <CardHeader
+                  title="Monthly P&L"
+                  sub="Aggregated from the trade log by exit month"
+                  action={<CalendarDays size={13} style={{ color: 'var(--text-muted)' }} />}
+                />
+                <MonthlyReturns trades={trades} initialCapital={s?.initialCapital ?? form.initialCapital} />
+              </Card>
+            )}
 
-              {/* Detailed stats */}
-              {s && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in">
-                  <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                    <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Performance</h3>
-                    <StatRow label="Initial Capital" value={`₹${Number(s.initialCapital).toLocaleString('en-IN')}`} />
-                    <StatRow label="Final Capital"   value={`₹${Number(s.finalCapital).toLocaleString('en-IN')}`} color={s.totalReturnPct >= 0 ? 'var(--green)' : 'var(--red)'} />
-                    <StatRow label="Ann. Return"     value={`${s.annualisedReturnPct?.toFixed(2)}%`} />
-                    <StatRow label="Profit Factor"   value={s.profitFactor?.toFixed(2)} />
-                    <StatRow label="Avg Win"         value={`${s.avgWinPct?.toFixed(2)}%`}  color="var(--green)" />
-                    <StatRow label="Avg Loss"        value={`${s.avgLossPct?.toFixed(2)}%`} color="var(--red)" />
-                  </div>
-                  <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                    <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Trade Stats</h3>
-                    <StatRow label="Total Trades"   value={s.totalTrades} />
-                    <StatRow label="Winning Trades" value={s.winningTrades} color="var(--green)" />
-                    <StatRow label="Losing Trades"  value={s.losingTrades}  color="var(--red)" />
-                    <StatRow label="Win Rate"       value={`${s.winRatePct?.toFixed(1)}%`} />
-                    <StatRow label="Period"         value={`${s.startDate} → ${s.endDate}`} />
-                  </div>
-                  <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                    <h3 className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Risk Metrics</h3>
-                    <StatRow label="Sharpe Ratio" value={s.sharpeRatio?.toFixed(4)} />
-                    <StatRow label="Max Drawdown" value={`${s.maxDrawdownPct?.toFixed(2)}%`} color="var(--red)" />
-                    <StatRow label="Stop Loss"    value={`${(form.stopLossPct * 100).toFixed(1)}%`} />
-                    <StatRow label="Take Profit"  value={`${(form.takeProfitPct * 100).toFixed(1)}%`} />
-                    <StatRow label="Risk/Trade"   value={`${(form.riskPerTrade * 100).toFixed(1)}%`} />
-                  </div>
-                </div>
-              )}
+            {trades.length > 0 && (
+              <Card className="fade-in">
+                <CardHeader title="Trade Log" sub={`${trades.length} executed trades · click headers to sort`} />
+                <TradesTable trades={trades} loading={loading} />
+              </Card>
+            )}
 
-              {/* Trade table */}
-              {trades.length > 0 && (
-                <div className="rounded-xl p-5 fade-in" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                  <h3 className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
-                    Trade Log · {trades.length} trades
-                  </h3>
-                  <TradesTable trades={trades} loading={loading} />
-                </div>
-              )}
-
-              {/* Empty state */}
-              {!result && !loading && (
-                <div className="rounded-xl p-12 flex flex-col items-center justify-center text-center"
-                  style={{ background: 'var(--bg-card)', border: '1px dashed var(--border)' }}>
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                    style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid var(--border)' }}>
-                    <BarChart2 size={28} style={{ color: 'var(--text-muted)' }} />
-                  </div>
-                  <p className="font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>No Results Yet</p>
-                  <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
-                    Configure the parameters and click "Run Backtest"
-                  </p>
-                </div>
-              )}
-            </div>
+            {!result && !loading && (
+              <EmptyState
+                icon={BarChart2}
+                title="No results yet"
+                description='Configure the parameters and click "Run Backtest"'
+              />
+            )}
           </div>
         </div>
       </main>

@@ -22,8 +22,8 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
         <button onClick={() => !isLive ? null : onChange('PAPER')}
           style={{
             padding: '4px 12px', borderRadius: 99, cursor: isLive ? 'pointer' : 'default',
-            background: !isLive ? 'rgba(0,212,255,0.12)' : 'transparent',
-            border: `1px solid ${!isLive ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.1)'}`,
+            background: !isLive ? 'color-mix(in srgb, var(--cyan) 12%, transparent)' : 'transparent',
+            border: `1px solid ${!isLive ? 'color-mix(in srgb, var(--cyan) 40%, transparent)' : 'var(--border)'}`,
             color: !isLive ? 'var(--cyan)' : 'var(--text-muted)',
             fontWeight: !isLive ? 700 : 400,
           }}>
@@ -39,8 +39,8 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
             padding: '4px 12px', borderRadius: 99,
             cursor: disabled || (!brokerLinked && !isLive) ? 'not-allowed' : 'pointer',
             opacity: !brokerLinked && !isLive ? 0.4 : 1,
-            background: isLive ? 'rgba(255,77,106,0.15)' : 'transparent',
-            border: `1px solid ${isLive ? 'rgba(255,77,106,0.5)' : 'rgba(255,255,255,0.1)'}`,
+            background: isLive ? 'color-mix(in srgb, var(--red) 15%, transparent)' : 'transparent',
+            border: `1px solid ${isLive ? 'color-mix(in srgb, var(--red) 50%, transparent)' : 'var(--border)'}`,
             color: isLive ? 'var(--red)' : 'var(--text-muted)',
             fontWeight: isLive ? 700 : 400,
           }}>
@@ -58,7 +58,7 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div className="card" style={{ maxWidth: 380, padding: 24, margin: 16, border: '1px solid rgba(255,77,106,0.4)' }}>
+          <div className="card" style={{ maxWidth: 380, padding: 24, margin: 16, border: '1px solid color-mix(in srgb, var(--red) 40%, transparent)' }}>
             <div className="flex items-center gap-3" style={{ marginBottom: 16 }}>
               <AlertTriangle size={20} style={{ color: 'var(--red)', flexShrink: 0 }} />
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -77,7 +77,7 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
               </button>
               <button onClick={() => { onChange('LIVE'); setConfirming(false); }}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                style={{ background: 'rgba(255,77,106,0.15)', border: '1px solid rgba(255,77,106,0.4)', color: 'var(--red)' }}>
+                style={{ background: 'color-mix(in srgb, var(--red) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 40%, transparent)', color: 'var(--red)' }}>
                 Switch to LIVE
               </button>
             </div>

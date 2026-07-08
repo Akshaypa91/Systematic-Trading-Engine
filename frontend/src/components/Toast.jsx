@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { CheckCircle, AlertCircle, XCircle, X } from 'lucide-react';
 
 const CFG = {
-  success: { Icon: CheckCircle, color:'var(--green)',  border:'rgba(0,229,160,0.25)'  },
-  error:   { Icon: XCircle,     color:'var(--red)',    border:'rgba(255,77,106,0.25)' },
-  info:    { Icon: AlertCircle, color:'var(--cyan)',   border:'rgba(0,212,255,0.25)'  },
+  success: { Icon: CheckCircle, color: 'var(--green)' },
+  error:   { Icon: XCircle,     color: 'var(--red)'   },
+  info:    { Icon: AlertCircle, color: 'var(--cyan)'  },
 };
 
 export default function Toast({ message, type = 'info', onClose }) {
@@ -12,11 +12,18 @@ export default function Toast({ message, type = 'info', onClose }) {
   const c = CFG[type] || CFG.info;
   return (
     <div className="toast-enter flex items-center gap-3 font-mono"
-      style={{ padding:'11px 16px', borderRadius:10, background:'var(--bg-elevated)', border:`1px solid ${c.border}`,
-        boxShadow:'0 8px 32px rgba(0,0,0,0.4)', minWidth:260, fontSize:12 }}>
-      <c.Icon size={14} style={{ color:c.color, flexShrink:0 }} />
-      <span style={{ color:'var(--text-primary)', flex:1 }}>{message}</span>
-      <button onClick={onClose} style={{ color:'var(--text-muted)', lineHeight:1, cursor:'pointer', background:'none', border:'none', padding:0 }}>
+      role="status" aria-live="polite"
+      style={{
+        padding: '11px 14px', borderRadius: 10,
+        background: 'var(--bg-surface)',
+        border: `1px solid color-mix(in srgb, ${c.color} 28%, var(--border))`,
+        borderLeft: `3px solid ${c.color}`,
+        boxShadow: 'var(--shadow-lg)', minWidth: 260, fontSize: 12,
+      }}>
+      <c.Icon size={14} style={{ color: c.color, flexShrink: 0 }} />
+      <span style={{ color: 'var(--text-primary)', flex: 1 }}>{message}</span>
+      <button onClick={onClose} aria-label="Dismiss notification"
+        style={{ color: 'var(--text-muted)', lineHeight: 1, cursor: 'pointer', background: 'none', border: 'none', padding: 2 }}>
         <X size={12} />
       </button>
     </div>

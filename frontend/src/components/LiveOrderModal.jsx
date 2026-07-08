@@ -82,8 +82,8 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
           <button onClick={onConfirm} disabled={loading}
             className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
             style={{
-              background: isBuy ? 'rgba(0,229,160,0.15)' : 'rgba(255,77,106,0.15)',
-              border: `1px solid ${isBuy ? 'rgba(0,229,160,0.4)' : 'rgba(255,77,106,0.4)'}`,
+              background: isBuy ? 'color-mix(in srgb, var(--green) 15%, transparent)' : 'color-mix(in srgb, var(--red) 15%, transparent)',
+              border: `1px solid ${isBuy ? 'color-mix(in srgb, var(--green) 40%, transparent)' : 'color-mix(in srgb, var(--red) 40%, transparent)'}`,
               color: isBuy ? 'var(--green)' : 'var(--red)',
               opacity: loading ? 0.6 : 1,
             }}>
