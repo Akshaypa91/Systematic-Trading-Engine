@@ -12,9 +12,14 @@ function getResend() {
 }
 const FROM = process.env.EMAIL_FROM || 'SYSTRA <noreply@systra.trade>';
 
+// FRONTEND_URL must be a single URL — if it's ever set to a comma-separated
+// list (e.g. copy-pasted from ALLOWED_ORIGINS), fall back to the first one
+// rather than building a broken link with a literal comma in it.
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',')[0].trim();
+
 async function sendPasswordReset(email, token) {
   const resend   = getResend();
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+  const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
   if (!resend) { logger.info(`[Email] DEV reset link for ${email}: ${resetUrl}`); return { success:true, dev:true, resetUrl }; }
   await resend.emails.send({
     from: FROM, to: email,
@@ -40,7 +45,7 @@ async function sendWelcome(email, name) {
       html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#111827;color:#f9fafb;border-radius:16px">
         <h2 style="color:#3B82F6">Welcome, ${name || 'Trader'}!</h2>
         <p style="color:#94a3b8">Your SYSTRA account is ready. Start trading with ₹10,00,000 virtual capital.</p>
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="display:inline-block;padding:12px 24px;background:#3B82F6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Open Dashboard →</a>
+        <a href="${FRONTEND_URL}" style="display:inline-block;padding:12px 24px;background:#3B82F6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Open Dashboard →</a>
       </div>`,
     });
   } catch (err) { logger.warn(`[Email] Welcome failed: ${err.message}`); }

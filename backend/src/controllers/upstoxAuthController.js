@@ -5,7 +5,11 @@ const upstoxAuth = require('../services/upstoxAuth');
 const upstoxWS   = require('../ws/upstoxWS');
 const logger     = require('../config/logger');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// FRONTEND_URL must be a single URL — res.redirect() can't target a
+// comma-separated list (unlike ALLOWED_ORIGINS, which is meant to be one).
+// Defensive split here so a misconfigured multi-value env var degrades to
+// "use the first URL" instead of producing an invalid Location header.
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',')[0].trim();
 
 // ── GET /api/auth/upstox/login ────────────────────────────────────────────────
 function login(req, res) {
