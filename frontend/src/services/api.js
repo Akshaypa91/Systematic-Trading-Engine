@@ -100,6 +100,7 @@ export const simAPI = {
 export const marketAPI = {
   getQuote:  (symbol) => api.get(`/data/quote/${symbol}`),
   getHealth: ()       => api.get('/data/health'),
+  getMarketStatus: () => api.get('/data/market-status'),
 };
 
 export const manualTradeAPI = {
