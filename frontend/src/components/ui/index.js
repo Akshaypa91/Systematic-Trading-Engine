@@ -16,3 +16,7 @@ export { default as Skeleton } from './Skeleton';
 export { default as EmptyState } from './EmptyState';
 export { default as SectionLabel } from './SectionLabel';
 export { default as PageHeader } from './PageHeader';
+export { default as Sparkline } from './Sparkline';
+export { default as SegmentedControl } from './SegmentedControl';
+export { default as Tooltip } from './Tooltip';
+export { default as DataTable } from './DataTable';

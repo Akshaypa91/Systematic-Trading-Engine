@@ -877,3 +877,171 @@ body.nav-open { overflow:hidden; }
   border: 1px solid var(--border); margin-bottom: var(--space-3);
   color: var(--text-muted);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM v3.2 — Dashboard & terminal primitives (additive)
+   New surface, table, tile, segmented-control and semantic-color tokens.
+   Everything below is additive; no prior selector is overridden.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Semantic value colors + tabular figures ──────────────────────────────── */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.val-pos  { color: var(--green); }
+.val-neg  { color: var(--red); }
+.val-flat { color: var(--text-secondary); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ── Panel header: heavier than section-label, for hero sections ──────────── */
+.panel-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.panel-sub {
+  font-size: 11px; font-family: var(--font-mono);
+  color: var(--text-muted); margin-top: 3px;
+}
+
+/* ── Portfolio hero strip ─────────────────────────────────────────────────── */
+.hero-strip {
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; box-shadow: var(--shadow-card);
+}
+.hero-cell {
+  background: var(--bg-card); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  position: relative; min-width: 0;
+}
+.hero-cell.primary {
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--cyan) 7%, transparent),
+      transparent 60%),
+    var(--bg-card);
+}
+.hero-label {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.hero-value {
+  font-family: var(--font-mono); font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  color: var(--text-primary); line-height: 1.05;
+}
+.hero-cell.primary .hero-value { font-size: 28px; }
+.hero-value.md { font-size: 21px; }
+.hero-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hero-delta.pos { color: var(--green); }
+.hero-delta.neg { color: var(--red); }
+.hero-delta.flat { color: var(--text-muted); }
+.hero-spark { position: absolute; right: 14px; bottom: 12px; opacity: 0.9; }
+
+@media (max-width: 1023px) {
+  .hero-strip { grid-template-columns: 1fr 1fr; }
+  .hero-cell.primary { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .hero-strip { grid-template-columns: 1fr; }
+  .hero-cell.primary .hero-value { font-size: 24px; }
+}
+
+/* ── Data table — dense, terminal-grade rows ──────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  padding: 8px 12px; text-align: left;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); white-space: nowrap;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+.data-table thead th.right,
+.data-table td.right { text-align: right; }
+.data-table tbody td {
+  padding: 9px 12px; font-size: 12px; color: var(--text-secondary);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  white-space: nowrap;
+}
+.data-table tbody tr { transition: background 0.1s; }
+.data-table tbody tr:hover { background: var(--bg-elevated); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table .sym {
+  font-family: var(--font-mono); font-weight: 700;
+  color: var(--text-primary); font-size: 12.5px;
+}
+.data-table .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ── Segmented control (timeframe / filter switcher) ──────────────────────── */
+.seg {
+  display: inline-flex; padding: 2px; gap: 2px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.seg button {
+  padding: 4px 11px; border: none; background: transparent;
+  border-radius: 6px; cursor: pointer;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--text-muted); letter-spacing: 0.02em;
+  transition: background 0.14s, color 0.14s;
+}
+.seg button:hover { color: var(--text-secondary); }
+.seg button[data-active="true"] {
+  background: var(--bg-card); color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Tooltip primitive ────────────────────────────────────────────────────── */
+.ui-tip-wrap { position: relative; display: inline-flex; }
+.ui-tip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 6px 10px; border-radius: 7px; white-space: nowrap;
+  background: var(--bg-elevated); border: 1px solid var(--border-bright);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-primary);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease; z-index: 300;
+}
+.ui-tip-wrap:hover .ui-tip,
+.ui-tip-wrap:focus-within .ui-tip {
+  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+}
+
+/* ── Sub-tile: mini KPI inside a card (watchlist, movers) ─────────────────── */
+.mini-tile {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; border-radius: var(--radius-md);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  transition: border-color 0.14s, transform 0.14s, background 0.14s;
+}
+.mini-tile:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+
+/* ── Bar meter (allocation / probability) ─────────────────────────────────── */
+.meter { height: 5px; border-radius: 99px; background: var(--bg-elevated); overflow: hidden; }
+.meter > span { display: block; height: 100%; border-radius: 99px; transition: width 0.6s var(--ease-out); }
+
+/* ── Dashboard grids ──────────────────────────────────────────────────────── */
+.dash-grid-2 { display: grid; grid-template-columns: 1fr 360px; gap: 16px; align-items: start; }
+.dash-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.dash-section { margin-bottom: 16px; }
+@media (max-width: 1200px) {
+  .dash-grid-2 { grid-template-columns: 1fr; }
+  .dash-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ── Card section divider ─────────────────────────────────────────────────── */
+.card-divider { height: 1px; background: var(--border); margin: 14px -20px; }
+
+/* ── Scroll area inside cards ─────────────────────────────────────────────── */
+.scroll-y { overflow-y: auto; }
+.scroll-y::-webkit-scrollbar { width: 4px; }
