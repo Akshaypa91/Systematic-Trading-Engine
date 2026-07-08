@@ -3,15 +3,26 @@
 -- src/config/initDB.js, which already creates these same tables). Kept for
 -- standalone use; converted from Postgres to MySQL/TiDB syntax to match.
 
+-- Emulates Postgres's partial unique index (one ACTIVE portfolio per user,
+-- or one ACTIVE anonymous portfolio) via a generated column + plain unique
+-- index — MySQL/TiDB has no partial/filtered index support.
+--
+-- Two things confirmed live against TiDB Cloud Serverless:
+--   1. A generated STORED column can only be added in the original CREATE
+--      TABLE, not via ALTER TABLE ADD COLUMN — that's explicitly rejected.
+--   2. A FOREIGN KEY on a column that a generated column in the same table
+--      derives from isn't supported at all here (fails with "Cannot add
+--      foreign key constraint"), regardless of whether the FK is inline or
+--      added afterward via ALTER TABLE. That's why user_id has no FK below
+--      — portfolioRepository.createPortfolio() already enforces valid,
+--      authenticated user_id and the one-active-portfolio rule at the
+--      application layer inside a transaction.
 CREATE TABLE IF NOT EXISTS portfolios (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   initial_capital DECIMAL(16,2) NOT NULL,
   current_capital DECIMAL(16,2) NOT NULL,
   status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'RESET', 'CLOSED')),
-  -- Emulates Postgres's partial unique index (one ACTIVE portfolio per
-  -- user, or one ACTIVE anonymous portfolio) via a generated column +
-  -- plain unique index — MySQL/TiDB has no partial/filtered index support.
   active_user_key INT AS (CASE WHEN status = 'ACTIVE' THEN COALESCE(user_id, -1) ELSE NULL END) STORED,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

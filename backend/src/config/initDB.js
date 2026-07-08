@@ -359,8 +359,28 @@ const ENTITIES = [
       // MySQL/TiDB doesn't support. Standard MySQL idiom instead: a
       // generated column that's NULL unless status='ACTIVE', with a plain
       // UNIQUE index on it — NULLs don't collide, so this enforces the same
-      // rule. Needs confirming the TiDB cluster supports generated columns
-      // (STORED, widely supported) + unique index on them.
+      // rule.
+      //
+      // Three restrictions confirmed live against TiDB Cloud Serverless,
+      // in order of discovery:
+      //   1. A generated STORED column can only be added in the original
+      //      CREATE TABLE — "Adding generated stored column through ALTER
+      //      TABLE" is explicitly unsupported.
+      //   2. Even split into CREATE TABLE (generated column) + a separate
+      //      ALTER TABLE ADD CONSTRAINT (FK) afterward, TiDB still rejects
+      //      it with "Cannot add foreign key constraint" — a FK on a
+      //      column that a generated column in the same table derives
+      //      from isn't supported at all here, regardless of statement
+      //      ordering. Every other table with an FK to users(id) has no
+      //      generated column and creates fine, confirming it's this
+      //      specific interaction.
+      // Resolution: drop the FK on user_id for this table only. It's a
+      // safety net, not load-bearing — portfolioRepository.createPortfolio()
+      // already enforces the one-active-portfolio-per-user rule (and valid
+      // user_id) inside a DB transaction before this constraint would ever
+      // fire, and requireAuth guarantees user_id comes from a verified JWT.
+      // Every other FK'd table in this schema keeps its FK; this is the one
+      // documented exception.
       `CREATE TABLE IF NOT EXISTS portfolios (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         user_id INT,
@@ -370,8 +390,7 @@ const ENTITIES = [
         active_user_key INT AS (CASE WHEN status = 'ACTIVE' THEN COALESCE(user_id, -1) ELSE NULL END) STORED,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT uq_portfolios_active_user UNIQUE (active_user_key),
-        CONSTRAINT fk_portfolios_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        CONSTRAINT uq_portfolios_active_user UNIQUE (active_user_key)
       )`,
       `ALTER TABLE portfolios ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`,
       `CREATE INDEX IF NOT EXISTS idx_portfolios_user_id ON portfolios (user_id)`,
@@ -558,6 +577,25 @@ async function tableExists(name) {
   return Number(rows[0]?.cnt || 0) > 0;
 }
 
+// A few DDL statements have no MySQL/TiDB "IF NOT EXISTS" form (notably
+// ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY — unlike ADD COLUMN or
+// CREATE INDEX, there's no idempotent variant). Since initDB() re-runs the
+// full statement list on every boot, treat "this already exists" errors as
+// success rather than failure so re-running stays safe.
+const ALREADY_EXISTS_PATTERN = /duplicate|already exists/i;
+
+async function runIdempotent(statement) {
+  try {
+    await db.query(statement);
+  } catch (err) {
+    if (ALREADY_EXISTS_PATTERN.test(err.message)) {
+      logger.debug(`[InitDB] already applied, skipping: ${err.message}`);
+      return;
+    }
+    throw err;
+  }
+}
+
 async function initDB() {
   logger.info('[InitDB] Running TiDB Cloud table initialisation...');
 
@@ -567,7 +605,7 @@ async function initDB() {
     try {
       const existed = await tableExists(entity.name);
       for (const statement of entity.statements) {
-        await db.query(statement);
+        await runIdempotent(statement);
       }
 
       if (existed) {
