@@ -14,15 +14,15 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
     }}>
       <div className="card fade-in" style={{
         width: '100%', maxWidth: 420, padding: 28, margin: 16,
-        border: '1px solid rgba(255,179,0,0.4)',
-        boxShadow: '0 0 40px rgba(255,179,0,0.08)',
+        border: '1px solid color-mix(in srgb, var(--amber) 40%, transparent)',
+        boxShadow: '0 0 40px color-mix(in srgb, var(--amber) 8%, transparent)',
       }}>
         {/* Header */}
         <div className="flex items-start justify-between" style={{ marginBottom: 20 }}>
           <div className="flex items-center gap-3">
             <div style={{
               width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-              background: 'rgba(255,179,0,0.12)', border: '1px solid rgba(255,179,0,0.3)',
+              background: 'color-mix(in srgb, var(--amber) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 30%, transparent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <AlertTriangle size={18} style={{ color: 'var(--amber)' }} />
@@ -44,7 +44,7 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
         {/* Warning */}
         <div style={{
           padding: '10px 14px', borderRadius: 8, marginBottom: 20,
-          background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.2)',
+          background: 'color-mix(in srgb, var(--amber) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 20%, transparent)',
           fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6,
         }}>
           You are about to place a <strong style={{ color: 'var(--amber)' }}>LIVE market order</strong> with
@@ -64,7 +64,7 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
             ['Est. Total', <strong style={{ color: 'var(--cyan)' }}>₹{Number(estTotal||0).toLocaleString('en-IN')}</strong>],
           ].map(([label, val]) => (
             <div key={label} className="flex items-center justify-between" style={{
-              padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+              padding: '6px 0', borderBottom: '1px solid color-mix(in srgb, var(--border) 60%, transparent)',
             }}>
               <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{label}</span>
               <span style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{val}</span>

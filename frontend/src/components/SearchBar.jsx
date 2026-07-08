@@ -287,7 +287,7 @@ export default function SearchBar({ onSearch, loading }) {
                 display: 'flex', alignItems: 'center', gap: 10,
                 width: '100%', padding: '8px 14px',
                 border: 'none',
-                borderTop: '1px solid rgba(255,255,255,0.03)',
+                borderTop: '1px solid color-mix(in srgb, var(--border) 60%, transparent)',
                 background: i === activeIdx ? 'color-mix(in srgb, var(--cyan) 7%, transparent)' : 'transparent',
                 cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.08s',

@@ -32,8 +32,8 @@ function RSIBar({ value }) {
         <span className="font-mono" style={{ fontSize: 11, color }}>{value.toFixed(1)} · {zone}</span>
       </div>
       <div style={{ height: 4, background: 'var(--bg-base)', borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', left: '30%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.07)' }} />
-        <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ position: 'absolute', left: '30%', top: 0, bottom: 0, width: 1, background: 'var(--border-bright)' }} />
+        <div style={{ position: 'absolute', left: '70%', top: 0, bottom: 0, width: 1, background: 'var(--border-bright)' }} />
         <div style={{
           height: '100%', width: `${pct}%`, background: color, borderRadius: 2,
           transition: 'width 0.6s cubic-bezier(0.34,1.56,0.64,1)',
@@ -53,7 +53,7 @@ function ConfBar({ value }) {
         <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{pct.toFixed(1)}%</span>
       </div>
       <div className="conf-track">
-        <div className="conf-fill" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--cyan), var(--purple))' }} />
+        <div className="conf-fill" style={{ width: `${pct}%`, background: 'var(--cyan)' }} />
       </div>
     </div>
   );
@@ -105,7 +105,7 @@ export default function StockCard({ data, loading, onRefresh }) {
       {/* Top accent stripe */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg, transparent, ${cfg.color}70, transparent)`,
+        background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${cfg.color} 70%, transparent), transparent)`,
       }} />
 
       {/* Header */}

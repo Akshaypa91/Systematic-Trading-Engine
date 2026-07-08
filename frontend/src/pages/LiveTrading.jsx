@@ -20,15 +20,16 @@ const pct = (v, dec = 2) => `${n(v) >= 0 ? '+' : ''}${n(v).toFixed(dec)}%`;
 function SourceBadge({ source }) {
   const cfg = {
     LIVE_UPSTOX: { label: 'LIVE', dot: 'var(--green)',  bg: 'color-mix(in srgb, var(--green) 8%, transparent)' },
-    LIVE_NSE:    { label: 'NSE',  dot: 'var(--amber)',  bg: 'rgba(255,179,0,0.08)'  },
-    SIM:         { label: 'SIM',  dot: 'var(--text-muted)', bg: 'rgba(255,255,255,0.04)' },
-  }[source] || { label: source || 'SIM', dot: 'var(--text-muted)', bg: 'rgba(255,255,255,0.04)' };
+    LIVE_NSE:    { label: 'NSE',  dot: 'var(--amber)',  bg: 'color-mix(in srgb, var(--amber) 8%, transparent)' },
+    SIM:         { label: 'SIM',  dot: 'var(--text-muted)', bg: 'var(--bg-elevated)' },
+  }[source] || { label: source || 'SIM', dot: 'var(--text-muted)', bg: 'var(--bg-elevated)' };
 
   return (
     <span className="font-mono" style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
-      background: cfg.bg, color: cfg.dot, border: `1px solid ${cfg.dot}30`,
+      background: cfg.bg, color: cfg.dot,
+      border: `1px solid color-mix(in srgb, ${cfg.dot} 20%, transparent)`,
     }}>
       <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
       {cfg.label}
@@ -52,7 +53,7 @@ function StatCard({ label, value, sub, color, Icon, delay = 0, loading = false }
         )}
       </div>
       {loading ? (
-        <div style={{ height: 26, borderRadius: 6, background: 'rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div className="skeleton" style={{ height: 26, borderRadius: 6 }} />
       ) : (
         <div className="num-flip" style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
           {value ?? '—'}
@@ -73,7 +74,7 @@ function SignalMixBar({ signals }) {
   return (
     <div className="card" style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
       <span className="section-label" style={{ flexShrink: 0 }}>Signal Mix</span>
-      <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', display: 'flex' }}>
+      <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'var(--bg-elevated)', overflow: 'hidden', display: 'flex' }}>
         <div style={{ width: `${(buy / total) * 100}%`, background: 'var(--green)', transition: 'width 0.5s', height: '100%' }} />
         <div style={{ width: `${(sell / total) * 100}%`, background: 'var(--red)', transition: 'width 0.5s', height: '100%' }} />
         <div style={{ flex: 1, background: 'var(--amber)', height: '100%', opacity: 0.6 }} />
@@ -125,9 +126,9 @@ function PaperTradeRow({ t, isNew }) {
   const green    = pnl >= 0;
   const reasonBg = t.reason === 'STOP_LOSS'   ? 'color-mix(in srgb, var(--red) 10%, transparent)'
                  : t.reason === 'TAKE_PROFIT' ? 'color-mix(in srgb, var(--green) 10%, transparent)'
-                 :                              'rgba(255,255,255,0.04)';
+                 :                              'var(--bg-elevated)';
   return (
-    <tr className={`trade-row ${isNew ? 'trade-flash' : ''}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+    <tr className={`trade-row ${isNew ? 'trade-flash' : ''}`} style={{ borderBottom: '1px solid color-mix(in srgb, var(--border) 60%, transparent)' }}>
       <td style={{ padding: '9px 12px', fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{t.symbol}</td>
       <td style={{ padding: '9px 12px' }}>
         <span className={`badge ${t.side === 'BUY' ? 'badge-buy' : 'badge-sell'}`} style={{ fontSize: 10 }}>{t.side}</span>
@@ -298,7 +299,7 @@ export default function LiveTrading() {
     <AppShell>
       <main className="page-content">
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 24 }}>
+        <div className="flex items-center justify-between ui-wrap" style={{ marginBottom: 24, gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Live Trading</h1>
             <div className="flex items-center gap-3">
@@ -343,7 +344,7 @@ export default function LiveTrading() {
         <SignalMixBar signals={signals} />
 
         {/* ── Stats row ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
           <StatCard label="Portfolio Equity" color="var(--cyan)" loading={portLoading}
             value={portfolio ? `₹${fmt(equity)}` : '—'}
             sub={portfolio ? `Initial ₹${(initCap / 1e5).toFixed(0)}L` : ''}
@@ -363,7 +364,7 @@ export default function LiveTrading() {
         </div>
 
         {/* ── Equity + Positions ─────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, marginBottom: 20 }}>
+        <div className="dash-grid-2" style={{ gridTemplateColumns: '1fr 340px', gap: 16, marginBottom: 20 }}>
           <div className="card fade-up stagger-1" style={{ padding: 20 }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
               <div>
@@ -404,7 +405,7 @@ export default function LiveTrading() {
         </div>
 
         {/* ── Signals + Trades ───────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
           {/* Signals */}
           <div className="card fade-up stagger-3" style={{ padding: 20 }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
@@ -420,9 +421,10 @@ export default function LiveTrading() {
                   const fc = { ALL: 'var(--cyan)', BUY: 'var(--green)', SELL: 'var(--red)', HOLD: 'var(--amber)' }[f];
                   return (
                     <button key={f} onClick={() => setFilter(f)} className="font-mono"
+                      aria-pressed={filter === f}
                       style={{ padding: '2px 8px', borderRadius: 5, fontSize: 9, fontWeight: 600, cursor: 'pointer',
-                        border: `1px solid ${filter === f ? fc + '55' : 'var(--border)'}`,
-                        background: filter === f ? `${fc}12` : 'transparent',
+                        border: `1px solid ${filter === f ? `color-mix(in srgb, ${fc} 33%, transparent)` : 'var(--border)'}`,
+                        background: filter === f ? `color-mix(in srgb, ${fc} 7%, transparent)` : 'transparent',
                         color: filter === f ? fc : 'var(--text-muted)' }}>
                       {f}
                     </button>

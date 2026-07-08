@@ -185,7 +185,7 @@ export default function TradeJournal() {
                 <div className="journal-entry-head">
                   <div>
                     <strong>{entry.symbol}</strong>
-                    <span className={entry.side === 'SELL' ? 'badge-sell' : 'badge-buy'}>{entry.side || 'TRADE'}</span>
+                    <span className={`badge ${entry.side === 'SELL' ? 'badge-sell' : 'badge-buy'}`}>{entry.side || 'TRADE'}</span>
                   </div>
                   <button className="btn btn-ghost" onClick={() => remove(entry.id)} title="Delete journal entry">
                     <Trash2 size={13} />

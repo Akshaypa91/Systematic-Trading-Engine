@@ -68,7 +68,7 @@ export default function Feedback() {
         <div className="page-content" style={{ maxWidth:560, margin:'60px auto', textAlign:'center' }}>
           <div style={{
             width:72, height:72, borderRadius:20, margin:'0 auto 20px',
-            background:'rgba(34,197,94,0.1)', border:'1px solid rgba(34,197,94,0.25)',
+            background:'color-mix(in srgb, var(--green) 10%, transparent)', border:'1px solid color-mix(in srgb, var(--green) 25%, transparent)',
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>
             <CheckCircle size={32} style={{ color:'var(--green)'}}/>
@@ -100,7 +100,7 @@ export default function Feedback() {
           <div className="flex items-center gap-3">
             <div style={{
               width:40, height:40, borderRadius:12,
-              background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)',
+              background:'color-mix(in srgb, var(--cyan) 10%, transparent)', border:'1px solid color-mix(in srgb, var(--cyan) 20%, transparent)',
               display:'flex', alignItems:'center', justifyContent:'center',
             }}>
               <MessageSquare size={18} style={{ color:'var(--cyan)'}}/>
@@ -115,7 +115,7 @@ export default function Feedback() {
         {error && (
           <div className="flex items-center gap-2 font-mono" style={{
             padding:'10px 14px', borderRadius:8, marginBottom:20,
-            background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)',
+            background:'color-mix(in srgb, var(--red) 8%, transparent)', border:'1px solid color-mix(in srgb, var(--red) 20%, transparent)',
             color:'var(--red)', fontSize:12,
           }}>
             <AlertCircle size={13}/> {error}
@@ -132,8 +132,8 @@ export default function Feedback() {
                   onClick={() => set('type', t.value)}
                   style={{
                     padding:'10px 14px', borderRadius:10, textAlign:'left', cursor:'pointer',
-                    border: `1px solid ${form.type === t.value ? 'rgba(59,130,246,0.4)' : 'var(--border)'}`,
-                    background: form.type === t.value ? 'rgba(59,130,246,0.08)' : 'var(--bg-elevated)',
+                    border: `1px solid ${form.type === t.value ? 'color-mix(in srgb, var(--cyan) 40%, transparent)' : 'var(--border)'}`,
+                    background: form.type === t.value ? 'color-mix(in srgb, var(--cyan) 8%, transparent)' : 'var(--bg-elevated)',
                     transition:'all 0.12s',
                   }}
                 >
@@ -171,7 +171,7 @@ export default function Feedback() {
           {/* Contact (optional) */}
           <div className="card" style={{ padding:20, marginBottom:24 }}>
             <label className="section-label" style={{ display:'block', marginBottom:12 }}>Contact Info (optional)</label>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12 }}>
               <div>
                 <label style={{ fontSize:11, color:'var(--text-muted)', display:'block', marginBottom:5 }}>Name</label>
                 <input type="text" value={form.name} onChange={e => set('name', e.target.value)}

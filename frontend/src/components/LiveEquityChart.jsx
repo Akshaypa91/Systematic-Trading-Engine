@@ -51,7 +51,7 @@ export default function LiveEquityChart({ data = [], initialCapital = 1000000, h
               <stop offset="95%" stopColor={stroke} stopOpacity={0.01} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="t"
             tick={{ fill:'var(--text-muted)', fontSize:9, fontFamily:'var(--font-mono)' }}
             interval={Math.max(1, Math.floor(data.length / 6))}
@@ -61,7 +61,7 @@ export default function LiveEquityChart({ data = [], initialCapital = 1000000, h
             axisLine={false} tickLine={false}
             tickFormatter={v => `₹${v}K`} width={52} />
           <Tooltip content={<Tip />} />
-          <ReferenceLine y={initialCapital / 1000} stroke="rgba(255,255,255,0.10)" strokeDasharray="4 4" />
+          <ReferenceLine y={initialCapital / 1000} stroke="var(--border-bright)" strokeDasharray="4 4" />
           <Area type="monotone" dataKey="equity" stroke={stroke} strokeWidth={1.8}
             fill="url(#liveGrad)" dot={false} isAnimationActive={false} />
         </AreaChart>

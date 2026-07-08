@@ -127,12 +127,12 @@ export default function Analytics() {
     <AppShell>
       <div className="page-content">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div className="ui-between ui-wrap" style={{ gap: 12, marginBottom: 24, alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Portfolio Analytics
             </h1>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
               Performance breakdown · Paper trading
             </p>
           </div>
@@ -143,7 +143,7 @@ export default function Analytics() {
         </div>
 
         {error && (
-          <div style={{ padding: '10px 14px', borderRadius: 8, marginBottom: 16, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--red)', fontSize: 12 }}>
+          <div className="auth-banner error" role="alert" style={{ marginBottom: 16 }}>
             {error}
           </div>
         )}
@@ -217,7 +217,7 @@ export default function Analytics() {
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickLine={false} axisLine={false}
                   tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip prefix="₹" />} />
-                <ReferenceLine y={initialCapital} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+                <ReferenceLine y={initialCapital} stroke="var(--border-bright)" strokeDasharray="4 4" />
                 <Area type="monotone" dataKey="equity" stroke="var(--cyan)" strokeWidth={2}
                   fill="url(#eqGrad)" dot={false} activeDot={{ r: 4, fill: 'var(--cyan)' }} />
               </AreaChart>
@@ -226,7 +226,7 @@ export default function Analytics() {
         </div>
 
         {/* Daily returns */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
           <div className="card" style={{ padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Daily Returns</div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 16 }}>Last 30 data points</div>
