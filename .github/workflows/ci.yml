@@ -4,37 +4,104 @@ on:
   push:
     branches: [main, master]
   pull_request:
+    branches: [main, master]
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege by default.
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  CI: "true"
+  NODE_ENV: "test"
 
 jobs:
-  verify:
+  # ── Backend: install + self-contained unit/integration tests ──────────────
+  backend:
+    name: Backend (test)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install backend dependencies
-        working-directory: backend
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run backend tests
-        working-directory: backend
+      - name: Run tests
+        # Tests run with no DB and no network — safe dummy values below
+        # guarantee nothing tries to reach production infra.
+        env:
+          LOG_LEVEL: silent
+          JWT_SECRET: ci_dummy_secret_at_least_32_chars_long_000
+          DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/ci_test
         run: npm test
 
-      - name: Install frontend dependencies
+  # ── Frontend: install + lint + production build ───────────────────────────
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
         working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
         run: npm ci
 
-      - name: Lint frontend
-        working-directory: frontend
+      - name: Lint
         run: npm run lint
 
-      - name: Build frontend
-        working-directory: frontend
+      - name: Build
         run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  # ── Gate: single required status for branch protection ────────────────────
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: always()
+    steps:
+      - name: Verify all jobs passed
+        run: |
+          echo "backend:  ${{ needs.backend.result }}"
+          echo "frontend: ${{ needs.frontend.result }}"
+          if [ "${{ needs.backend.result }}" != "success" ] || \
+             [ "${{ needs.frontend.result }}" != "success" ]; then
+            echo "::error::One or more CI jobs failed."
+            exit 1
+          fi
+          echo "All CI jobs passed ✅"

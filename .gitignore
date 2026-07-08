@@ -1,6 +1,25 @@
+# Dependencies
 node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Environment files — never commit real secrets.
+# NOTE: package-lock.json is intentionally NOT ignored — it MUST be committed
+# so `npm ci` works in CI and deployments are reproducible.
 .env
-package-lock.json
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Vercel
+.vercel
 
 # OS
 .DS_Store
