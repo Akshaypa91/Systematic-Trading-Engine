@@ -91,6 +91,15 @@ app.use('/api/auth',   authLimiter);
 // ── Health check ──────────────────────────────────────────────────────────────
 const _startTime = Date.now();
 
+// Best-effort DB region, parsed from whatever's actually configured
+// (TIDB_HOST / DATABASE_URL host segment, e.g. "ap-southeast-1") — not a
+// Render-provided value, Render has no default env var for server region.
+function _dbRegion() {
+  const src = process.env.TIDB_HOST || process.env.DATABASE_URL || '';
+  const m = src.match(/\.([a-z]+-[a-z]+-\d)\./);
+  return m ? m[1] : null;
+}
+
 app.get('/health', async (req, res) => {
   let dbStatus = 'unknown';
   try { await db.testConnection(); dbStatus = 'connected'; } catch { dbStatus = 'disconnected'; }
@@ -107,6 +116,7 @@ app.get('/health', async (req, res) => {
     timestamp: new Date().toISOString(),
     uptime:    `${Math.floor(uptime / 60)}m ${uptime % 60}s`,
     db:        dbStatus,
+    dbRegion:  _dbRegion(),
     wsFeed:    liveDataFeed.getStats?.() || {},
     system: {
       platform:    os.platform(),
