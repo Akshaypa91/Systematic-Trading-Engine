@@ -45,6 +45,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login:      (email, password) => api.post('/auth/login',  { email, password }),
   signup:     (email, password) => api.post('/auth/signup', { email, password }),
+  upstoxStatus: ()              => api.get('/auth/upstox/status'),
+  upstoxLogout: ()              => api.post('/auth/upstox/logout'),
   googleAuth:      (credential)       => api.post('/auth/google', { credential }),
   forgotPassword:  (email)             => api.post('/auth/forgot-password', { email }),
   resetPassword:   (token, password)   => api.post('/auth/reset-password', { token, password }),
