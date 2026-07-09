@@ -259,7 +259,11 @@ async function getDataHealth(req, res) {
   try {
     const health = await marketDataService.healthCheck();
     const stats  = marketDataService.getCacheStats();
-    res.status(health.ok ? 200 : 503).json({ success: health.ok, api: health, cache: stats });
+    // healthCheck() reports `overall` (not `ok`). SIM fallback always yields a
+    // working feed, so this endpoint should return 200 with the per-provider
+    // detail; a 503 here was a false alarm that spammed the console.
+    const ok = health.overall !== false;
+    res.status(ok ? 200 : 503).json({ success: ok, api: health, cache: stats });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
