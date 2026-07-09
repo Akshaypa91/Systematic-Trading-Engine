@@ -113,8 +113,8 @@ export default function BrokerStatusCard({ onStatusChange }) {
       <div style={{ padding: '10px 16px 14px' }}>
         {!connected && !loading ? (
           <div style={{ textAlign: 'center', padding: '18px 8px' }}>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>
-              No active Upstox session. Connect to enable live market data and LIVE trading.
+            <p style={{ fontSize: 12, color: data?.tokenRejected ? 'var(--amber)' : 'var(--text-secondary)', marginBottom: 14 }}>
+              {data?.reason || 'No active Upstox session. Connect to enable live market data and LIVE trading.'}
             </p>
             <a href={`${API_BASE}/api/auth/upstox/login`}
               style={{

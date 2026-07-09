@@ -41,7 +41,10 @@ const REDIRECT_URI = process.env.UPSTOX_REDIRECT_URI || '';
 let _token = {
   accessToken:  process.env.UPSTOX_ACCESS_TOKEN || null,
   tokenType:    'Bearer',
-  expiresAt:    null,   // epoch ms, null = unknown
+  // An env-provided token has no known issue time. Upstox tokens die at ~3:30am
+  // IST, so cap its life at the next IST day boundary — otherwise a stale token
+  // left in the env var reads as "valid forever" and 401s every request.
+  expiresAt:    process.env.UPSTOX_ACCESS_TOKEN ? _endOfDayIST() : null,
   grantedAt:    null,
 };
 

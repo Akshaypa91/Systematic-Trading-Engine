@@ -44,6 +44,25 @@ async function getBrokerStatus(req, res) {
     broker.getFunds(userId),
   ]);
 
+  // Detect a token that exists locally but is REJECTED by Upstox (401/403).
+  // This happens when the token expired or was superseded by a newer login.
+  const statusOf = (r) => r?.reason?.response?.status;
+  const rejected = [profileRes, fundsRes].some(r => r.status === 'rejected' && [401, 403].includes(statusOf(r)));
+
+  if (rejected) {
+    // The stored token is dead. Clear it so the UI shows a clean "Connect"
+    // state and the next login starts fresh (a lingering dead token otherwise
+    // reads as green "Connected" forever).
+    upstoxAuth.clearToken();
+    try { upstoxWS.disconnect(); } catch (_) {}
+    return res.json({
+      ...out,
+      connected: false,
+      tokenRejected: true,
+      reason: 'Upstox rejected the saved session (401) — it expired or was replaced by a newer login. Please reconnect.',
+    });
+  }
+
   if (profileRes.status === 'fulfilled') {
     const p = profileRes.value || {};
     out.profile = {
