@@ -1860,6 +1860,18 @@ body.nav-open { overflow:hidden; }
 [data-theme="light"] .card { border-color: #DFE5EE; }
 [data-theme="light"] .hero-strip { border-color: #DFE5EE; }
 
+/* ── Live Portfolio layout ────────────────────────────────────────────────── */
+.lp-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 16px; align-items: start;
+}
+@media (max-width: 1023px) {
+  .lp-grid { grid-template-columns: 1fr; }
+  /* Emergency controls first on mobile — reachable without scrolling */
+  .lp-grid > .lp-left { order: 2; }
+}
+
 /* ── Mobile navbar compaction (v4.1) ──────────────────────────────────────── */
 /* Small screens: icon-only brand, icon-only mode pills, dot-only WS status —
    keeps hamburger…avatar on one row down to 320px without overflow. */

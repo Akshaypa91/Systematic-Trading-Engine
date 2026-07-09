@@ -75,9 +75,9 @@ export default function LivePortfolio() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(280px,1fr)', gap: 16, alignItems: 'start' }}>
+          <div className="lp-grid">
             {/* LEFT: funds + positions + holdings */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="lp-left" style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
               {/* Funds */}
               <div className="card" style={{ padding: 16 }}>
                 <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12, fontFamily: 'var(--font-mono)' }}>Funds</div>
@@ -100,7 +100,7 @@ export default function LivePortfolio() {
                 {positions.length === 0 ? (
                   <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>{loading ? 'Loading…' : 'No open positions'}</div>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                  <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
                         {['Symbol', 'Qty', 'Avg', 'LTP', "Day P&L", 'Overall P&L', 'MTM', ''].map(h => (
