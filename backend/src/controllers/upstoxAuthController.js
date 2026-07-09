@@ -59,7 +59,9 @@ async function callback(req, res) {
       logger.warn(`[UpstoxCtrl] WS connect non-fatal: ${wsErr.message}`);
     }
 
-    return res.redirect(`${FRONTEND_URL}?upstox=connected`);
+    // Land on the Trade page (broker card + order ticket) instead of the
+    // dashboard so the user sees the freshly-connected broker immediately.
+    return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/trade?upstox=connected`);
   } catch (err) {
     const upstoxBody = err.response?.data;
     logger.error(`[UpstoxCtrl] Token exchange failed: ${err.message} | Upstox response: ${JSON.stringify(upstoxBody)}`);

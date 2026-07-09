@@ -9,6 +9,7 @@ import PortfolioHero from '../components/PortfolioHero';
 import OpenPositions from '../components/OpenPositions';
 import MarketWatch from '../components/MarketWatch';
 import AllocationCard from '../components/AllocationCard';
+import BrokerConnectBanner from '../components/BrokerConnectBanner';
 import Toast from '../components/Toast';
 import {
   Button, Card, CardHeader, Field, Input, Select, Metric, Chip,
@@ -86,6 +87,9 @@ export default function Dashboard() {
             </Button>
           }
         />
+
+        {/* Broker connect prompt (only when Upstox isn't linked) */}
+        <BrokerConnectBanner />
 
         {/* Backtest form (collapsible) */}
         {showForm && (

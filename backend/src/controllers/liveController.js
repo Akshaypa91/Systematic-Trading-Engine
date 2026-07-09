@@ -359,10 +359,15 @@ async function getStatus(req, res) {
     const [flag] = await db.query(
       "SELECT flag_value FROM system_flags WHERE flag_key='live_trading_enabled' LIMIT 1"
     );
+    // The OAuth flow stores the token in memory (upstoxAuth), not in
+    // broker_accounts — so a DB-only check reports "not connected" even when a
+    // valid live session exists. Treat an authenticated in-memory token as
+    // linked too, so mode-gating and the "connected" banners are accurate.
+    const brokerLinked = !!rows[0]?.is_active || upstoxAuth.isAuthenticated();
     return res.json({
       success: true,
-      brokerLinked:        !!rows[0]?.is_active,
-      broker:              rows[0]?.provider || null,
+      brokerLinked,
+      broker:              rows[0]?.provider || (upstoxAuth.isAuthenticated() ? 'upstox' : null),
       tradingMode:         modeRows[0]?.trading_mode || 'PAPER',
       killSwitch:          flag[0]?.flag_value === 'false',
     });
