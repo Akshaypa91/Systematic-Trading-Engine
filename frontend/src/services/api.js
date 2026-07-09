@@ -18,13 +18,25 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Endpoints where a 401 is a *result* (bad credentials, expired reset token…)
+// rather than an expired session. These must surface their error to the form
+// instead of hard-redirecting — previously a failed login reloaded /login
+// before the "Invalid credentials" message could ever render.
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/signup', '/auth/google', '/auth/forgot-password', '/auth/reset-password'];
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const url = error.config?.url || '';
+      const isAuthCall = AUTH_ENDPOINTS.some((p) => url.includes(p));
+      if (!isAuthCall) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }
