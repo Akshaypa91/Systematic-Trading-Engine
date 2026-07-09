@@ -200,7 +200,12 @@ html { transition: background-color 200ms ease, color 200ms ease; }
 }
 
 /* ── Reset ────────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* IMPORTANT: this lives in @layer base so Tailwind's spacing utilities
+   (@layer utilities, which cascade later) can actually apply. As an unlayered
+   rule it silently overrode every p-*/m-*/py-* class in the app. */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+}
 html, body, #root { height: 100%; }
 body {
   background: var(--bg-base);
@@ -1851,3 +1856,31 @@ body.nav-open { overflow:hidden; }
 /* Light theme: give cards a touch more definition against the page */
 [data-theme="light"] .card { border-color: #DFE5EE; }
 [data-theme="light"] .hero-strip { border-color: #DFE5EE; }
+
+/* ── Screener layout (v4.1) ───────────────────────────────────────────────── */
+/* Detail panel: docked rail on wide screens, overlay drawer below 1280px */
+.scr-panel {
+  position: fixed; right: 0; bottom: 0; top: var(--navbar-h);
+  width: 340px; z-index: 70;
+  display: flex; flex-direction: column; overflow-y: auto;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  animation: slideInRight 0.25s var(--ease-out) both;
+}
+.scr-backdrop {
+  position: fixed; inset: 0; z-index: 69; display: none;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease-out both;
+  border: none; padding: 0;
+}
+@media (min-width: 1280px) {
+  .scr-main { transition: margin-right 0.3s var(--ease-out); }
+  .scr-main[data-panel="true"] { margin-right: 340px; }
+}
+@media (max-width: 1279px) {
+  .scr-backdrop { display: block; }
+}
+@media (max-width: 480px) {
+  .scr-panel { width: 100%; border-left: none; }
+}

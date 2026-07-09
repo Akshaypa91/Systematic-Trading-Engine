@@ -104,8 +104,9 @@ function DetailPanel({ row, onClose, onBacktest }) {
   const scoreColor = score > 0.6 ? 'var(--green)' : score > 0.4 ? 'var(--amber)' : 'var(--red)';
 
   return (
-    <div className="fixed right-0 bottom-0 w-80 z-40 flex flex-col fade-in overflow-y-auto"
-      style={{ top: 'var(--navbar-h)', background: 'var(--bg-surface)', borderLeft: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
+    <>
+    <button className="scr-backdrop" onClick={onClose} aria-label="Close details" tabIndex={-1} />
+    <div className="scr-panel" role="dialog" aria-label={`${row.symbol} details`}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{row.symbol}</div>
@@ -203,6 +204,7 @@ function DetailPanel({ row, onClose, onBacktest }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -250,8 +252,8 @@ export default function Screener() {
   return (
     <AppShell>
       <main
-        className="page-content"
-        style={{ marginRight: panelOpen ? 320 : 0, transition: 'margin-right 0.3s' }}>
+        className="page-content scr-main"
+        data-panel={panelOpen ? 'true' : 'false'}>
         <div className="max-w-screen-xl">
 
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -274,7 +276,7 @@ export default function Screener() {
           </div>
 
           {results.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 16 }}>
               {[
                 { label: 'BUY Candidates',  count: results.filter(r => r.signal === 'BUY').length,  color: 'var(--green)', icon: TrendingUp },
                 { label: 'HOLD',            count: results.filter(r => r.signal === 'HOLD').length, color: 'var(--amber)', icon: Minus },
@@ -352,7 +354,7 @@ export default function Screener() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-xs font-mono">
+                <table className="w-full text-xs font-mono" style={{ minWidth: 760 }}>
                   <thead style={{ borderBottom: '1px solid var(--border)' }}>
                     <tr>
                       {[['#',null],['Symbol','symbol'],['Signal','signal'],['Score','compositeScore'],
