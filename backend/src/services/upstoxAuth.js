@@ -24,7 +24,12 @@
 'use strict';
 
 const axios  = require('axios');
+const crypto = require('crypto');
 const logger = require('../config/logger');
+
+// DB is loaded lazily so this module still works in tests / before DB init.
+let _db = null;
+function db() { if (!_db) { try { _db = require('../config/database'); } catch (_) {} } return _db; }
 
 const UPSTOX_BASE        = 'https://api.upstox.com/v2';
 const UPSTOX_AUTH_URL    = 'https://api.upstox.com/v2/login/authorization/dialog';
@@ -34,6 +39,70 @@ const UPSTOX_TOKEN_URL   = `${UPSTOX_BASE}/login/authorization/token`;
 const API_KEY      = process.env.UPSTOX_API_KEY      || '';
 const API_SECRET   = process.env.UPSTOX_API_SECRET   || '';
 const REDIRECT_URI = process.env.UPSTOX_REDIRECT_URI || '';
+
+// ── Token persistence (survives restarts / shared across instances) ───────────
+// Stored in system_flags, AES-256-GCM encrypted with a key derived from an env
+// secret so a DB dump never leaks a usable trading token.
+const FLAG_TOKEN   = 'upstox.token_enc';
+const FLAG_EXPIRES = 'upstox.token_expires';
+const _encKey = crypto.createHash('sha256')
+  .update(process.env.UPSTOX_TOKEN_SECRET || process.env.JWT_SECRET || 'systra-dev-token-key')
+  .digest();
+
+function _encrypt(plain) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', _encKey, iv);
+  const enc = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${iv.toString('hex')}:${tag.toString('hex')}:${enc.toString('hex')}`;
+}
+function _decrypt(blob) {
+  try {
+    const [ivH, tagH, dataH] = String(blob).split(':');
+    const decipher = crypto.createDecipheriv('aes-256-gcm', _encKey, Buffer.from(ivH, 'hex'));
+    decipher.setAuthTag(Buffer.from(tagH, 'hex'));
+    return Buffer.concat([decipher.update(Buffer.from(dataH, 'hex')), decipher.final()]).toString('utf8');
+  } catch { return null; }
+}
+
+// Fire-and-forget upsert into system_flags.
+function _persist(token, expiresAt) {
+  const d = db(); if (!d) return;
+  const up = (k, v) => d.query(
+    `INSERT INTO system_flags (flag_key, flag_value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON DUPLICATE KEY UPDATE flag_value = VALUES(flag_value), updated_at = CURRENT_TIMESTAMP`, [k, v]
+  ).catch(e => logger.warn(`[UpstoxAuth] persist ${k}: ${e.message}`));
+  up(FLAG_TOKEN, _encrypt(token));
+  up(FLAG_EXPIRES, String(expiresAt || ''));
+}
+function _clearPersisted() {
+  const d = db(); if (!d) return;
+  d.query(`DELETE FROM system_flags WHERE flag_key IN (?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES])
+    .catch(e => logger.warn(`[UpstoxAuth] clear persisted: ${e.message}`));
+}
+
+/**
+ * Restore a persisted token into memory at boot. Called from app.js before the
+ * Upstox WS connect. Ignores expired tokens.
+ */
+async function loadPersistedToken() {
+  const d = db(); if (!d) return false;
+  try {
+    const [rows] = await d.query(`SELECT flag_key, flag_value FROM system_flags WHERE flag_key IN (?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES]);
+    const map = Object.fromEntries(rows.map(r => [r.flag_key, r.flag_value]));
+    const enc = map[FLAG_TOKEN];
+    if (!enc) return false;
+    const token = _decrypt(enc);
+    const expiresAt = Number(map[FLAG_EXPIRES]) || _endOfDayIST();
+    if (!token || Date.now() > expiresAt) { _clearPersisted(); return false; }
+    _token = { accessToken: token, tokenType: 'Bearer', expiresAt, grantedAt: Date.now() };
+    logger.info(`[UpstoxAuth] Restored persisted token (expires ${new Date(expiresAt).toISOString()})`);
+    return true;
+  } catch (err) {
+    logger.warn(`[UpstoxAuth] loadPersistedToken failed: ${err.message}`);
+    return false;
+  }
+}
 
 // ── In-memory token store (single-user mode) ──────────────────────────────────
 // For multi-user: store in DB keyed by user_id instead
@@ -76,6 +145,7 @@ function setAccessToken(accessToken, expiresInSeconds) {
   _token.expiresAt   = expiresInSeconds
     ? Date.now() + expiresInSeconds * 1000
     : _endOfDayIST();   // Upstox tokens expire at midnight IST
+  _persist(_token.accessToken, _token.expiresAt);   // survive restarts
   logger.info(`[UpstoxAuth] Access token set — expires at ${new Date(_token.expiresAt).toISOString()}`);
 }
 
@@ -84,6 +154,7 @@ function setAccessToken(accessToken, expiresInSeconds) {
  */
 function clearToken() {
   _token = { accessToken: null, tokenType: 'Bearer', expiresAt: null, grantedAt: null };
+  _clearPersisted();
   logger.info('[UpstoxAuth] Token cleared');
 }
 
@@ -201,6 +272,7 @@ module.exports = {
   getTokenStatus,
   getAuthorizationUrl,
   exchangeCodeForToken,
+  loadPersistedToken,
   // Config exposure for WS module
   UPSTOX_BASE,
   API_KEY,

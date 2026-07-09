@@ -92,6 +92,19 @@ async function _saveOrder(data) {
   }
 }
 
+// Current open exposure (₹) and aggregate P&L (₹) from live broker positions.
+// Used by the daily-loss and max-exposure pre-trade checks.
+async function _riskSnapshot(userId) {
+  const positions = await getPositions(userId);
+  let exposure = 0, pnl = 0;
+  for (const p of positions) {
+    const px = _n(p.ltp) || _n(p.avgPrice);
+    exposure += Math.abs(_n(p.qty)) * px;
+    pnl      += _n(p.overallPnl);
+  }
+  return { exposure, pnl };
+}
+
 // ── Main: placeOrder ──────────────────────────────────────────────────────────
 /**
  * Place a LIVE order with full safety checks.
@@ -177,6 +190,33 @@ async function placeOrder(userId, params) {
         new Error(`Daily order limit reached (${limits.maxOrdersPerDay})`),
         { code: 'MAX_ORDERS', statusCode: 429 }
       );
+    }
+  }
+
+  // 6c. Live P&L / exposure limits (Phase 3, hard-enforced). Reads current
+  // broker positions. Best-effort: a transient broker read error does NOT block
+  // trading (the kill switch is the hard stop), but a successful read that
+  // breaches a limit rejects the order.
+  if (limits.dailyLossLimit || limits.maxExposure) {
+    try {
+      const snap = await _riskSnapshot(userId);
+      // Daily loss: if we're already down more than the limit, block new risk.
+      if (limits.dailyLossLimit && snap.pnl < 0 && Math.abs(snap.pnl) >= limits.dailyLossLimit) {
+        throw Object.assign(
+          new Error(`Daily loss limit hit: P&L ₹${snap.pnl.toLocaleString('en-IN')} breaches limit ₹${limits.dailyLossLimit.toLocaleString('en-IN')}`),
+          { code: 'DAILY_LOSS_LIMIT', statusCode: 403 }
+        );
+      }
+      // Max exposure: current open exposure + this order must stay within cap.
+      if (limits.maxExposure && (snap.exposure + estValue) > limits.maxExposure) {
+        throw Object.assign(
+          new Error(`Exposure ₹${(snap.exposure + estValue).toLocaleString('en-IN')} would exceed max exposure ₹${limits.maxExposure.toLocaleString('en-IN')}`),
+          { code: 'MAX_EXPOSURE', statusCode: 403 }
+        );
+      }
+    } catch (err) {
+      if (err.code === 'DAILY_LOSS_LIMIT' || err.code === 'MAX_EXPOSURE') throw err;
+      logger.warn(`[LiveTrading] risk snapshot unavailable — skipping P&L/exposure check: ${err.message}`);
     }
   }
 

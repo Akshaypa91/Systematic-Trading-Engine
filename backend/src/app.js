@@ -171,6 +171,8 @@ async function start() {
   try {
     const upstoxAuth = require('./services/upstoxAuth');
     const upstoxWS   = require('./ws/upstoxWS');
+    // Restore a persisted token first so a restart keeps the live session.
+    await upstoxAuth.loadPersistedToken().catch(() => {});
     if (upstoxAuth.isAuthenticated()) {
       upstoxWS.connect()
         .then(() => logger.info('[App] ✅ Upstox WebSocket connected'))
