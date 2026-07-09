@@ -54,9 +54,10 @@ export default function SignalsPanel({ signals: propSignals }) {
         <div className="flex gap-1">
           {filters.map(f => (
             <button key={f} onClick={() => setFilter(f)}
+              aria-pressed={filter===f}
               className="font-mono" style={{ padding:'2px 8px', borderRadius:5, fontSize:9, cursor:'pointer',
-                fontWeight:600, border:`1px solid ${filter===f ? fColors[f]+'55' : 'var(--border)'}`,
-                background: filter===f ? `${fColors[f]}12` : 'transparent',
+                fontWeight:600, border:`1px solid ${filter===f ? `color-mix(in srgb, ${fColors[f]} 33%, transparent)` : 'var(--border)'}`,
+                background: filter===f ? `color-mix(in srgb, ${fColors[f]} 7%, transparent)` : 'transparent',
                 color: filter===f ? fColors[f] : 'var(--text-muted)' }}>
               {f}
             </button>
@@ -96,8 +97,9 @@ export default function SignalsPanel({ signals: propSignals }) {
         </div>
       )}
 
-      {/* Signal cards */}
-      <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
+      {/* Signal cards — capped height with internal scroll so the panel can't
+          stretch the dashboard grid row to thousands of pixels */}
+      <div className="scroll-y" style={{ flex:1, minHeight:160, maxHeight:520, overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
         {filtered.length === 0 ? (
           <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, opacity:0.5 }}>
             <AlertCircle size={22} style={{ color:'var(--text-muted)' }} />
