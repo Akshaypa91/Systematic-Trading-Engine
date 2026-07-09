@@ -18,13 +18,13 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
   return (
     <>
       <div className="flex items-center gap-2 font-mono" style={{ fontSize: 11 }}>
-        {/* PAPER pill */}
+        {/* PAPER pill — Blue */}
         <button onClick={() => !isLive ? null : onChange('PAPER')}
           style={{
             padding: '4px 12px', borderRadius: 99, cursor: isLive ? 'pointer' : 'default',
-            background: !isLive ? 'color-mix(in srgb, var(--cyan) 12%, transparent)' : 'transparent',
-            border: `1px solid ${!isLive ? 'color-mix(in srgb, var(--cyan) 40%, transparent)' : 'var(--border)'}`,
-            color: !isLive ? 'var(--cyan)' : 'var(--text-muted)',
+            background: !isLive ? 'color-mix(in srgb, var(--blue, var(--cyan)) 14%, transparent)' : 'transparent',
+            border: `1px solid ${!isLive ? 'color-mix(in srgb, var(--blue, var(--cyan)) 45%, transparent)' : 'var(--border)'}`,
+            color: !isLive ? 'var(--blue, var(--cyan))' : 'var(--text-muted)',
             fontWeight: !isLive ? 700 : 400,
           }}>
           <div className="flex items-center gap-1.5">
@@ -32,23 +32,38 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
           </div>
         </button>
 
-        {/* LIVE pill */}
+        {/* LIVE pill — Green (real money) */}
         <button onClick={handleClick} disabled={disabled || (!brokerLinked && !isLive)}
           title={!brokerLinked ? 'Connect Upstox to enable live trading' : ''}
           style={{
             padding: '4px 12px', borderRadius: 99,
             cursor: disabled || (!brokerLinked && !isLive) ? 'not-allowed' : 'pointer',
             opacity: !brokerLinked && !isLive ? 0.4 : 1,
-            background: isLive ? 'color-mix(in srgb, var(--red) 15%, transparent)' : 'transparent',
-            border: `1px solid ${isLive ? 'color-mix(in srgb, var(--red) 50%, transparent)' : 'var(--border)'}`,
-            color: isLive ? 'var(--red)' : 'var(--text-muted)',
+            background: isLive ? 'color-mix(in srgb, var(--green) 16%, transparent)' : 'transparent',
+            border: `1px solid ${isLive ? 'color-mix(in srgb, var(--green) 55%, transparent)' : 'var(--border)'}`,
+            color: isLive ? 'var(--green)' : 'var(--text-muted)',
             fontWeight: isLive ? 700 : 400,
           }}>
           <div className="flex items-center gap-1.5">
-            {isLive && <span className="live-dot" style={{ width: 5, height: 5 }} />}
+            {isLive && <span className="live-dot" style={{ width: 5, height: 5, background: 'var(--green)' }} />}
             <Zap size={10} /> LIVE
           </div>
         </button>
+
+        {/* Active LIVE indicator — always visible when real money is enabled */}
+        {isLive && (
+          <span title="Real money trading enabled" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 99,
+            background: 'color-mix(in srgb, var(--green) 12%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--green) 40%, transparent)',
+          }}>
+            <span className="live-dot" style={{ width: 6, height: 6, background: 'var(--green)' }} />
+            <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <strong style={{ fontSize: 10, color: 'var(--green)', letterSpacing: '0.04em' }}>🟢 LIVE ACCOUNT</strong>
+              <span style={{ fontSize: 8.5, color: 'var(--text-muted)' }}>Real Money Trading Enabled</span>
+            </span>
+          </span>
+        )}
       </div>
 
       {/* Switch-to-LIVE confirmation */}

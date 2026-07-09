@@ -109,4 +109,16 @@ async function getFunds(userId) {
   return res.data?.data || {};
 }
 
-module.exports = { placeOrder, cancelOrder, getOrderBook, getPositions, getFunds };
+// ── getProfile ────────────────────────────────────────────────────────────────
+// GET /v2/user/profile → account identity for the Broker Status Card.
+// Upstox shape: { user_id, user_name, email, broker, exchanges, products,
+// order_types, user_type, is_active }.
+async function getProfile(userId) {
+  const token = await _getToken(userId);
+  const res   = await axios.get(`${BASE}/user/profile`, {
+    headers: _headers(token), timeout: TIMEOUT,
+  });
+  return res.data?.data || {};
+}
+
+module.exports = { placeOrder, cancelOrder, getOrderBook, getPositions, getFunds, getProfile };

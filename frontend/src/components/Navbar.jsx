@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import CommandPalette from './CommandPalette';
+import TradingModeToggle from './TradingModeToggle';
+import { useTradingMode } from '../context/TradingModeContext';
 
 function LiveClock() {
   const [time, setTime] = useState('');
@@ -52,6 +54,7 @@ function useClickOutside(ref, onOutside, enabled) {
 export default function Navbar({ onMenuToggle, menuOpen }) {
   const { user, logout } = useAuth();
   const { status, reconnect, trades } = useWS();
+  const { mode: tradingMode, brokerLinked, changeMode } = useTradingMode();
   const navigate = useNavigate();
 
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -140,6 +143,12 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
 
       {/* Right controls */}
       <div className="flex items-center gap-2">
+        {/* Always-visible PAPER / LIVE trading mode selector */}
+        <TradingModeToggle
+          mode={tradingMode}
+          brokerLinked={brokerLinked}
+          onChange={changeMode}
+        />
         <WSPill status={status} onReconnect={reconnect} />
 
         {/* Clock */}

@@ -11,8 +11,10 @@ import CapitalSetup from '../components/CapitalSetup';
 import TradingChart from '../components/TradingChart';
 import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
-import TradingModeToggle from '../components/TradingModeToggle';
 import LiveOrderModal    from '../components/LiveOrderModal';
+import BrokerStatusCard  from '../components/BrokerStatusCard';
+import LiveModeBanner    from '../components/LiveModeBanner';
+import { useTradingMode } from '../context/TradingModeContext';
 import useLivePrice      from '../hooks/useLivePrice';
 import { Chip }          from '../components/ui';
 
@@ -28,9 +30,8 @@ export default function Trade() {
   const [initialized,      setInitialized]      = useState(null);
   const [checkingInit,     setCheckingInit]     = useState(true);
 
-  // ── Live trading state ──────────────────────────────────────────────────────
-  const [tradingMode,   setTradingMode]   = useState('PAPER');
-  const [brokerLinked,  setBrokerLinked]  = useState(false);
+  // ── Live trading state (mode + broker come from the shared context) ─────────
+  const { mode: tradingMode, brokerLinked, reportBroker } = useTradingMode();
   const [liveModal,     setLiveModal]     = useState(null);   // pending order
   const [liveLoading,   setLiveLoading]   = useState(false);
 
@@ -39,18 +40,6 @@ export default function Trade() {
   // returns continuously-updating ticks. Symbol changes are handled inside the
   // hook (unsubscribe old → subscribe new).
   const live = useLivePrice(data?.symbol);
-
-  useEffect(() => {
-    liveAPI.status().then(r => {
-      setTradingMode(r.data.tradingMode || 'PAPER');
-      setBrokerLinked(!!r.data.brokerLinked);
-    }).catch(() => {});
-  }, []);
-
-  async function handleModeChange(newMode) {
-    setTradingMode(newMode);
-    liveAPI.setMode(newMode).catch(() => {});
-  }
 
   async function handleLiveOrder(orderDetails) {
     // orderDetails = { symbol, side, qty, currentPrice }
@@ -189,35 +178,18 @@ export default function Trade() {
     <AppShell>
       <main className="page-content trade-page-content">
 
+        {/* LIVE (real money) banner — only visible in LIVE mode */}
+        <LiveModeBanner active={tradingMode === 'LIVE'} />
+
         {/* Page header */}
         <div className="trade-page-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <Layers size={18} style={{ color: 'var(--cyan)' }} />
             <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Trade</h1>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-              {!brokerLinked && (
-                <a
-                  href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:3000'}/api/auth/upstox/login`}
-                  className="ws-pill"
-                  style={{
-                    background: 'color-mix(in srgb, var(--purple) 10%, transparent)',
-                    borderColor: 'color-mix(in srgb, var(--purple) 32%, transparent)',
-                    color: 'var(--purple)', textDecoration: 'none', fontWeight: 600,
-                  }}
-                >
-                  Connect Upstox →
-                </a>
-              )}
-              {brokerLinked && (
-                <span className="ws-pill connected" title="Broker linked">
-                  ● Upstox linked
-                </span>
-              )}
-              <TradingModeToggle
-                mode={tradingMode}
-                brokerLinked={brokerLinked}
-                onChange={handleModeChange}
-              />
+              <span className={`ws-pill ${brokerLinked ? 'connected' : ''}`} title={brokerLinked ? 'Upstox connected' : 'Upstox not connected'}>
+                ● {brokerLinked ? 'Upstox connected' : 'Broker offline'}
+              </span>
             </div>
           </div>
           <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 28 }}>
@@ -252,6 +224,7 @@ export default function Trade() {
                 Enter an NSE symbol above to view price, signals, and execute trades
               </p>
             </div>
+            <BrokerStatusCard onStatusChange={reportBroker} />
             <PortfolioCard refreshTrigger={portfolioRefresh} onReset={handleReset} />
           </div>
         )}
@@ -278,8 +251,9 @@ export default function Trade() {
               <PortfolioCard refreshTrigger={portfolioRefresh} onReset={handleReset} />
             </div>
 
-            {/* Right column: trade panel */}
-            <div className="trade-right">
+            {/* Right column: broker status + trade panel */}
+            <div className="trade-right" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <BrokerStatusCard onStatusChange={reportBroker} />
               <TradePanel
                 symbol={data?.symbol ?? symbol}
                 currentPrice={displayData?.price}

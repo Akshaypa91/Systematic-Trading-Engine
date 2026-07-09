@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { AuthProvider }  from './context/AuthContext';
 import { WSProvider }    from './context/WSContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { TradingModeProvider } from './context/TradingModeContext';
 import ProtectedRoute   from './components/ProtectedRoute';
 
 const Login = lazy(() => import('./pages/Login'));
@@ -68,6 +69,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <WSProvider>
+          <TradingModeProvider>
           <BrowserRouter>
             <UpstoxCallback />
             <Suspense fallback={<RouteFallback />}>
@@ -89,6 +91,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </BrowserRouter>
+          </TradingModeProvider>
         </WSProvider>
       </AuthProvider>
     </ThemeProvider>
