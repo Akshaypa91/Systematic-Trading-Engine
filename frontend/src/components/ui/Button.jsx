@@ -13,6 +13,7 @@ import { RefreshCw } from 'lucide-react';
  *   as:      render as a different element (e.g. 'a')       (default 'button')
  */
 const VARIANTS = {
+  primary: 'btn-solid', // brand-gradient CTA — use once per screen
   cyan: 'btn-cyan',
   green: 'btn-green',
   red: 'btn-red',

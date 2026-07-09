@@ -85,7 +85,7 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center px-3 gap-2"
+      className="nb-root fixed top-0 left-0 right-0 z-50 flex items-center px-3 gap-2"
       style={{
         height: 'var(--navbar-h)',
         background: 'var(--navbar-bg)',

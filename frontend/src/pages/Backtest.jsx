@@ -113,7 +113,7 @@ export default function Backtest() {
                     )}
                   </Field>
                 ))}
-                <Button type="submit" variant="cyan" icon={Play} loading={loading} style={{ justifyContent: 'center', marginTop: 4 }}>
+                <Button type="submit" variant="primary" icon={Play} loading={loading} style={{ justifyContent: 'center', marginTop: 4 }}>
                   {loading ? 'Running…' : 'Run Backtest'}
                 </Button>
               </form>

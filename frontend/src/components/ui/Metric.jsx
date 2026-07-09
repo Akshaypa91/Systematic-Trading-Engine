@@ -19,6 +19,9 @@ const ACCENT_VAR = {
 
 export default function Metric({ label, value, sub, color = 'cyan', icon: Icon, trend, loading }) {
   const accent = ACCENT_VAR[color] || ACCENT_VAR.cyan;
+  // Placeholder state (no data yet): render the dash muted, not in the accent
+  // color, so empty tiles don't read as colored bugs.
+  const isEmpty = value == null || value === '—' || value === '';
 
   if (loading) {
     return (
@@ -35,6 +38,7 @@ export default function Metric({ label, value, sub, color = 'cyan', icon: Icon, 
       className="card fade-up"
       style={{ padding: 20, position: 'relative', overflow: 'hidden', '--metric-accent': accent }}
     >
+      <div className="ui-metric-top" aria-hidden="true" />
       <div className="ui-metric-glow" aria-hidden="true" />
 
       <div className="ui-between" style={{ marginBottom: 12 }}>
@@ -59,9 +63,13 @@ export default function Metric({ label, value, sub, color = 'cyan', icon: Icon, 
 
       <div
         className="num-flip"
-        style={{ fontSize: 22, fontWeight: 700, color: accent, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}
+        style={{
+          fontSize: 22, fontWeight: 700,
+          color: isEmpty ? 'var(--text-dim)' : accent,
+          fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+        }}
       >
-        {value ?? '—'}
+        {isEmpty ? '—' : value}
       </div>
 
       {sub && (

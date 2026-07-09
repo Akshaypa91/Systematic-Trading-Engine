@@ -77,7 +77,7 @@ export default function Dashboard() {
           title="Dashboard"
           subtitle="Systematic trading engine · NSE India"
           action={
-            <Button variant="cyan" icon={Play} onClick={() => setShowForm(v => !v)}>
+            <Button variant="primary" icon={Play} onClick={() => setShowForm(v => !v)}>
               Run Backtest
               <ChevronDown
                 size={12}
@@ -141,7 +141,7 @@ export default function Dashboard() {
               </div>
 
               <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Button type="submit" variant="cyan" icon={Play} loading={btLoading}>
+                <Button type="submit" variant="primary" icon={Play} loading={btLoading}>
                   {btLoading ? 'Running…' : 'Run Backtest'}
                 </Button>
                 {btLoading && (

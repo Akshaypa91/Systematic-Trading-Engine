@@ -1786,3 +1786,68 @@ body.nav-open { overflow:hidden; }
   .auth-brand { padding: 36px 36px 0; }
   .auth-ticker-wrap { margin: 0 -36px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v4.1 — Brand color layer
+   A restrained gradient accent (blue → violet) reserved for primary CTAs and
+   hairline details, so the UI reads branded without becoming loud.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --brand-grad: linear-gradient(120deg, var(--cyan), color-mix(in srgb, var(--purple) 75%, var(--cyan)));
+  --brand-hairline: linear-gradient(90deg,
+    transparent 5%,
+    color-mix(in srgb, var(--cyan) 45%, transparent),
+    color-mix(in srgb, var(--purple) 30%, transparent),
+    transparent 95%);
+}
+
+/* Solid/primary button — the one loud element per screen */
+.btn-solid {
+  background: var(--brand-grad);
+  border-color: transparent;
+  color: var(--auth-cta-fg); /* dark navy on the light-blue dark-theme gradient, white in light theme */
+  font-weight: 600;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--cyan) 30%, transparent);
+}
+.btn-solid:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--cyan) 40%, transparent);
+}
+
+/* Navbar brand hairline */
+.nb-root::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--brand-hairline);
+  opacity: 0.7; pointer-events: none;
+}
+
+/* Metric tile accent hairline (driven by --metric-accent) */
+.ui-metric-top {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--metric-accent, var(--cyan)) 55%, transparent),
+    transparent);
+  pointer-events: none;
+}
+
+/* Sidebar active item: subtle directional wash + stronger edge */
+.sb-item.active {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--cyan) 12%, transparent),
+    color-mix(in srgb, var(--cyan) 5%, transparent) 70%,
+    transparent);
+}
+
+/* Desktop: keep the sidebar clear of the fixed status bar (Collapse button
+   was clipped underneath it) */
+@media (min-width: 1024px) {
+  .sidebar { bottom: var(--statusbar-h, 34px); }
+}
+
+/* Auth CTA joins the brand gradient (text color stays theme-contrast-safe) */
+.auth-cta { background: var(--brand-grad); }
+
+/* Light theme: give cards a touch more definition against the page */
+[data-theme="light"] .card { border-color: #DFE5EE; }
+[data-theme="light"] .hero-strip { border-color: #DFE5EE; }
