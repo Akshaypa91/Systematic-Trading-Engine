@@ -10,9 +10,20 @@ router.use(requireAuth);
 router.post  ('/order',                ctrl.placeOrder);
 router.post  ('/charges',              ctrl.getCharges);       // preview brokerage/taxes
 router.get   ('/positions',            ctrl.getPositions);
+router.post  ('/positions/exit',       ctrl.exitPosition);     // square off one position
 router.get   ('/orders',               ctrl.getOrders);        // normalized Live Order Book
 router.get   ('/funds',                ctrl.getFunds);
+router.get   ('/funds/normalized',     ctrl.getFundsNormalized);
+router.get   ('/holdings',             ctrl.getHoldings);      // portfolio holdings + allocation
 router.delete('/order/:brokerOrderId', ctrl.cancelOrder);
+
+// ── Risk + emergency (Phase 3) ────────────────────────────────────────────────
+router.get   ('/risk',                 ctrl.getRisk);
+router.put   ('/risk',                 ctrl.setRisk);
+router.post  ('/kill-switch',          ctrl.setKillSwitch);
+router.post  ('/emergency/stop',       ctrl.emergencyStop);
+router.post  ('/emergency/square-off', ctrl.squareOffAll);
+router.post  ('/emergency/cancel-all', ctrl.cancelAllOrders);
 router.get   ('/status',               ctrl.getStatus);
 router.post  ('/mode',                 ctrl.setMode);
 

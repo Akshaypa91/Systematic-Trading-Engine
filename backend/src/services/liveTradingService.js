@@ -2,9 +2,12 @@
 // Orchestrates LIVE (real-money) order placement with full safety checks.
 'use strict';
 
-const db      = require('../config/database');
-const broker  = require('./brokerAdapter');
-const logger  = require('../config/logger');
+const db         = require('../config/database');
+const broker     = require('./brokerAdapter');
+const logger     = require('../config/logger');
+const riskLimits = require('../risk/riskLimits');
+
+const _n = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
 // ── Risk limits (override via env) ────────────────────────────────────────────
 const MAX_QTY        = parseInt(process.env.LIVE_MAX_QTY        || '500',        10);
@@ -153,6 +156,30 @@ async function placeOrder(userId, params) {
     throw Object.assign(new Error(`Duplicate ${side} order for ${sym} within 10s`), { code: 'DUPLICATE', statusCode: 409 });
   }
 
+  // 6b. Configurable risk limits (Phase 3): max position size + max orders/day.
+  const limits = await riskLimits.getLimits();
+  if (limits.maxPositionSize && estValue > limits.maxPositionSize) {
+    throw Object.assign(
+      new Error(`Order value ₹${estValue.toLocaleString('en-IN')} exceeds max position size ₹${limits.maxPositionSize.toLocaleString('en-IN')}`),
+      { code: 'MAX_POSITION_SIZE', statusCode: 400 }
+    );
+  }
+  if (limits.maxOrdersPerDay) {
+    const [cntRows] = await db.query(
+      `SELECT COUNT(*) AS c FROM live_orders
+       WHERE user_id = ? AND status NOT IN ('REJECTED')
+         AND created_at >= CURRENT_DATE`,
+      [userId]
+    ).catch(() => [[{ c: 0 }]]);
+    const todayCount = _n(cntRows?.[0]?.c);
+    if (todayCount >= limits.maxOrdersPerDay) {
+      throw Object.assign(
+        new Error(`Daily order limit reached (${limits.maxOrdersPerDay})`),
+        { code: 'MAX_ORDERS', statusCode: 429 }
+      );
+    }
+  }
+
   // 7. Place order via broker
   const orderMeta = { orderType: ot, product, validity, triggerPrice, disclosedQty, isAmo, sandbox };
   let brokerResponse, brokerOrderId, status, errorMessage;
@@ -195,9 +222,125 @@ async function getCharges(userId, params) {
 }
 
 // ── Read-only sync ────────────────────────────────────────────────────────────
+// Normalize Upstox short-term positions → the fields the Positions UI needs.
 async function getPositions(userId) {
-  return broker.getPositions(userId);
+  const raw = await broker.getPositions(userId);
+  return (raw || []).map(p => {
+    const qty      = _n(p.quantity ?? p.net_quantity ?? p.day_buy_quantity - p.day_sell_quantity);
+    const avg      = _n(p.average_price ?? p.buy_price ?? p.average_buy_price);
+    const ltp      = _n(p.last_price ?? p.ltp);
+    const dayPnl   = _n(p.day_pnl ?? p.pnl);
+    const realized = _n(p.realised ?? p.realized);
+    const unreal   = _n(p.unrealised ?? p.unrealized);
+    return {
+      symbol:       p.tradingsymbol || p.trading_symbol || p.symbol,
+      instrument:   p.instrument_token || null,
+      product:      p.product || null,
+      exchange:     p.exchange || 'NSE',
+      qty,
+      avgPrice:     avg,
+      ltp,
+      dayPnl,
+      overallPnl:   realized + unreal || _n(p.pnl),
+      mtm:          unreal || (ltp && avg ? (ltp - avg) * qty : 0),
+      positionId:   p.instrument_token || p.tradingsymbol || null,
+      raw:          p,
+    };
+  });
 }
+
+// Normalize funds → cash / used margin / collateral / buying power / opening balance.
+async function getFundsNormalized(userId) {
+  const raw = await broker.getFunds(userId);
+  const eq  = raw?.equity || raw || {};
+  const available = _n(eq.available_margin);
+  const used      = _n(eq.used_margin);
+  return {
+    availableCash:  available,
+    usedMargin:     used,
+    collateral:     _n(eq.collateral),
+    buyingPower:    available,                 // cash available to deploy
+    openingBalance: _n(eq.opening_balance ?? (available + used)),
+    raw:            eq,
+  };
+}
+
+// Holdings → invested / current value / today's & total gain, allocation, sector.
+async function getHoldings(userId) {
+  const raw = await broker.getHoldings(userId);
+  const holdings = (raw || []).map(h => {
+    const qty      = _n(h.quantity);
+    const avg      = _n(h.average_price);
+    const ltp      = _n(h.last_price ?? h.ltp);
+    const close    = _n(h.close_price ?? h.day_change_close ?? ltp);
+    const invested = qty * avg;
+    const current  = qty * ltp;
+    return {
+      symbol:      h.tradingsymbol || h.trading_symbol,
+      qty, avgPrice: avg, ltp,
+      invested, currentValue: current,
+      totalGain:   current - invested,
+      todayGain:   qty * (ltp - close),
+      sector:      h.sector || 'Other',
+    };
+  });
+  const invested     = holdings.reduce((s, h) => s + h.invested, 0);
+  const currentValue = holdings.reduce((s, h) => s + h.currentValue, 0);
+  const todayGain    = holdings.reduce((s, h) => s + h.todayGain, 0);
+  const bySector = {};
+  for (const h of holdings) bySector[h.sector] = (bySector[h.sector] || 0) + h.currentValue;
+  return {
+    holdings,
+    summary: {
+      invested, currentValue, todayGain,
+      totalGain: currentValue - invested,
+      allocation: holdings.map(h => ({ symbol: h.symbol, value: h.currentValue, pct: currentValue ? h.currentValue / currentValue * 100 : 0 })),
+      sectorAllocation: Object.entries(bySector).map(([sector, value]) => ({ sector, value, pct: currentValue ? value / currentValue * 100 : 0 })),
+    },
+  };
+}
+
+// ── Exit / emergency ──────────────────────────────────────────────────────────
+// Square off a single position with a market order in the opposite direction.
+async function exitPosition(userId, symbol) {
+  const positions = await getPositions(userId);
+  const pos = positions.find(p => String(p.symbol).toUpperCase() === String(symbol).toUpperCase() && p.qty !== 0);
+  if (!pos) throw Object.assign(new Error(`No open position for ${symbol}`), { statusCode: 404, code: 'NO_POSITION' });
+  const side = pos.qty > 0 ? 'SELL' : 'BUY';
+  return placeOrder(userId, {
+    symbol: pos.symbol, side, qty: Math.abs(pos.qty),
+    orderType: 'MARKET', product: pos.product === 'I' ? 'MIS' : 'CNC',
+    confirmed: true, currentPrice: pos.ltp,
+  });
+}
+
+// Exit ALL open positions (square-off all).
+async function squareOffAll(userId) {
+  const positions = (await getPositions(userId)).filter(p => p.qty !== 0);
+  const results = [];
+  for (const p of positions) {
+    try { results.push({ symbol: p.symbol, ...(await exitPosition(userId, p.symbol)) }); }
+    catch (err) { results.push({ symbol: p.symbol, success: false, error: err.message }); }
+  }
+  return { squaredOff: results.length, results };
+}
+
+// Cancel ALL open orders.
+async function cancelAllOrders(userId) {
+  const book = await broker.getOrderBook(userId).catch(() => []);
+  const open = book.filter(o => /open|trigger|pending|validation/i.test(o.status || ''));
+  const results = [];
+  for (const o of open) {
+    try { await broker.cancelOrder(userId, o.order_id); results.push({ orderId: o.order_id, success: true }); }
+    catch (err) { results.push({ orderId: o.order_id, success: false, error: err.message }); }
+  }
+  return { cancelled: results.filter(r => r.success).length, attempted: open.length, results };
+}
+
+// ── Risk config ───────────────────────────────────────────────────────────────
+async function getRiskLimits()      { return riskLimits.getLimits(); }
+async function setRiskLimits(patch) { return riskLimits.setLimits(patch); }
+async function isKillSwitchEngaged() { return !(await _isLiveTradingEnabled()); }
 
 // Normalized status buckets for the Live Order Book UI.
 function _normStatus(s) {
@@ -279,4 +422,9 @@ async function setKillSwitch(enabled) {
   );
 }
 
-module.exports = { placeOrder, getCharges, getPositions, getOrders, getFunds, cancelOrder, setKillSwitch };
+module.exports = {
+  placeOrder, getCharges, getPositions, getOrders, getFunds, getFundsNormalized,
+  getHoldings, cancelOrder, setKillSwitch, isKillSwitchEngaged,
+  exitPosition, squareOffAll, cancelAllOrders,
+  getRiskLimits, setRiskLimits,
+};

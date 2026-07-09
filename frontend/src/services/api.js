@@ -137,4 +137,14 @@ export const liveAPI = {
   brokerReconnect:  ()      => api.post('/live/broker/reconnect'),
   brokerDisconnect: ()      => api.post('/live/broker/disconnect'),
   brokerRefresh:    ()      => api.post('/live/broker/refresh'),
+  // Portfolio / funds / positions / risk — Phase 3
+  fundsNormalized:  ()      => api.get('/live/funds/normalized'),
+  holdings:         ()      => api.get('/live/holdings'),
+  exitPosition:     (symbol) => api.post('/live/positions/exit', { symbol }),
+  risk:             ()      => api.get('/live/risk'),
+  setRisk:          (body)  => api.put('/live/risk', body),
+  killSwitch:       (engaged) => api.post('/live/kill-switch', { engaged }),
+  emergencyStop:    ()      => api.post('/live/emergency/stop'),
+  squareOffAll:     ()      => api.post('/live/emergency/square-off'),
+  cancelAllOrders:  ()      => api.post('/live/emergency/cancel-all'),
 };

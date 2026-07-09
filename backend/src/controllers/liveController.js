@@ -222,6 +222,110 @@ async function cancelOrder(req, res) {
   }
 }
 
+// ── GET /api/live/funds/normalized ── cash/margin/collateral/buying power ──────
+async function getFundsNormalized(req, res) {
+  try {
+    const data = await lts.getFundsNormalized(uid(req));
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── GET /api/live/holdings ── portfolio holdings + allocation ─────────────────
+async function getHoldings(req, res) {
+  try {
+    const data = await lts.getHoldings(uid(req));
+    return res.json({ success: true, ...data });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── POST /api/live/positions/exit ── square off a single position ─────────────
+async function exitPosition(req, res) {
+  const { symbol } = req.body;
+  if (!symbol) return res.status(400).json({ success: false, error: 'symbol required' });
+  try {
+    const data = await lts.exitPosition(uid(req), symbol);
+    auditLog('live.position_exit', req, { userId: uid(req), symbol });
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ success: false, error: err.message, code: err.code });
+  }
+}
+
+// ── POST /api/live/emergency/square-off ── exit ALL positions ─────────────────
+async function squareOffAll(req, res) {
+  try {
+    const data = await lts.squareOffAll(uid(req));
+    auditLog('live.square_off_all', req, { userId: uid(req), count: data.squaredOff });
+    return res.json({ success: true, ...data });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── POST /api/live/emergency/cancel-all ── cancel ALL open orders ─────────────
+async function cancelAllOrders(req, res) {
+  try {
+    const data = await lts.cancelAllOrders(uid(req));
+    auditLog('live.cancel_all', req, { userId: uid(req), count: data.cancelled });
+    return res.json({ success: true, ...data });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── POST /api/live/emergency/stop ── engage kill switch + square off + cancel ─
+async function emergencyStop(req, res) {
+  const userId = uid(req);
+  try {
+    await lts.setKillSwitch(false);                       // disable live trading
+    const cancelled = await lts.cancelAllOrders(userId).catch(e => ({ error: e.message }));
+    const squared   = await lts.squareOffAll(userId).catch(e => ({ error: e.message }));
+    // Force this user to PAPER so no further live orders can be sent.
+    await db.query('UPDATE users SET trading_mode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paper', userId]);
+    auditLog('live.emergency_stop', req, { userId });
+    return res.json({ success: true, killSwitch: true, tradingMode: 'PAPER', cancelled, squared });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── GET / PUT /api/live/risk ── configurable risk limits ──────────────────────
+async function getRisk(req, res) {
+  try {
+    const limits      = await lts.getRiskLimits();
+    const killEngaged = await lts.isKillSwitchEngaged();
+    return res.json({ success: true, limits, killSwitch: killEngaged });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+async function setRisk(req, res) {
+  try {
+    const limits = await lts.setRiskLimits(req.body || {});
+    auditLog('live.risk_limits_updated', req, { userId: uid(req), limits });
+    return res.json({ success: true, limits });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// ── POST /api/live/kill-switch ── user-facing kill switch toggle ──────────────
+async function setKillSwitch(req, res) {
+  const { engaged } = req.body;   // engaged=true → disable live trading
+  try {
+    await lts.setKillSwitch(!engaged);
+    auditLog('live.kill_switch_toggle', req, { userId: uid(req), engaged: !!engaged });
+    return res.json({ success: true, killSwitch: !!engaged });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 // ── GET /api/live/status ──────────────────────────────────────────────────────
 async function getStatus(req, res) {
   const userId = uid(req);
@@ -277,4 +381,6 @@ async function killSwitch(req, res) {
 module.exports = {
   placeOrder, getCharges, getPositions, getOrders, getFunds, cancelOrder, getStatus, setMode, killSwitch,
   getBrokerStatus, brokerReconnect, brokerDisconnect, brokerRefresh,
+  getFundsNormalized, getHoldings, exitPosition, squareOffAll, cancelAllOrders, emergencyStop,
+  getRisk, setRisk, setKillSwitch,
 };

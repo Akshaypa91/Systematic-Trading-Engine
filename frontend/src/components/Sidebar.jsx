@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Zap, Search, TrendingUp, Radio, ArrowLeftRight,
-  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, ScrollText,
+  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, ScrollText, Wallet,
 } from 'lucide-react';
 
 const GROUPS = [
@@ -16,6 +16,7 @@ const GROUPS = [
       { to: '/trade',  icon: ArrowLeftRight,  label: 'Trade',        kbd: 'G T' },
       { to: '/live',   icon: Zap,             label: 'Live Trading', kbd: 'G L' },
       { to: '/orders', icon: ScrollText,      label: 'Live Orders',  kbd: 'G O' },
+      { to: '/positions', icon: Wallet,       label: 'Portfolio',    kbd: 'G P' },
       { to: '/signals', icon: Radio,          label: 'Signals',      kbd: 'G S' },
     ],
   },

@@ -132,6 +132,20 @@ export default function StatusBar({ onOpenShortcuts }) {
         />
         {isAuthenticated && (
           <StatusItem
+            icon={Shield} dot={trading.brokerLinked}
+            label="Broker"
+            tooltip={
+              <>
+                <div className="status-tooltip-title">Broker (Upstox)</div>
+                <TooltipRow label="Connection" value={trading.brokerLinked ? 'Connected' : 'Disconnected'} />
+                <TooltipRow label="Orders API" value={trading.brokerLinked ? 'Ready' : 'Unavailable'} />
+                <TooltipRow label="Exchange"   value={marketStatus.isOpen ? 'NSE Live' : 'NSE Closed'} />
+              </>
+            }
+          />
+        )}
+        {isAuthenticated && (
+          <StatusItem
             icon={trading.mode === 'LIVE' ? Zap : Shield}
             dot={trading.mode === 'LIVE' ? (trading.killSwitch ? 'warn' : true) : true}
             label={trading.mode}

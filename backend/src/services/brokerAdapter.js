@@ -209,6 +209,14 @@ async function getFunds(userId) {
   return res.data?.data || {};
 }
 
+// ── getHoldings ───────────────────────────────────────────────────────────────
+// GET /v2/portfolio/long-term-holdings → delivery holdings for the portfolio view.
+async function getHoldings(userId) {
+  const token = await _orderToken(userId);
+  const res   = await axios.get(`${ORDER_BASE}/portfolio/long-term-holdings`, { headers: _headers(token), timeout: TIMEOUT });
+  return res.data?.data || [];
+}
+
 // ── getProfile ────────────────────────────────────────────────────────────────
 // GET /v2/user/profile → account identity for the Broker Status Card.
 // Upstox shape: { user_id, user_name, email, broker, exchanges, products,
@@ -222,6 +230,6 @@ async function getProfile(userId) {
 }
 
 module.exports = {
-  placeOrder, cancelOrder, getOrderBook, getPositions, getFunds, getProfile, getCharges,
+  placeOrder, cancelOrder, getOrderBook, getPositions, getFunds, getProfile, getHoldings, getCharges,
   isSandbox,
 };
