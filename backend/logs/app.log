@@ -56213,3 +56213,4 @@
 {"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-09 09:54:33.760"}
 {"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:54:33.760"}
 {"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:54:33.761"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-09 15:12:54.420"}

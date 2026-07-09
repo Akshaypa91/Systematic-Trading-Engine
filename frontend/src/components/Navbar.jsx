@@ -30,14 +30,14 @@ function WSPill({ status, onReconnect }) {
     return (
       <div className="ws-pill connected" title="Live WebSocket feed">
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
-        LIVE
+        <span className="wsp-label">LIVE</span>
       </div>
     );
   if (status === 'connecting')
-    return <div className="ws-pill connecting"><RefreshCw size={8} className="animate-spin" />Connecting</div>;
+    return <div className="ws-pill connecting"><RefreshCw size={8} className="animate-spin" /><span className="wsp-label">Connecting</span></div>;
   return (
-    <button className="ws-pill disconnected" onClick={onReconnect} title="Reconnect">
-      <WifiOff size={8} />Offline
+    <button className="ws-pill disconnected" onClick={onReconnect} title="Reconnect" aria-label="Reconnect live feed">
+      <WifiOff size={8} /><span className="wsp-label">Offline</span>
     </button>
   );
 }
@@ -118,7 +118,7 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
         }}>
           <Zap size={12} style={{ color: 'var(--cyan)' }} />
         </div>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.07em' }}>
+        <span className="nb-brand-text" style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.07em' }}>
           SYSTRA
         </span>
       </Link>

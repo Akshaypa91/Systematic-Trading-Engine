@@ -28,7 +28,7 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
             fontWeight: !isLive ? 700 : 400,
           }}>
           <div className="flex items-center gap-1.5">
-            <Shield size={10} /> PAPER
+            <Shield size={10} /> <span className="tmt-label">PAPER</span>
           </div>
         </button>
 
@@ -46,13 +46,13 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
           }}>
           <div className="flex items-center gap-1.5">
             {isLive && <span className="live-dot" style={{ width: 5, height: 5, background: 'var(--green)' }} />}
-            <Zap size={10} /> LIVE
+            <Zap size={10} /> <span className="tmt-label">LIVE</span>
           </div>
         </button>
 
         {/* Active LIVE indicator — always visible when real money is enabled */}
         {isLive && (
-          <span title="Real money trading enabled" style={{
+          <span className="nb-md-up" title="Real money trading enabled" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 99,
             background: 'color-mix(in srgb, var(--green) 12%, transparent)',
             border: '1px solid color-mix(in srgb, var(--green) 40%, transparent)',

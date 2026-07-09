@@ -1860,6 +1860,20 @@ body.nav-open { overflow:hidden; }
 [data-theme="light"] .card { border-color: #DFE5EE; }
 [data-theme="light"] .hero-strip { border-color: #DFE5EE; }
 
+/* ── Mobile navbar compaction (v4.1) ──────────────────────────────────────── */
+/* Small screens: icon-only brand, icon-only mode pills, dot-only WS status —
+   keeps hamburger…avatar on one row down to 320px without overflow. */
+@media (max-width: 639px) {
+  .tmt-label { display: none; }
+  header.nb-root { gap: 6px; }
+}
+@media (max-width: 479px) {
+  .nb-brand-text { display: none; }
+  .wsp-label { display: none; }
+  .ws-pill { padding: 3px 7px; }
+  header.nb-root { padding-left: 8px; padding-right: 8px; }
+}
+
 /* ── Screener layout (v4.1) ───────────────────────────────────────────────── */
 /* Detail panel: docked rail on wide screens, overlay drawer below 1280px */
 .scr-panel {
