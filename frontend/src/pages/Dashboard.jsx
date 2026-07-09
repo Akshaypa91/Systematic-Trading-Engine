@@ -161,8 +161,8 @@ export default function Dashboard() {
         {/* Portfolio summary strip */}
         <PortfolioHero portfolio={displayPort} spark={btResult?.equityCurve || []} />
 
-        {/* KPI metrics row */}
-        <div className="dash-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        {/* KPI metrics row — auto-fit: 4-up desktop, 2×2 phones, 1-col tiny */}
+        <div className="dash-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <Metric label="Total Return" icon={TrendingUp}
             value={s ? pct(s.totalReturnPct) : '—'}
             sub={s ? `Final ₹${Number(s.finalCapital).toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : 'Run a backtest'}
