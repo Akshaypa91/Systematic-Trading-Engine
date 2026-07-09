@@ -1798,6 +1798,56 @@ body.nav-open { overflow:hidden; }
   .auth-ticker-wrap { margin: 0 -36px; }
 }
 
+/* ── AUTH · light theme color pass ────────────────────────────────────────────
+   Richer (but still fintech-grade) color in light mode: saturated mesh on the
+   branding panel, gradient headline accent, vivid feature chips, brand
+   hairline on the card. Dark-mode auth is untouched. */
+[data-theme="light"] .auth-brand {
+  background:
+    radial-gradient(ellipse 72% 58% at 10% -6%,  color-mix(in srgb, var(--cyan) 16%, transparent), transparent 62%),
+    radial-gradient(ellipse 55% 48% at 96% 102%, color-mix(in srgb, var(--green) 13%, transparent), transparent 66%),
+    radial-gradient(ellipse 48% 40% at 86% 12%,  color-mix(in srgb, var(--purple) 11%, transparent), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 45% 60%,  color-mix(in srgb, var(--amber) 5%, transparent), transparent 75%),
+    linear-gradient(160deg, #F4F7FF 0%, #FDFEFF 48%, #F2FBF6 100%);
+}
+[data-theme="light"] .auth-orb { opacity: 0.75; }
+[data-theme="light"] .auth-brand h1 em {
+  background: linear-gradient(100deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .auth-feat-icon {
+  background: color-mix(in srgb, var(--feat-accent, var(--cyan)) 16%, #fff);
+  border-color: color-mix(in srgb, var(--feat-accent, var(--cyan)) 34%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--feat-accent, var(--cyan)) 18%, transparent);
+}
+[data-theme="light"] .auth-feat:hover {
+  background: color-mix(in srgb, var(--feat-accent, var(--cyan)) 6%, transparent);
+}
+[data-theme="light"] .auth-ticker-wrap {
+  background: rgba(255,255,255,0.72);
+  border-top-color: color-mix(in srgb, var(--cyan) 14%, var(--border));
+}
+
+/* Form pane: soft tinted wash + stronger corner glows */
+[data-theme="light"] .auth-pane {
+  background: linear-gradient(180deg, #FAFCFF, #F5F8FD);
+}
+[data-theme="light"] .auth-pane::before { background: color-mix(in srgb, var(--cyan) 14%, transparent); }
+[data-theme="light"] .auth-pane::after  { background: color-mix(in srgb, var(--green) 11%, transparent); }
+
+/* Card: brand gradient hairline across the top edge */
+[data-theme="light"] .auth-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--brand-grad);
+  border-radius: 18px 18px 0 0;
+  opacity: 0.9;
+}
+[data-theme="light"] .auth-card {
+  border-color: color-mix(in srgb, var(--cyan) 12%, #DFE5EE);
+}
+[data-theme="light"] .auth-divider span { color: color-mix(in srgb, var(--cyan) 45%, var(--text-muted)); }
+
 /* ═══════════════════════════════════════════════════════════════════════════
    v4.1 — Brand color layer
    A restrained gradient accent (blue → violet) reserved for primary CTAs and
