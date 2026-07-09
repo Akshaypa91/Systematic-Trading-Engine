@@ -184,7 +184,7 @@ async function start() {
 
   simEngine.start({
     watchlist:  (process.env.SIM_WATCHLIST || 'RELIANCE,TCS,INFY,HDFCBANK,ICICIBANK,WIPRO,SBIN,AXISBANK,BAJFINANCE,KOTAKBANK').split(','),
-    intervalMs: parseInt(process.env.SIM_INTERVAL_MS || '5000', 10),
+    intervalMs: parseInt(process.env.SIM_INTERVAL_MS || '3000', 10),
   });
   logger.info('[App] 🤖 Simulation engine started');
 

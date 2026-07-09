@@ -95,7 +95,10 @@ function _simPrice(base) {
   const seed = SEED_PRICES[base] || 1000;
   if (!_simState.has(base)) _simState.set(base, seed);
   const prev   = _simState.get(base);
-  const delta  = prev * (0.003 * (Math.random() * 2 - 1) + 0.00005);
+  // ±0.8% random step per tick (was ±0.3%) so movement is clearly visible.
+  // Mean-revert gently toward the seed so prices don't drift away over time.
+  const revert = (seed - prev) * 0.02;
+  const delta  = prev * (0.008 * (Math.random() * 2 - 1) + 0.00005) + revert;
   const next   = parseFloat((prev + delta).toFixed(2));
   _simState.set(base, next);
   return next;
