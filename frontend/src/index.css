@@ -1863,6 +1863,120 @@ body.nav-open { overflow:hidden; }
 [data-theme="light"] .card { border-color: #DFE5EE; }
 [data-theme="light"] .hero-strip { border-color: #DFE5EE; }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK THEME v4.2 — premium terminal finish
+   Scoped to html:not([data-theme="light"]) so the light theme is untouched.
+   Auth pages define their own surfaces and are visually unaffected beyond
+   the (slightly deeper) shared tokens.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html:not([data-theme="light"]) {
+  /* Deeper space-navy stack with a hint of blue in every step */
+  --bg-base:     #090D17;
+  --bg-surface:  #0D1320;
+  --bg-card:     #101726;
+  --bg-elevated: #1A2333;
+  --bg-hover:    #232E42;
+
+  --border:        #1D2637;
+  --border-bright: #2C384E;
+
+  --navbar-bg: rgba(9,13,23,0.85);
+  --navbar-border: #1D2637;
+
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:   0 1px 0 rgba(255,255,255,0.03) inset, 0 6px 20px rgba(0,0,0,0.45);
+  --shadow-lg:   0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 40px rgba(0,0,0,0.55);
+}
+
+/* Ambient brand glow behind everything — fixed so it doesn't scroll-band */
+html:not([data-theme="light"]) body {
+  background:
+    radial-gradient(1100px 520px at 85% -12%, color-mix(in srgb, var(--cyan) 6%, transparent), transparent 60%),
+    radial-gradient(900px 480px at -10% 108%, color-mix(in srgb, var(--purple) 4%, transparent), transparent 60%),
+    var(--bg-base);
+  background-attachment: fixed;
+}
+
+/* Cards: faint top-light gradient + inner highlight = machined-panel look */
+html:not([data-theme="light"]) .card,
+html:not([data-theme="light"]) .sig-card {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, #FFFFFF 2.5%, var(--bg-card)),
+    var(--bg-card) 42%);
+}
+html:not([data-theme="light"]) .card:hover {
+  border-color: color-mix(in srgb, var(--cyan) 14%, var(--border));
+}
+
+/* Hero strip: primary cell gets a stronger brand wash + engraved value */
+html:not([data-theme="light"]) .hero-cell.primary {
+  background:
+    radial-gradient(340px 150px at 0% 0%, color-mix(in srgb, var(--cyan) 12%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--purple) 4%, transparent), transparent 55%),
+    var(--bg-card);
+}
+html:not([data-theme="light"]) .hero-cell.primary .hero-value {
+  background: linear-gradient(180deg, #FFFFFF 20%, #A9B8D6);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* Signed PnL figures get a whisper of glow so they read at a glance */
+html:not([data-theme="light"]) .hero-delta.pos,
+html:not([data-theme="light"]) .val-pos { text-shadow: 0 0 16px color-mix(in srgb, var(--green) 35%, transparent); }
+html:not([data-theme="light"]) .hero-delta.neg,
+html:not([data-theme="light"]) .val-neg { text-shadow: 0 0 16px color-mix(in srgb, var(--red) 30%, transparent); }
+
+/* Shell: sidebar gradient + active-item glow, glassier navbar hairline */
+html:not([data-theme="light"]) .sidebar {
+  background: linear-gradient(180deg, #0E1422 0%, #0B101C 100%);
+}
+html:not([data-theme="light"]) .sb-item.active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cyan) 14%, transparent),
+              0 0 18px -6px color-mix(in srgb, var(--cyan) 35%, transparent);
+}
+html:not([data-theme="light"]) .nb-root::after { opacity: 0.9; }
+html:not([data-theme="light"]) .mobile-nav {
+  background: rgba(13,19,32,0.78);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* Tables: tinted header band + accent row hover */
+html:not([data-theme="light"]) .data-table thead th {
+  background: color-mix(in srgb, var(--bg-elevated) 55%, var(--bg-card));
+}
+html:not([data-theme="light"]) .data-table tbody tr:hover,
+html:not([data-theme="light"]) .trade-row:hover {
+  background: color-mix(in srgb, var(--cyan) 4%, var(--bg-elevated));
+}
+
+/* Inputs: recessed feel */
+html:not([data-theme="light"]) .input,
+html:not([data-theme="light"]) .journal-form input,
+html:not([data-theme="light"]) .journal-form select,
+html:not([data-theme="light"]) .journal-form textarea {
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.35);
+}
+
+/* Primary CTA: deeper glow on dark */
+html:not([data-theme="light"]) .btn-solid {
+  box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset,
+              0 6px 20px color-mix(in srgb, var(--cyan) 25%, transparent);
+}
+
+/* Metric tiles: accent glow slightly stronger against deep navy */
+html:not([data-theme="light"]) .ui-metric-glow { opacity: 1.25; }
+
+/* Scrollbars: a touch brighter so they're findable on deep navy */
+html:not([data-theme="light"]) ::-webkit-scrollbar-thumb { background: rgba(150,170,200,0.18); }
+
+/* Mini tiles / elevated chips: subtle top light */
+html:not([data-theme="light"]) .mini-tile,
+html:not([data-theme="light"]) .sig-stat {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, #FFFFFF 2%, var(--bg-elevated)),
+    var(--bg-elevated) 55%);
+}
+
 /* ── Live Portfolio layout ────────────────────────────────────────────────── */
 .lp-grid {
   display: grid;
