@@ -454,7 +454,10 @@ async function generateLiveSignal(symbol, priceHistory, maxLen = 500) {
     try {
       const result = await svc.getLivePrice(symbol);
       livePrice = result.price;
-      source    = result.source === 'API' ? 'LIVE' : 'SIM';
+      // getLivePrice returns real-provider sources as LIVE_NSE / LIVE_UPSTOX /
+      // LIVE_TWELVE / LIVE_FINNHUB, and 'SIM' for the fallback. Anything that
+      // isn't SIM is a real live price.
+      source    = (result.source && result.source !== 'SIM') ? 'LIVE' : 'SIM';
     } catch (_) {
       // Fallback: use last known price from history
     }

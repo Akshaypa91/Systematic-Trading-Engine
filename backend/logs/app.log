@@ -56148,3 +56148,47 @@
 {"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-08 11:34:11.572"}
 {"level":"warn","message":"[MarketData] TwelveData RELIANCE: Request failed with status code 429","timestamp":"2026-07-08 11:34:11.792"}
 {"level":"warn","message":"[MarketData] Finnhub RELIANCE: Finnhub CB open","timestamp":"2026-07-08 11:34:11.792"}
+{"level":"warn","message":"[DB] Could not read TIDB_SSL_CA at /etc/ssl/cert.pem: ENOENT: no such file or directory, open '/etc/ssl/cert.pem' — continuing without a pinned CA","timestamp":"2026-07-09 09:42:14.388"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-07-09 09:42:14.406"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:42:14.409"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:42:14.409"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:42:14.409"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:42:20.444"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:42:20.444"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:42:20.444"}
+{"level":"warn","message":"[DB] Could not read TIDB_SSL_CA at /etc/ssl/cert.pem: ENOENT: no such file or directory, open '/etc/ssl/cert.pem' — continuing without a pinned CA","timestamp":"2026-07-09 09:44:46.604"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-07-09 09:44:46.624"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:46.626"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:46.626"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:46.626"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:48.142"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:48.142"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:48.142"}
+{"level":"warn","message":"[MarketData] CB OPEN nse — 15min cooldown","timestamp":"2026-07-09 09:44:49.658"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:49.659"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:49.659"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:49.659"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-09 09:44:51.164"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:51.164"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:51.165"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-09 09:44:52.670"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:52.670"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:52.670"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-09 09:44:54.178"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:54.178"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:54.179"}
+{"level":"warn","message":"[DB] Could not read TIDB_SSL_CA at /etc/ssl/cert.pem: ENOENT: no such file or directory, open '/etc/ssl/cert.pem' — continuing without a pinned CA","timestamp":"2026-07-09 09:44:55.954"}
+{"level":"debug","message":"[MarketData] NSE prime failed (attempt 1): Request failed with status code 403 — retry in 30s","timestamp":"2026-07-09 09:44:55.973"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:55.975"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:55.975"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:55.975"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:56.288"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:56.288"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:56.288"}
+{"level":"warn","message":"[MarketData] CB OPEN nse — 15min cooldown","timestamp":"2026-07-09 09:44:56.596"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: Request failed with status code 403","timestamp":"2026-07-09 09:44:56.596"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:56.597"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:56.597"}
+{"level":"warn","message":"[MarketData] NSE RELIANCE: NSE CB open","timestamp":"2026-07-09 09:44:56.902"}
+{"level":"warn","message":"[MarketData] TwelveData RELIANCE: No TWELVEDATA_API_KEY","timestamp":"2026-07-09 09:44:56.902"}
+{"level":"warn","message":"[MarketData] Finnhub RELIANCE: No FINNHUB_API_KEY","timestamp":"2026-07-09 09:44:56.903"}

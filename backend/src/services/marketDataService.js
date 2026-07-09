@@ -13,7 +13,11 @@ function _getUpstoxWS() {
 
 const TWELVEDATA_KEY = process.env.TWELVEDATA_API_KEY || '';
 const FINNHUB_KEY    = process.env.FINNHUB_API_KEY    || '';
-const CACHE_TTL_MS   = parseInt(process.env.MARKET_DATA_CACHE_TTL_MS || '5000', 10);  // 5s default
+// Accept either MARKET_DATA_CACHE_TTL_MS (ms) or legacy MARKET_DATA_CACHE_TTL
+// (seconds). Only real-provider prices are cached; SIM prices are never cached
+// so the tick loop advances them every tick (see getLivePrice).
+const CACHE_TTL_MS   = parseInt(process.env.MARKET_DATA_CACHE_TTL_MS
+  || (process.env.MARKET_DATA_CACHE_TTL ? String(parseInt(process.env.MARKET_DATA_CACHE_TTL, 10) * 1000) : '3000'), 10);  // 3s default
 const TIMEOUT_MS     = parseInt(process.env.MARKET_DATA_TIMEOUT_MS   || '8000', 10);
 const BATCH_CHUNK    = 5;
 
@@ -302,9 +306,9 @@ async function getLivePrice(symbol) {
     logger.warn(`[MarketData] Finnhub ${base}: ${e.message}`);
   }
 
-  // SIM
+  // SIM — do NOT cache: a fresh random-walk step every call keeps prices moving
+  // on each tick instead of freezing for the cache window.
   const p = _simPrice(base);
-  _cacheSet(base, p, 'SIM');
   return { symbol: base, price: p, source: 'SIM', timestamp: new Date().toISOString() };
 }
 
