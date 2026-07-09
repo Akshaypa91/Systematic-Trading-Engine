@@ -1378,7 +1378,10 @@ body.nav-open { overflow:hidden; }
 }
 
 /* ── Page transition ──────────────────────────────────────────────────────── */
-.page-content { animation: fadeUp 0.28s var(--ease-out) both; }
+/* Ends on transform:none — a persistent translateY(0) would create a
+   containing block that traps fixed overlays (drawers, dialogs) inside it. */
+@keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.page-content { animation: pageIn 0.28s var(--ease-out) both; }
 
 /* Backtest layout: config rail collapses under content on smaller screens */
 @media (max-width: 1023px) {

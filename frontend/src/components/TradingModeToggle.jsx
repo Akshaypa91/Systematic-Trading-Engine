@@ -1,5 +1,6 @@
 // TradingModeToggle.jsx — PAPER / LIVE mode switcher
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Shield, Zap, AlertTriangle } from 'lucide-react';
 
 export default function TradingModeToggle({ mode, brokerLinked, onChange, disabled }) {
@@ -66,8 +67,10 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
         )}
       </div>
 
-      {/* Switch-to-LIVE confirmation */}
-      {confirming && (
+      {/* Switch-to-LIVE confirmation — portaled to <body>: the navbar's
+          backdrop-filter creates a containing block that traps fixed
+          descendants, which rendered this dialog inline at the page top. */}
+      {confirming && createPortal(
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9998,
           background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
@@ -97,7 +100,8 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

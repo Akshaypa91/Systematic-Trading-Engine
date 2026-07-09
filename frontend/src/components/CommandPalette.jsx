@@ -3,6 +3,7 @@
 // Symbols route to /trade?symbol=X (Trade page auto-loads the quote).
 // Recent symbol jumps persist in localStorage. Pure frontend — no new APIs.
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, CornerDownLeft, LayoutDashboard, Zap, Radio, TrendingUp,
@@ -95,7 +96,9 @@ export default function CommandPalette({ open, onClose }) {
 
   const firstSymbolIdx = items.findIndex((i) => i.type === 'symbol');
 
-  return (
+  // Portaled to <body>: the navbar's backdrop-filter would otherwise trap
+  // this fixed overlay inside the 52px header.
+  return createPortal(
     <div className="cmdk-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="cmdk" role="dialog" aria-modal="true" aria-label="Command palette">
         <div className="cmdk-input-row">
@@ -148,6 +151,7 @@ export default function CommandPalette({ open, onClose }) {
           <span style={{ marginLeft: 'auto' }}>SYSTRA</span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
