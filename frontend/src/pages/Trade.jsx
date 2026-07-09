@@ -12,6 +12,7 @@ import TradingChart from '../components/TradingChart';
 import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 import LiveOrderModal    from '../components/LiveOrderModal';
+import LiveOrderPanel    from '../components/LiveOrderPanel';
 import BrokerStatusCard  from '../components/BrokerStatusCard';
 import LiveModeBanner    from '../components/LiveModeBanner';
 import { useTradingMode } from '../context/TradingModeContext';
@@ -41,18 +42,15 @@ export default function Trade() {
   // hook (unsubscribe old → subscribe new).
   const live = useLivePrice(data?.symbol);
 
-  async function handleLiveOrder(orderDetails) {
-    // orderDetails = { symbol, side, qty, currentPrice }
-    setLiveModal({ ...orderDetails, estTotal: orderDetails.qty * (orderDetails.currentPrice || 0) });
-  }
-
   async function confirmLiveOrder() {
     if (!liveModal) return;
     setLiveLoading(true);
     try {
       const res = await liveAPI.placeOrder({ ...liveModal, confirmed: true });
-        setToast({ msg: `Live order placed: ${liveModal.side} ${liveModal.qty}×${liveModal.symbol}`, type: 'success' });
+      const sbx = res.data?.sandbox ? ' (SANDBOX)' : '';
+      setToast({ msg: `Live order placed${sbx}: ${liveModal.side} ${liveModal.qty}×${liveModal.symbol}`, type: 'success' });
       setLiveModal(null);
+      setPortfolioRefresh(n => n + 1);
     } catch (err) {
       setToast({ msg: err.response?.data?.error || err.message, type: 'error' });
     } finally {
@@ -251,15 +249,24 @@ export default function Trade() {
               <PortfolioCard refreshTrigger={portfolioRefresh} onReset={handleReset} />
             </div>
 
-            {/* Right column: broker status + trade panel */}
+            {/* Right column: broker status + order panel (LIVE → real order ticket) */}
             <div className="trade-right" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <BrokerStatusCard onStatusChange={reportBroker} />
-              <TradePanel
-                symbol={data?.symbol ?? symbol}
-                currentPrice={displayData?.price}
-                onTrade={handleTrade}
-                disabled={loading}
-              />
+              {tradingMode === 'LIVE' ? (
+                <LiveOrderPanel
+                  symbol={data?.symbol ?? symbol}
+                  currentPrice={displayData?.price}
+                  onReview={(o) => setLiveModal(o)}
+                  disabled={loading || !brokerLinked}
+                />
+              ) : (
+                <TradePanel
+                  symbol={data?.symbol ?? symbol}
+                  currentPrice={displayData?.price}
+                  onTrade={handleTrade}
+                  disabled={loading}
+                />
+              )}
             </div>
 
           </div>

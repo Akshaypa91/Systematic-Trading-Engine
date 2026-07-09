@@ -28,6 +28,7 @@ async function getBrokerStatus(req, res) {
     success:   true,
     connected,
     broker:    'Upstox',
+    sandbox:   broker.isSandbox?.() || false,
     websocket: wsStatus,
     token:     tokenInfo,
     profile:   null,
@@ -127,30 +128,57 @@ async function brokerRefresh(req, res) {
 // ── POST /api/live/order ──────────────────────────────────────────────────────
 async function placeOrder(req, res) {
   const userId = uid(req);
-  const { symbol, side, qty, price, orderType, confirmed, currentPrice } = req.body;
+  const {
+    symbol, side, qty, price, orderType, confirmed, currentPrice,
+    product, validity, triggerPrice, disclosedQty, isAmo,
+  } = req.body;
 
   if (!symbol || !side || !qty) {
     return res.status(400).json({ success: false, error: 'symbol, side, qty required' });
   }
-  if (!['BUY','SELL'].includes(side.toUpperCase())) {
+  if (!['BUY','SELL'].includes(String(side).toUpperCase())) {
     return res.status(400).json({ success: false, error: 'side must be BUY or SELL' });
   }
 
   try {
     const result = await lts.placeOrder(userId, {
       symbol, side: side.toUpperCase(),
-      qty: parseInt(qty, 10), price: price ? parseFloat(price) : null,
-      orderType: orderType || 'MARKET',
-      confirmed: !!confirmed,
+      qty: parseInt(qty, 10),
+      price: price ? parseFloat(price) : null,
+      orderType:    orderType || 'MARKET',
+      product:      product || 'CNC',
+      validity:     validity || 'DAY',
+      triggerPrice: triggerPrice ? parseFloat(triggerPrice) : 0,
+      disclosedQty: disclosedQty ? parseInt(disclosedQty, 10) : 0,
+      isAmo:        !!isAmo,
+      confirmed:    !!confirmed,
       currentPrice: parseFloat(currentPrice || 0),
     });
-    auditLog('live.order_placed', req, { userId, symbol, side: side.toUpperCase(), qty });
+    auditLog('live.order_placed', req, { userId, symbol, side: side.toUpperCase(), qty, orderType, product, sandbox: result.sandbox });
     return res.status(201).json(result);
   } catch (err) {
     logger.warn(`[LiveCtrl] placeOrder error: ${err.message} code=${err.code}`);
     return res.status(err.statusCode || 500).json({
       success: false, error: err.message, code: err.code,
     });
+  }
+}
+
+// ── POST /api/live/charges ── preview brokerage/taxes for the confirmation modal
+async function getCharges(req, res) {
+  const { symbol, side, qty, price, product } = req.body;
+  if (!symbol || !side || !qty) {
+    return res.status(400).json({ success: false, error: 'symbol, side, qty required' });
+  }
+  try {
+    const charges = await lts.getCharges(uid(req), {
+      symbol, side: String(side).toUpperCase(),
+      qty: parseInt(qty, 10), price: parseFloat(price || 0),
+      product: product || 'CNC',
+    });
+    return res.json({ success: true, charges });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -247,6 +275,6 @@ async function killSwitch(req, res) {
 }
 
 module.exports = {
-  placeOrder, getPositions, getOrders, getFunds, cancelOrder, getStatus, setMode, killSwitch,
+  placeOrder, getCharges, getPositions, getOrders, getFunds, cancelOrder, getStatus, setMode, killSwitch,
   getBrokerStatus, brokerReconnect, brokerDisconnect, brokerRefresh,
 };

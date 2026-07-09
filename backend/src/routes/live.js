@@ -8,8 +8,9 @@ const { requireAdmin } = require('../middleware/rbac');
 router.use(requireAuth);
 
 router.post  ('/order',                ctrl.placeOrder);
+router.post  ('/charges',              ctrl.getCharges);       // preview brokerage/taxes
 router.get   ('/positions',            ctrl.getPositions);
-router.get   ('/orders',               ctrl.getOrders);
+router.get   ('/orders',               ctrl.getOrders);        // normalized Live Order Book
 router.get   ('/funds',                ctrl.getFunds);
 router.delete('/order/:brokerOrderId', ctrl.cancelOrder);
 router.get   ('/status',               ctrl.getStatus);

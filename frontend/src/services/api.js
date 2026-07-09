@@ -127,6 +127,7 @@ export const liveAPI = {
   status:      ()           => api.get('/live/status'),
   setMode:     (mode)       => api.post('/live/mode', { mode }),
   placeOrder:  (body)       => api.post('/live/order', body),
+  charges:     (body)       => api.post('/live/charges', body),
   cancelOrder: (id)         => api.delete(`/live/order/${id}`),
   positions:   ()           => api.get('/live/positions'),
   orders:      ()           => api.get('/live/orders'),
