@@ -66,15 +66,20 @@ const backtestLimiter = rateLimit({
   },
 });
 
-// ── NSE proxy — 30 req / min ──────────────────────────────────────────────────
+// ── Market data — 150 req / min ───────────────────────────────────────────────
+// The dashboard/trade/signals pages legitimately fan out several market-data
+// reads. Cheap, high-frequency diagnostics (health, market-status) are exempt so
+// status polling can't exhaust the budget meant for quote/price lookups.
 const nseProxyLimiter = rateLimit({
   windowMs:        60 * 1000,
-  max:             30,
+  max:             parseInt(process.env.MARKET_DATA_RATE_LIMIT || '150', 10),
   keyGenerator,
   standardHeaders: true,
   legacyHeaders:   false,
+  skip: (req) => /^\/(health|market-status)\b/.test(req.path),
   handler: (req, res) => {
-    res.status(429).json({ success: false, error: 'Market data rate limit exceeded' });
+    onLimitReached(req, res, { message: 'Market data rate limit reached' });
+    res.status(429).json({ success: false, error: 'Market data rate limit exceeded — please slow down' });
   },
 });
 

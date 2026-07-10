@@ -255,17 +255,25 @@ async function getMarketStatus(req, res) {
  * GET /api/data/health  (NEW)
  * Verifies Twelve Data API connectivity and returns cache diagnostics.
  */
+// Cache the health snapshot briefly — healthCheck() probes live providers
+// (incl. a slow NSE fetch), so rapid status-bar polls should reuse a result.
+let _healthCache = { at: 0, body: null };
+const HEALTH_TTL = 8000;
+
 async function getDataHealth(req, res) {
   try {
+    if (_healthCache.body && Date.now() - _healthCache.at < HEALTH_TTL) {
+      return res.status(200).json(_healthCache.body);
+    }
     const health = await marketDataService.healthCheck();
     const stats  = marketDataService.getCacheStats();
-    // healthCheck() reports `overall` (not `ok`). SIM fallback always yields a
-    // working feed, so this endpoint should return 200 with the per-provider
-    // detail; a 503 here was a false alarm that spammed the console.
-    const ok = health.overall !== false;
-    res.status(ok ? 200 : 503).json({ success: ok, api: health, cache: stats });
+    // Health *report*, not a gate. Always 200 so a degraded provider set doesn't
+    // spam the console with 503s — the caller reads `api.overall`.
+    const body = { success: true, api: health, cache: stats };
+    _healthCache = { at: Date.now(), body };
+    res.status(200).json(body);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(200).json({ success: true, api: { overall: false, error: err.message }, cache: {} });
   }
 }
 
