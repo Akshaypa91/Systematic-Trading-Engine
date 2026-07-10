@@ -1,345 +1,235 @@
-# Systematic Trading Engine — NSE/BSE
+# SYSTRA — Systematic Trading Engine
 
-A production-grade, **mathematics-first** algorithmic trading engine for the Indian stock market, built in Node.js. Every signal is derived from statistics and rules — no black-box AI, no speculation.
+A full-stack, **mathematics-first** algorithmic trading platform for the Indian market (NSE/BSE). Every signal is derived from statistics and rules — no black-box AI. It runs two fully isolated modes:
+
+- **Paper Trading** — a built-in simulation engine and virtual portfolio (no broker required).
+- **Live Trading** — real-money execution through **Upstox** (OAuth), with sandbox-first order placement, charges preview, order book, positions, funds, risk limits, and emergency controls.
+
+> ⚠️ **Real money is involved in LIVE mode.** See the Disclaimer at the bottom. Keep `UPSTOX_SANDBOX=true` until you have verified order placement end-to-end.
+
+Live demo (frontend): `systematic-trading-engine.vercel.app` · Backend: Render · Database: TiDB Cloud.
+
+---
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | React + Vite (SPA), deployed on Vercel |
+| Backend | Node.js + Express, WebSocket (`/ws`), deployed on Render |
+| Database | TiDB Cloud (MySQL-compatible) via `mysql2` |
+| Auth | Google login + JWT |
+| Broker | Upstox v2 (OAuth, orders, funds, positions, holdings) |
+| Market data | Upstox REST poller → Upstox REST snapshot → NSE → TwelveData/Finnhub → SIM |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   REST API  (Express)                │
-│         30 endpoints  +  WebSocket /ws               │
-└──────────────┬──────────────────────┬───────────────┘
-               │                      │
-    ┌──────────▼──────┐    ┌─────────▼──────────┐
-    │  Strategy Engine│    │   Data Engine       │
-    │  ─────────────  │    │  ──────────────     │
-    │  Mean Reversion │    │  NSE Fetcher        │
-    │  MA Crossover   │    │  (cookie + retry +  │
-    │  RSI (Wilder)   │    │   token bucket)     │
-    │  Bollinger Bands│    │  MySQL DataStore    │
-    │  Aggregator     │    │  Live WS Feed       │
-    └──────────┬──────┘    └─────────────────────┘
-               │
-    ┌──────────▼──────────────────────────────────┐
-    │              Execution Layer                  │
-    │  Risk Manager   Backtester   Paper Trader    │
-    │  Walk-Forward   Alerts       Scheduler       │
-    │  Portfolio Analytics  Correlation Analysis   │
-    └─────────────────────────────────────────────┘
-               │
-    ┌──────────▼──────────┐
-    │   MySQL Database     │
-    │  9 tables, IST TZ    │
-    └─────────────────────┘
+                         React SPA (Vite / Vercel)
+   Dashboard · Trade · Live Trading · Live Orders · Portfolio · Signals
+   Screener · Backtest · Analytics · Journal · Diagnostics
+                    │  REST (axios)          │  WebSocket  /ws
+        ┌───────────▼────────────────────────▼───────────┐
+        │              Express API (Render)               │
+        │  auth · data · signal · backtest · trade · sim  │
+        │  live (broker/orders/positions/risk) · screener │
+        └───────┬───────────────────────┬────────────────┘
+                │                        │
+   ┌────────────▼─────────┐   ┌──────────▼───────────────────────┐
+   │   Strategy Engine     │   │        Market Data               │
+   │   Mean Reversion      │   │  upstoxRestFeed (batch poller)   │
+   │   MA Crossover        │   │  instrumentMaster (full NSE map) │
+   │   RSI (Wilder)        │   │  marketDataService (provider     │
+   │   Bollinger Bands     │   │   priority + cache)              │
+   │   Aggregator          │   │  liveDataFeed (WS broadcast)     │
+   └────────────┬──────────┘   └──────────────────────────────────┘
+                │
+   ┌────────────▼──────────────────────────────────────────────┐
+   │                     Execution Layer                        │
+   │  Paper: simulationEngine + virtual portfolio               │
+   │  Live:  brokerAdapter (Upstox) + liveTradingService        │
+   │  riskManager · riskLimits · auditLog · scheduler · alerts  │
+   └────────────┬──────────────────────────────────────────────┘
+                │
+        ┌───────▼────────┐
+        │  TiDB (MySQL)  │
+        └────────────────┘
 ```
 
 ---
 
-## Quick Start
+## Market data — provider priority
+
+When a broker session is live, **simulated prices are never shown**. Resolution order per symbol:
+
+1. **Upstox WebSocket cache** (primary, when the WS is streaming)
+2. **Upstox REST poller** (`upstoxRestFeed`) — batch `market-quote/quotes` every ~1.5s (the reliable primary in practice)
+3. **Upstox REST snapshot** — on-demand `market-quote/ltp`
+4. **NSE** direct
+5. **TwelveData / Finnhub** (if API keys set)
+6. **Cached** last-known real value
+7. **SIM** — *only* when no broker session exists (paper / logged-out demo)
+
+A **full NSE instrument master** (`instrumentMaster.js`) is loaded at boot so any NSE equity symbol resolves to its Upstox `instrument_key`, not just a hardcoded shortlist.
+
+> Note on the Upstox WebSocket: the v2 market-data WS requires an `/authorize` handshake + Protobuf decoding. This build drives live prices from **REST polling** instead (uses the same token as funds/profile), which is why the `Diagnostics` page reports the active provider as `UPSTOX_REST`.
+
+---
+
+## Live trading (Upstox)
+
+- **Broker connection** — OAuth login, encrypted token persistence (AES-256-GCM in `system_flags`) so a restart keeps the session; Broker Status Card with client ID, account, segment, funds, token expiry.
+- **Mode selector** — global PAPER (blue) / LIVE (green); LIVE is disabled unless the broker is connected.
+- **Order entry** — Market / Limit / SL / SL-M, product (CNC/MIS/NRML), validity (DAY/IOC/AMO), trigger + disclosed qty, with a **charges confirmation modal** (brokerage, exchange, GST, STT, SEBI, stamp duty, approx total, margin).
+- **Order book** — pending / completed / partial / cancelled / rejected with avg price, filled qty, broker order id, and cancel.
+- **Portfolio** — live positions (with one-tap exit), funds (cash/margin/collateral/buying power), holdings + allocation.
+- **Risk & emergency** — configurable limits (daily loss, max exposure, max position size, max orders/day), kill switch, and Exit All / Cancel All / Emergency Stop.
+- **Diagnostics** — `/diagnostics` page + `GET /api/live/diagnostics`: WS/REST status, tick rate, latency, subscribed symbols, reconnect count, active provider.
+- **Audit** — every order request/response, exit, cancel, risk change, and kill-switch toggle is recorded.
+
+**Paper trading is fully isolated** — it uses the simulation engine and virtual portfolio, and is never touched by the live path.
+
+---
+
+## Quick start (local)
 
 ```bash
-# 1. Clone and install
-git clone <repo>
-cd trading-engine
+git clone <repo> && cd "Systematic Trading Engine"
+
+# Backend
+cd backend
 npm install
+cp .env.example .env          # fill DB + Upstox vars (see below)
+node scripts/migrate.js       # base schema
+node scripts/run-sql.js scripts/migrate-live-orders-phase2.sql   # live-orders columns
+npm run dev                   # http://localhost:3000  (WS: /ws)
 
-# 2. Configure
-cp .env.example .env
-# Edit .env — set DB_HOST, DB_USER, DB_PASSWORD
-
-# 3. Create database tables
-node scripts/migrate.js
-
-# 4. Seed sample data (GBM synthetic — no NSE login needed)
-node scripts/seed-sample-data.js
-node sc
-# 5. Verify everything works
-node tests/run-tests.js       # 131 tests, 0 external deps
-
-# 6. Run the sample backtest report
-node scripts/run-sample-backtest.js
-
-# 7. Start the server
-node src/app.js
-# → HTTP:  http://localhost:3000/health
-# → WS:    ws://localhost:3000/ws
-# → Docs:  http://localhost:3000/api/info
+# Frontend (separate terminal)
+cd ../frontend
+npm install
+npm run dev                   # http://localhost:5173
 ```
 
 ---
 
-## API Reference
+## Selected API (all under `/api`)
 
-### Data
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/data/quote/:symbol` | Live quote from NSE |
-| GET | `/api/data/historical/:symbol?from=DD-MM-YYYY&to=DD-MM-YYYY` | Historical OHLCV |
-| POST | `/api/data/fetch-and-store/:symbol` | Fetch + persist to DB |
-| GET | `/api/data/prices/:symbol?limit=200` | Prices from DB |
-| GET | `/api/data/nifty50` | All NIFTY 50 quotes |
-| GET | `/api/data/market-status` | NSE market open/closed |
+**Auth / broker:** `GET /auth/upstox/login`, `GET /auth/upstox/callback`, `POST /auth/upstox/logout`
 
-### Signals
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/signal/:symbol?strategy=AGGREGATED` | Generate signal |
-| GET | `/api/signal/describe` | Strategy parameter docs |
-| GET | `/api/signal/history/:symbol` | Past signals from DB |
+**Market data:** `GET /data/quote/:symbol`, `/data/historical/:symbol`, `/data/nifty50`, `/data/market-status`, `/data/health`
 
-Supported strategies: `AGGREGATED`, `MEAN_REVERSION`, `MA_CROSSOVER`, `RSI`, `BB`
+**Signals / research:** `GET /signal/:symbol?strategy=AGGREGATED`, `POST /backtest`, `GET /screener`, `POST /analytics/optimize`
 
-### Backtesting
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/backtest` | Run backtest |
-| GET | `/api/backtest/runs` | List past runs |
-| GET | `/api/backtest/runs/:runId/trades` | Trades for a run |
+**Paper trading:** `POST /trade/order`, `GET /trade/portfolio`, `GET /sim/signals`, `GET /sim/portfolio`
 
-**Backtest request body:**
-```json
-{
-  "symbol": "RELIANCE",
-  "strategy": "AGGREGATED",
-  "initialCapital": 1000000,
-  "stopLossPct": 0.02,
-  "takeProfitPct": 0.04,
-  "riskPerTrade": 0.01,
-  "aggrMethod": "weighted"
-}
-```
+**Live trading:**
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/live/broker/status` | Broker card (profile, funds, WS, token) |
+| POST | `/live/broker/reconnect` \| `/disconnect` \| `/refresh` | Connection mgmt |
+| POST | `/live/order` | Place order (real / sandbox) |
+| POST | `/live/charges` | Brokerage/tax preview |
+| GET | `/live/orders` | Normalized order book |
+| GET | `/live/positions` · `POST /live/positions/exit` | Positions + square-off one |
+| GET | `/live/funds/normalized` · `/live/holdings` | Funds + holdings |
+| GET/PUT | `/live/risk` | Risk limits |
+| POST | `/live/kill-switch` · `/live/emergency/{stop,square-off,cancel-all}` | Safety controls |
+| GET | `/live/diagnostics` | Real-time market-data diagnostics |
 
-### Paper Trading
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/trade/order` | Place paper order |
-| GET | `/api/trade/portfolio` | Current positions |
-| GET | `/api/trade/orders` | Order history |
-| POST | `/api/trade/check-exits` | Check SL/TP hits |
-| POST | `/api/trade/size` | Compute position size |
-
-### Screener
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/screener?topN=10&filter=BUY_CANDIDATES` | Screen NIFTY 50 |
-| GET | `/api/screener/score/:symbol` | Score single symbol |
-
-### Analytics & Optimiser
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/analytics/backtest/:runId` | Deep trade analytics |
-| GET | `/api/analytics/portfolio` | Live P&L analytics |
-| POST | `/api/analytics/optimize` | Walk-forward optimisation |
-| GET | `/api/analytics/optimizer/grids` | Parameter grids |
-| POST | `/api/analytics/alerts` | Create alert rule |
-| GET | `/api/analytics/alerts/recent` | Recent fired alerts |
-| GET | `/api/scheduler/status` | Scheduler job status |
-
-### WebSocket — `ws://host/ws`
-```json
-// Subscribe
-{ "action": "SUBSCRIBE", "symbols": ["RELIANCE", "INFY"] }
-
-// Get signal on demand
-{ "action": "GET_SIGNAL", "symbol": "RELIANCE" }
-
-// Heartbeat
-{ "action": "PING" }
-```
-Server pushes: `PRICE`, `SIGNAL`, `ALERT`, `POSITION_CLOSED`, `PONG`
+**WebSocket** `ws://host/ws` — subscribe `{ "action":"SUBSCRIBE", "symbols":["RELIANCE"] }`; server pushes `PRICE`, `SIM_TICK`, `SIM_TRADE`, `LIVE_SIGNAL`, `ALERT`.
 
 ---
 
-## Mathematics
+## Strategy mathematics
 
-### Mean Reversion
-```
-Z = (P_t − μ_N) / σ_N
-BUY  when Z < −2  (price 2σ below 20-day mean)
-SELL when Z > +2  (price 2σ above 20-day mean)
-Confidence = min(|Z| / 3, 1.0)
-```
+**Mean Reversion** — `Z = (P − μ₂₀)/σ₂₀`; BUY `Z < −2`, SELL `Z > +2`; confidence `min(|Z|/3, 1)`.
+**MA Crossover** — Golden/Death cross of SMA(50)/SMA(200); confidence `clamp(|gap%|/5%, 0, 1)`.
+**RSI (Wilder, 14)** — BUY `RSI < 30`, SELL `RSI > 70`; confidence `|RSI−50|/30`.
+**Bollinger Bands (20, 2σ)** — BUY at/below lower band, SELL at/above upper band.
+**Aggregator** — `score = Σ(dir·conf·w)/Σw`; BUY `> 0.20`, SELL `< −0.20` (weights MR .35 / MA .35 / RSI .30).
 
-### MA Crossover
-```
-SMA_N(t) = (1/N) Σ P_{t-i}
-Golden Cross: SMA_50 crosses above SMA_200 → BUY
-Death  Cross: SMA_50 crosses below SMA_200 → SELL
-Confidence = clamp(|gap%| / 5%, 0, 1)
-```
+**Position sizing** — Fixed-fractional `qty = ⌊(capital·riskPct)/(entry·slPct)⌋`; half-Kelly optional.
 
-### RSI (Wilder)
-```
-AvgGain_t = (AvgGain_{t-1} × 13 + Gain_t) / 14
-RS = AvgGain / AvgLoss
-RSI = 100 − 100 / (1 + RS)
-BUY  when RSI < 30,   SELL when RSI > 70
-Confidence = |RSI − 50| / 30
-```
-
-### Bollinger Bands
-```
-MB = SMA_20,   UB = MB + 2σ,   LB = MB − 2σ
-%B = (Price − LB) / (UB − LB)
-BUY when Price ≤ LB (%B ≤ 0),  SELL when Price ≥ UB (%B ≥ 1)
-```
-
-### Aggregator (Weighted Score)
-```
-score = Σ (direction_i × confidence_i × weight_i) / Σ weight_i
-BUY  when score > 0.20
-SELL when score < −0.20
-Weights: MeanReversion=0.35, MACrossover=0.35, RSI=0.30
-```
-
-### Position Sizing
-```
-Fixed Fractional:
-  qty = floor((capital × riskPct) / (entryPrice × stopLossPct))
-
-Kelly Criterion (half-Kelly):
-  f* = (p × B − q) / B   where B = avgWin/avgLoss
-  qty = floor(capital × f* × 0.5 / entryPrice)
-```
-
-### Backtest Metrics
-| Metric | Formula |
-|--------|---------|
-| CAGR | `(finalCapital/initialCapital)^(1/years) − 1` |
-| Sharpe | `(Ē[r−rƒ] / σ[r−rƒ]) × √252` |
-| Sortino | `(Ē[r−rƒ] / σ_down) × √252` |
-| Calmar | `CAGR / MaxDrawdown` |
-| Max Drawdown | `max((peak − trough) / peak)` |
-| Profit Factor | `grossProfit / grossLoss` |
+**Backtest metrics** — CAGR, Sharpe, Sortino, Calmar, Max Drawdown, Profit Factor. Walk-forward optimisation (IS/OOS windows) guards against curve-fitting.
 
 ---
 
-## Walk-Forward Optimisation
-
-Prevents curve-fitting by testing parameters only on data they were never optimised on:
-
-```
-Total data: ───────────────────────────────────────────
-Window 1:   [─── IS (70%) ───|─ OOS (30%) ─]
-Window 2:             [─── IS (70%) ───|─ OOS (30%) ─]
-             ...
-Concatenate OOS results → unbiased performance estimate
-```
+## Environment variables
 
 ```bash
-curl -X POST http://localhost:3000/api/analytics/optimize \
-  -H "Content-Type: application/json" \
-  -d '{
-    "symbol": "RELIANCE",
-    "strategy": "MEAN_REVERSION",
-    "windows": 3,
-    "metric": "sharpe"
-  }'
-```
-
----
-
-## Database Schema
-
-9 tables in `trading_engine` database:
-
-| Table | Purpose |
-|-------|---------|
-| `instruments` | Master symbol list |
-| `daily_prices` | EOD OHLCV (unique per symbol+date) |
-| `intraday_prices` | 1-min bars |
-| `signals` | Generated signals log |
-| `backtest_runs` | Backtest metadata + summary metrics |
-| `backtest_trades` | Individual trades per backtest |
-| `paper_trades` | Paper trading orders |
-| `portfolio` | Aggregated positions |
-| `data_fetch_log` | Audit trail for data fetches |
-
----
-
-## Risk Management
-
-- **Per-trade risk**: 1–2% of capital (configurable)
-- **Stop-loss**: 2% below entry (configurable)
-- **Take-profit**: 4% above entry → Risk/Reward = 2:1
-- **Daily loss limit**: 5% of capital — blocks all trades once hit
-- **Max open positions**: 10 simultaneous positions
-- **Commission model**: 0.03% per side + 0.05% slippage
-
----
-
-## Environment Variables
-
-```bash
-# Server
+# ── Server ──
 PORT=3000
-NODE_ENV=development
+NODE_ENV=production
+FRONTEND_URL=https://systematic-trading-engine.vercel.app
+JWT_SECRET=<random>
 
-# Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=trading_engine
+# ── Database (TiDB / MySQL) ──
+TIDB_HOST=...      TIDB_PORT=4000     TIDB_USERNAME=...
+TIDB_PASSWORD=...  TIDB_DATABASE=...  TIDB_SSL_CA=...
+# or DATABASE_URL=mysql://...
 
-# Risk
-DEFAULT_CAPITAL=1000000
-MAX_RISK_PER_TRADE_PCT=0.02
-MAX_DAILY_LOSS_PCT=0.05
-DEFAULT_STOP_LOSS_PCT=0.02
-DEFAULT_TAKE_PROFIT_PCT=0.04
+# ── Upstox (live trading + market data) ──
+UPSTOX_API_KEY=...
+UPSTOX_API_SECRET=...
+UPSTOX_REDIRECT_URI=https://<backend>/api/auth/upstox/callback
+UPSTOX_SANDBOX=true                 # keep true until sandbox-verified
+UPSTOX_SANDBOX_TOKEN=               # optional dedicated sandbox token
+UPSTOX_TOKEN_SECRET=<random>        # encrypts the persisted token (falls back to JWT_SECRET)
 
-# Strategy weights (must sum to 1)
-WEIGHT_MEAN_REVERSION=0.35
-WEIGHT_MA_CROSSOVER=0.35
-WEIGHT_RSI=0.30
+# ── Live risk limits (defaults; overridable in the UI) ──
+LIVE_MAX_QTY=500
+LIVE_MAX_ORDER_VAL=500000
+LIVE_MAX_POSITION_SIZE=200000
+LIVE_MAX_EXPOSURE=1000000
+LIVE_DAILY_LOSS_LIMIT=25000
+LIVE_MAX_ORDERS_PER_DAY=50
+
+# ── Frontend (Vite) ──
+VITE_API_URL=https://<backend>/api
+VITE_WS_URL=wss://<backend>
 ```
+
+Optional market-data keys: `TWELVEDATA_API_KEY`, `FINNHUB_API_KEY`.
 
 ---
 
-## Project Structure
+## Deployment
+
+- **Frontend → Vercel:** set `VITE_API_URL` / `VITE_WS_URL`; auto-deploys from `main`.
+- **Backend → Render:** set all server + Upstox + DB env vars; auto-deploys from `main`. Run the `live_orders` migration once (`scripts/run-sql.js`).
+- **Database → TiDB Cloud.**
+- Upstox tokens expire ~03:30 IST; re-run `/api/auth/upstox/login` each trading day (the encrypted token then persists across restarts). Flip `UPSTOX_SANDBOX=false` only after sandbox sign-off.
+
+---
+
+## Project layout
 
 ```
-trading-engine/
-├── src/
-│   ├── app.js                    Entry point
-│   ├── config/                   constants, database, logger
-│   ├── data/                     nseFetcher, dataStore, liveDataFeed
-│   ├── strategies/               meanReversion, maCrossover, rsiStrategy,
-│   │                             bollingerBands, aggregator
-│   ├── engine/                   backtester, executionEngine,
-│   │                             portfolioAnalytics, walkForwardOptimizer,
-│   │                             alertEngine, scheduler
-│   ├── risk/                     riskManager
-│   ├── screener/                 screener, correlationAnalysis
-│   ├── controllers/              6 controllers
-│   ├── routes/                   6 route files
-│   ├── middleware/               errorHandler, rateLimiter
-│   └── utils/                    mathUtils
-├── scripts/
-│   ├── schema.sql                MySQL schema
-│   ├── migrate.js                Run migrations
-│   ├── seed-sample-data.js       GBM synthetic data
-│   └── run-sample-backtest.js    Multi-symbol comparison
-├── tests/
-│   └── run-tests.js              131 tests, no external deps
-└── .env.example
+backend/src/
+  app.js                     entry (boots WS feed, sim engine, Upstox feed)
+  config/         constants, database, logger, symbols, instrument map
+  data/           liveDataFeed (WS), upstoxRestFeed, instrumentMaster,
+                  nseFetcher, dataStore
+  services/       marketDataService, brokerAdapter, liveTradingService,
+                  upstoxAuth (encrypted token persistence)
+  engine/         simulationEngine, signalEngine, backtester, ...
+  risk/           riskManager, riskLimits
+  ws/             upstoxWS (v2 scaffold)
+  controllers/ routes/ middleware/   REST layer + auth + rate limiting
+  scripts/        schema.sql, migrate.js, run-sql.js, migrate-live-orders-phase2.sql
+frontend/src/
+  pages/          Dashboard, Trade, LiveTrading, LiveOrders, LivePortfolio,
+                  Signals, Screener, Backtest, Analytics, Diagnostics, ...
+  components/     BrokerStatusCard, LiveOrderPanel/Modal, RiskEmergencyPanel,
+                  TradingModeToggle, Sidebar, StatusBar, ...
+  context/        AuthContext, WSContext, TradingModeContext
+  services/api.js hooks/  utils/
 ```
 
 ---
 
 ## Disclaimer
 
-This system is for **educational and research purposes only**. Paper trading simulation only — no real-money execution capability. Past backtest performance does not guarantee future results. All trading involves substantial risk of loss.
-
-
-
-
-## Backend LocalHost Failed
-kill -9 $(lsof -ti :3000) 2>/dev/null; echo "killed"
-pkill -f "node src/app.js" 2>/dev/null; echo "pkilled"
-sleep 2
-lsof -i :3000
-node src/app.js
+**LIVE mode executes real-money orders through your connected Upstox account.** This software is provided for educational and research purposes, without warranty of any kind. Charges shown are estimates and may differ from your broker's contract note. Always validate against the Upstox **sandbox** before trading live. The authors are not registered investment advisors; nothing here is financial advice. Trading involves substantial risk of loss — you are solely responsible for orders placed through this system.
