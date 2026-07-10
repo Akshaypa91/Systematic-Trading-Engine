@@ -21,7 +21,7 @@ env:
   NODE_ENV: "test"
 
 jobs:
-  # ── Backend: install + self-contained unit/integration tests ──────────────
+  # ── Backend: install + self-contained unit/integration tests
   backend:
     name: Backend (test)
     runs-on: ubuntu-latest
