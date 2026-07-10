@@ -13,7 +13,7 @@ function PnLBadge({ pnl, pnlPct }) {
   const pos   = pnl > 0;
   const neg   = pnl < 0;
   const color = pos ? 'var(--green)' : neg ? 'var(--red)' : 'var(--text-muted)';
-  const bg    = pos ? 'rgba(34,197,94,0.08)' : neg ? 'rgba(239,68,68,0.08)' : 'transparent';
+  const bg    = pos ? 'color-mix(in srgb, var(--green) 8%, transparent)' : neg ? 'color-mix(in srgb, var(--red) 8%, transparent)' : 'transparent';
   const Icon  = pos ? TrendingUp : neg ? TrendingDown : Minus;
   return (
     <div style={{
@@ -73,7 +73,7 @@ export default function PositionsTable({ positions, biggestGainer, biggestLoser,
         <thead>
           <tr style={{ borderBottom:'1px solid var(--border)' }}>
             {['Symbol', 'Qty', 'Entry ₹', 'Current ₹', 'Value ₹', 'PnL', ''].map(h => (
-              <th key={h} style={{
+              <th key={h} className={h === '' ? 'pos-exit-col' : undefined} style={{
                 padding:'6px 8px', textAlign: h === 'Symbol' || h === '' ? 'left' : 'right',
                 color:'var(--text-muted)', fontWeight:500, fontSize:10,
                 letterSpacing:'0.05em', whiteSpace:'nowrap',
@@ -86,15 +86,15 @@ export default function PositionsTable({ positions, biggestGainer, biggestLoser,
         <tbody>
           {entries.map(([sym, pos]) => {
             const highlight = isGainer(sym)
-              ? 'rgba(34,197,94,0.04)'
+              ? 'color-mix(in srgb, var(--green) 4%, transparent)'
               : isLoser(sym)
-              ? 'rgba(239,68,68,0.04)'
+              ? 'color-mix(in srgb, var(--red) 4%, transparent)'
               : 'transparent';
 
             const badge = isGainer(sym)
-              ? { label:'🏆 Top', color:'var(--green)', bg:'rgba(34,197,94,0.10)' }
+              ? { label:'🏆 Top', color:'var(--green)', bg:'color-mix(in srgb, var(--green) 10%, transparent)' }
               : isLoser(sym)
-              ? { label:'📉 Low', color:'var(--red)',   bg:'rgba(239,68,68,0.10)' }
+              ? { label:'📉 Low', color:'var(--red)',   bg:'color-mix(in srgb, var(--red) 10%, transparent)' }
               : null;
 
             const busy   = exiting[sym];
@@ -154,8 +154,8 @@ export default function PositionsTable({ positions, biggestGainer, biggestLoser,
                     <PnLBadge pnl={pos.pnl ?? 0} pnlPct={pos.pnlPct ?? 0} />
                   )}
                 </td>
-                {/* Exit button */}
-                <td style={{ padding:'9px 8px', textAlign:'left' }}>
+                {/* Exit button — sticky right on mobile so it never scrolls away */}
+                <td className="pos-exit-col" style={{ padding:'9px 8px', textAlign:'left' }}>
                   <button
                     onClick={() => handleExit(sym)}
                     disabled={busy}
@@ -163,16 +163,16 @@ export default function PositionsTable({ positions, biggestGainer, biggestLoser,
                     style={{
                       display:'inline-flex', alignItems:'center', gap:4,
                       padding:'3px 9px', borderRadius:6, cursor: busy ? 'wait' : 'pointer',
-                      border:'1px solid rgba(239,68,68,0.25)',
-                      background:'rgba(239,68,68,0.06)',
+                      border:'1px solid color-mix(in srgb, var(--red) 25%, transparent)',
+                      background:'color-mix(in srgb, var(--red) 6%, transparent)',
                       color:'var(--red)',
                       fontFamily:'var(--font-mono)', fontSize:10, fontWeight:600,
                       opacity: busy ? 0.6 : 1,
                       transition:'all 0.12s',
                       whiteSpace:'nowrap',
                     }}
-                    onMouseEnter={e => { if (!busy) { e.currentTarget.style.background='rgba(239,68,68,0.14)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.4)'; } }}
-                    onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.06)'; e.currentTarget.style.borderColor='rgba(239,68,68,0.25)'; }}
+                    onMouseEnter={e => { if (!busy) { e.currentTarget.style.background='color-mix(in srgb, var(--red) 14%, transparent)'; e.currentTarget.style.borderColor='color-mix(in srgb, var(--red) 40%, transparent)'; } }}
+                    onMouseLeave={e => { e.currentTarget.style.background='color-mix(in srgb, var(--red) 6%, transparent)'; e.currentTarget.style.borderColor='color-mix(in srgb, var(--red) 25%, transparent)'; }}
                   >
                     {busy
                       ? <Loader2 size={9} className="animate-spin" />
