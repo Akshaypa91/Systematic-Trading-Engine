@@ -171,12 +171,19 @@ async function start() {
   try {
     const upstoxAuth = require('./services/upstoxAuth');
     const upstoxWS   = require('./ws/upstoxWS');
+    const restFeed   = require('./data/upstoxRestFeed');
+    const instruments = require('./data/instrumentMaster');
     // Restore a persisted token first so a restart keeps the live session.
     await upstoxAuth.loadPersistedToken().catch(() => {});
+    // Load the full NSE instrument master (any symbol → instrument key).
+    instruments.load().catch(() => {});
     if (upstoxAuth.isAuthenticated()) {
       upstoxWS.connect()
         .then(() => logger.info('[App] ✅ Upstox WebSocket connected'))
         .catch(err => logger.warn(`[App] Upstox WS failed: ${err.message}`));
+      // Reliable price source: REST batch poller (works without the WS/protobuf).
+      restFeed.ensureRunning();
+      logger.info('[App] ✅ Upstox REST price feed started');
     } else {
       logger.info('[App] ℹ️  Upstox not authenticated — visit /api/auth/upstox/login');
     }

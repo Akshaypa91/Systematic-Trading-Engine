@@ -16,13 +16,21 @@ function _getUpstoxAuth() {
   if (!_upstoxAuth) { try { _upstoxAuth = require('./upstoxAuth'); } catch (_) {} }
   return _upstoxAuth;
 }
-// True only when the Upstox WebSocket is actually CONNECTED (i.e. a real feed is
-// flowing) — not merely when a token string exists. This is what keeps SIM out
-// of the response while genuine broker data is available, yet still lets a dead
-// or rejected token fall back to (moving) SIM prices instead of freezing on
-// UNAVAILABLE.
+let _restFeed = null;
+function _getRestFeed() {
+  if (!_restFeed) { try { _restFeed = require('../data/upstoxRestFeed'); } catch (_) {} }
+  return _restFeed;
+}
+
+// True when a real Upstox feed is delivering data — the (rarely working) WS OR
+// the REST poller. Keeps SIM out while genuine prices are available, yet still
+// lets a fully-down feed fall back to moving SIM instead of freezing.
 function _brokerLive() {
-  try { return !!_getUpstoxWS()?.getStatus?.().connected; } catch (_) { return false; }
+  try {
+    if (_getUpstoxWS()?.getStatus?.().connected) return true;
+    const rf = _getRestFeed()?.getStatus?.();
+    return !!(rf && rf.running && rf.authenticated);
+  } catch (_) { return false; }
 }
 
 // ── Upstox REST snapshot (tier 2) ─────────────────────────────────────────────
@@ -320,7 +328,7 @@ async function getLivePrice(symbol) {
   const cached = _cacheGet(base);
   if (cached) return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp };
 
-  // 1. Upstox WebSocket cache (PRIMARY)
+  // 1. Upstox WebSocket cache (PRIMARY, when it works)
   try {
     const ws = _getUpstoxWS();
     if (ws) {
@@ -329,7 +337,16 @@ async function getLivePrice(symbol) {
     }
   } catch (_) {}
 
-  // 2. Upstox REST snapshot (when WS has no fresh tick yet)
+  // 1b. Upstox REST poller cache (the reliable primary in practice)
+  try {
+    const rf = _getRestFeed();
+    if (rf) {
+      const c = rf.getCachedPrice(base);
+      if (c) { _cacheSet(base, c.price, 'LIVE_UPSTOX'); return { symbol: base, price: c.price, source: 'LIVE_UPSTOX', timestamp: c.timestamp }; }
+    }
+  } catch (_) {}
+
+  // 2. Upstox REST snapshot (on-demand, when the poller hasn't cached yet)
   try {
     const p = await _fetchUpstoxSnapshot(base);
     _cacheSet(base, p, 'LIVE_UPSTOX_REST');

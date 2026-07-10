@@ -92,10 +92,17 @@ const INSTRUMENT_MAP = {
  * @param {string} symbol  e.g. 'TCS', 'M&M', 'RELIANCE'
  * @returns {string|null}  e.g. 'NSE_EQ|INE467B01029'
  */
+// Lazy require to avoid a load-order cycle; the master self-populates at boot.
+let _master = null;
+function _getMaster() { if (!_master) { try { _master = require('../data/instrumentMaster'); } catch (_) {} } return _master; }
+
 function toUpstox(symbol) {
   if (!symbol) return null;
   const s = symbol.toString().trim().toUpperCase();
-  return INSTRUMENT_MAP[s]?.upstox ?? null;
+  // 1. curated static map (fast, always present)
+  if (INSTRUMENT_MAP[s]?.upstox) return INSTRUMENT_MAP[s].upstox;
+  // 2. full Upstox instrument master (covers every NSE equity, e.g. HBLENGINE)
+  return _getMaster()?.resolve?.(s) ?? null;
 }
 
 /**
@@ -109,7 +116,7 @@ function fromUpstox(instrumentKey) {
   for (const [sym, entry] of Object.entries(INSTRUMENT_MAP)) {
     if (entry.upstox === instrumentKey) return sym;
   }
-  return null;
+  return _getMaster()?.reverse?.(instrumentKey) ?? null;
 }
 
 /**

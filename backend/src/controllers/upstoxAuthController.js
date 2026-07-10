@@ -59,6 +59,12 @@ async function callback(req, res) {
       logger.warn(`[UpstoxCtrl] WS connect non-fatal: ${wsErr.message}`);
     }
 
+    // Start the reliable REST price poller + warm the instrument master.
+    try {
+      require('../data/upstoxRestFeed').ensureRunning();
+      require('../data/instrumentMaster').load().catch(() => {});
+    } catch (e) { logger.warn(`[UpstoxCtrl] REST feed start non-fatal: ${e.message}`); }
+
     // Land on the Dashboard after connecting — it shows the connected-broker
     // chip, portfolio strip and live signals at a glance.
     return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/?upstox=connected`);

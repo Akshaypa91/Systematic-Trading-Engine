@@ -130,10 +130,15 @@ function handleMessage(ws, raw) {
   }
 }
 
+// Lazy Upstox REST feed (fast batch price poller).
+let _restFeed = null;
+function _getRestFeed() { if (!_restFeed) { try { _restFeed = require('./upstoxRestFeed'); } catch (_) {} } return _restFeed; }
+
 // ── Subscription management ───────────────────────────────────────────────────
 function subscribe(ws, symbol) {
   if (!subscriptions.has(symbol)) subscriptions.set(symbol, new Set());
   subscriptions.get(symbol).add(ws);
+  try { _getRestFeed()?.subscribe?.([symbol]); } catch (_) {}   // fast live price via REST poller
   if (!pollIntervals.has(symbol)) {
     startPolling(symbol);
   } else {
@@ -145,6 +150,7 @@ function subscribe(ws, symbol) {
 function unsubscribe(ws, symbol) {
   const subs = subscriptions.get(symbol);
   if (subs) { subs.delete(ws); if (subs.size === 0) stopPolling(symbol); }
+  try { _getRestFeed()?.unsubscribe?.([symbol]); } catch (_) {}
 }
 
 // ── Price polling ─────────────────────────────────────────────────────────────

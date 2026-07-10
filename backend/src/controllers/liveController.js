@@ -127,6 +127,7 @@ async function brokerReconnect(req, res) {
 async function brokerDisconnect(req, res) {
   try {
     upstoxWS.disconnect();
+    try { require('../data/upstoxRestFeed').stop(); } catch (_) {}
     upstoxAuth.clearToken();
     // Safety: force this user back to PAPER so a stale LIVE selection can't linger.
     await db.query(
@@ -188,15 +189,23 @@ async function placeOrder(req, res) {
 // ── GET /api/live/diagnostics ── real-time market-data diagnostics ────────────
 async function getDiagnostics(req, res) {
   try {
-    const ws = upstoxWS.getStatus();
-    // Active provider: Upstox WS if it has fresh ticks, else derive from a probe.
+    const ws   = upstoxWS.getStatus();
+    let rest = {};
+    try { rest = require('../data/upstoxRestFeed').getStatus(); } catch (_) {}
+    let instruments = {};
+    try { instruments = require('../data/instrumentMaster').getStats(); } catch (_) {}
+    // Active provider: WS ticks > REST poller ticks > SIM.
     let provider = 'SIM';
-    if (upstoxAuth.isAuthenticated()) provider = ws.connected && ws.tickRate > 0 ? 'UPSTOX_WS' : 'UPSTOX/FALLBACK';
+    if (ws.connected && ws.tickRate > 0)       provider = 'UPSTOX_WS';
+    else if (rest.running && rest.tickRate > 0) provider = 'UPSTOX_REST';
+    else if (upstoxAuth.isAuthenticated())      provider = 'UPSTOX/FALLBACK';
     return res.json({
       success:   true,
       brokerAuthenticated: upstoxAuth.isAuthenticated(),
       provider,
       websocket: ws,
+      restFeed:  rest,
+      instruments,
       feed:      liveFeed.getStats?.() || {},
       cache:     marketData.getCacheStats?.() || {},
       ts:        new Date().toISOString(),
