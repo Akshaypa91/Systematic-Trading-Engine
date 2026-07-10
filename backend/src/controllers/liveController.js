@@ -8,6 +8,8 @@ const auditLog   = require('../middleware/auditLog');
 const upstoxAuth = require('../services/upstoxAuth');
 const upstoxWS   = require('../ws/upstoxWS');
 const broker     = require('../services/brokerAdapter');
+const liveFeed   = require('../data/liveDataFeed');
+const marketData = require('../services/marketDataService');
 
 function uid(req) { return req.user?.userId ?? req.user?.id ?? null; }
 
@@ -180,6 +182,27 @@ async function placeOrder(req, res) {
     return res.status(err.statusCode || 500).json({
       success: false, error: err.message, code: err.code,
     });
+  }
+}
+
+// ── GET /api/live/diagnostics ── real-time market-data diagnostics ────────────
+async function getDiagnostics(req, res) {
+  try {
+    const ws = upstoxWS.getStatus();
+    // Active provider: Upstox WS if it has fresh ticks, else derive from a probe.
+    let provider = 'SIM';
+    if (upstoxAuth.isAuthenticated()) provider = ws.connected && ws.tickRate > 0 ? 'UPSTOX_WS' : 'UPSTOX/FALLBACK';
+    return res.json({
+      success:   true,
+      brokerAuthenticated: upstoxAuth.isAuthenticated(),
+      provider,
+      websocket: ws,
+      feed:      liveFeed.getStats?.() || {},
+      cache:     marketData.getCacheStats?.() || {},
+      ts:        new Date().toISOString(),
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -406,5 +429,5 @@ module.exports = {
   placeOrder, getCharges, getPositions, getOrders, getFunds, cancelOrder, getStatus, setMode, killSwitch,
   getBrokerStatus, brokerReconnect, brokerDisconnect, brokerRefresh,
   getFundsNormalized, getHoldings, exitPosition, squareOffAll, cancelAllOrders, emergencyStop,
-  getRisk, setRisk, setKillSwitch,
+  getRisk, setRisk, setKillSwitch, getDiagnostics,
 };

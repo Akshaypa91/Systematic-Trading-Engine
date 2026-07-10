@@ -11,6 +11,39 @@ function _getUpstoxWS() {
   return _upstoxWS;
 }
 
+let _upstoxAuth = null;
+function _getUpstoxAuth() {
+  if (!_upstoxAuth) { try { _upstoxAuth = require('./upstoxAuth'); } catch (_) {} }
+  return _upstoxAuth;
+}
+// True when an authenticated Upstox session exists — used to keep SIM prices
+// out of the response while real broker data is (or should be) available.
+function _brokerLive() {
+  try { return !!_getUpstoxAuth()?.isAuthenticated(); } catch (_) { return false; }
+}
+
+// ── Upstox REST snapshot (tier 2) ─────────────────────────────────────────────
+// GET /v2/market-quote/ltp — used when the WS cache has no fresh tick for a
+// symbol (e.g. just subscribed, or between reconnects).
+async function _fetchUpstoxSnapshot(base) {
+  const auth  = _getUpstoxAuth();
+  const token = auth?.getAccessToken?.();
+  if (!token) throw new Error('Upstox not authenticated');
+  const key = symbolMap.toUpstox(base);
+  if (!key) throw new Error(`No instrument key for ${base}`);
+  const res = await axios.get('https://api.upstox.com/v2/market-quote/ltp', {
+    headers: { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' },
+    params: { instrument_key: key },
+    timeout: TIMEOUT_MS,
+  });
+  const data = res.data?.data || {};
+  // Response is keyed by "NSE_EQ:RELIANCE" (exchange:symbol), not the request key.
+  const entry = Object.values(data)[0];
+  const price = parseFloat(entry?.last_price);
+  if (!isFinite(price) || price <= 0) throw new Error(`Upstox snapshot bad price for ${base}`);
+  return price;
+}
+
 const TWELVEDATA_KEY = process.env.TWELVEDATA_API_KEY || '';
 const FINNHUB_KEY    = process.env.FINNHUB_API_KEY    || '';
 // Accept either MARKET_DATA_CACHE_TTL_MS (ms) or legacy MARKET_DATA_CACHE_TTL
@@ -251,7 +284,13 @@ async function getBestPrice(symbol) {
     }
   } catch (_) {}
 
-  // 2. NSE
+  // 2. Upstox REST snapshot
+  try {
+    const price = await _fetchUpstoxSnapshot(base);
+    return { price, source: 'UPSTOX_REST' };
+  } catch (_) {}
+
+  // 3. NSE
   try {
     const price = await _fetchNSE(base);
     logger.debug(`[MarketData] NSE ✅ ${base} = ₹${price}`);
@@ -260,7 +299,12 @@ async function getBestPrice(symbol) {
     logger.debug(`[MarketData] NSE skip ${base}: ${e.message}`);
   }
 
-  // 3. SIM
+  // 4. SIM — only when no broker session (never fabricate over live data)
+  if (_brokerLive()) {
+    const stale = _cache.get(base);
+    if (stale) return { price: stale.price, source: stale.source, stale: true };
+    return { price: null, source: 'UNAVAILABLE' };
+  }
   const price = _simPrice(base);
   logger.debug(`[MarketData] SIM ${base} = ₹${price}`);
   return { price, source: 'SIM' };
@@ -273,7 +317,7 @@ async function getLivePrice(symbol) {
   const cached = _cacheGet(base);
   if (cached) return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp };
 
-  // Upstox
+  // 1. Upstox WebSocket cache (PRIMARY)
   try {
     const ws = _getUpstoxWS();
     if (ws) {
@@ -282,7 +326,16 @@ async function getLivePrice(symbol) {
     }
   } catch (_) {}
 
-  // NSE
+  // 2. Upstox REST snapshot (when WS has no fresh tick yet)
+  try {
+    const p = await _fetchUpstoxSnapshot(base);
+    _cacheSet(base, p, 'LIVE_UPSTOX_REST');
+    return { symbol: base, price: p, source: 'LIVE_UPSTOX_REST', timestamp: new Date().toISOString() };
+  } catch (e) {
+    if (_brokerLive()) logger.debug(`[MarketData] Upstox snapshot ${base}: ${e.message}`);
+  }
+
+  // 3. NSE
   try {
     const p = await _fetchNSE(base);
     _cacheSet(base, p, 'LIVE_NSE');
@@ -291,7 +344,7 @@ async function getLivePrice(symbol) {
     logger.warn(`[MarketData] NSE ${base}: ${e.message}`);
   }
 
-  // TwelveData
+  // 4. External APIs
   try {
     const p = await _fetchTwelve(base);
     _cacheSet(base, p, 'LIVE_TWELVE');
@@ -299,8 +352,6 @@ async function getLivePrice(symbol) {
   } catch (e) {
     logger.warn(`[MarketData] TwelveData ${base}: ${e.message}`);
   }
-
-  // Finnhub
   try {
     const p = await _fetchFinnhub(base);
     _cacheSet(base, p, 'LIVE_FINNHUB');
@@ -309,8 +360,15 @@ async function getLivePrice(symbol) {
     logger.warn(`[MarketData] Finnhub ${base}: ${e.message}`);
   }
 
-  // SIM — do NOT cache: a fresh random-walk step every call keeps prices moving
-  // on each tick instead of freezing for the cache window.
+  // 5. Stale cache — if a broker session is live, prefer a last-known real price
+  // over a fabricated one. Never surface SIM while Upstox is authenticated.
+  const stale = _cache.get(base);
+  if (stale) return { symbol: base, price: stale.price, source: stale.source, timestamp: stale.timestamp, stale: true };
+  if (_brokerLive()) {
+    return { symbol: base, price: null, source: 'UNAVAILABLE', timestamp: new Date().toISOString() };
+  }
+
+  // 6. SIM — only when NO broker session exists (paper / logged-out demo mode).
   const p = _simPrice(base);
   return { symbol: base, price: p, source: 'SIM', timestamp: new Date().toISOString() };
 }

@@ -20,6 +20,23 @@ let _pingTimer      = null;
 let _subscribedKeys = [];
 let _destroyed      = false;  // set on explicit disconnect — stop reconnecting
 
+// ── Tick metrics (for the diagnostics panel) ──────────────────────────────────
+let _tickCount      = 0;          // total ticks since boot
+let _lastTickTs     = null;       // ISO string of the most recent tick
+let _connectedAt    = null;       // when the socket last opened
+const _tickWindow   = [];         // recent tick epoch-ms, for a rolling ticks/sec
+
+function _recordTick() {
+  _tickCount++;
+  const now = Date.now();
+  _lastTickTs = new Date(now).toISOString();
+  _tickWindow.push(now);
+  // keep only the last 5s of timestamps
+  const cutoff = now - 5000;
+  while (_tickWindow.length && _tickWindow[0] < cutoff) _tickWindow.shift();
+}
+function _tickRate() { return Math.round((_tickWindow.length / 5) * 10) / 10; }  // ticks/sec over 5s
+
 const _priceCache   = new Map();  // instrumentKey → { price, ts }
 
 // ── Price cache API ───────────────────────────────────────────────────────────
@@ -71,6 +88,7 @@ function connect(instrumentKeys) {
     _ws.on('open', () => {
       _connected      = true;
       _reconnectCount = 0;
+      _connectedAt    = new Date().toISOString();
       logger.info('[UpstoxWS] ✅ Connected');
       _subscribe(_subscribedKeys);
       _startPing();
@@ -164,6 +182,7 @@ function _onMessage(raw) {
     const changePct = cp > 0 ? parseFloat(((change / cp) * 100).toFixed(2)) : 0;
 
     _priceCache.set(instrumentKey, { price: ltp, ts, rawTs });
+    _recordTick();
 
     const baseSymbol = symbols.fromUpstox(instrumentKey);
 
@@ -238,9 +257,14 @@ function getStatus() {
     connected:       _connected,
     readyState:      _ws?.readyState ?? -1,
     subscribedCount: _subscribedKeys.length,
+    subscribedKeys:  _subscribedKeys.slice(0, 100),
     cachedPrices:    _priceCache.size,
     reconnectCount:  _reconnectCount,
     destroyed:       _destroyed,
+    connectedAt:     _connectedAt,
+    tickCount:       _tickCount,
+    tickRate:        _tickRate(),
+    lastTickTs:      _lastTickTs,
   };
 }
 
