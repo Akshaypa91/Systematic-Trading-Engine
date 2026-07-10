@@ -454,10 +454,12 @@ async function generateLiveSignal(symbol, priceHistory, maxLen = 500) {
     try {
       const result = await svc.getLivePrice(symbol);
       livePrice = result.price;
-      // getLivePrice returns real-provider sources as LIVE_NSE / LIVE_UPSTOX /
-      // LIVE_TWELVE / LIVE_FINNHUB, and 'SIM' for the fallback. Anything that
-      // isn't SIM is a real live price.
-      source    = (result.source && result.source !== 'SIM') ? 'LIVE' : 'SIM';
+      // Only label LIVE when we actually received a real, usable price this tick.
+      // A null/UNAVAILABLE result (broker token dead, feed down) must NOT show as
+      // LIVE — otherwise the card claims "LIVE" over a frozen synthetic value.
+      const gotLive = livePrice != null && isFinite(livePrice) && livePrice > 0
+        && result.source && result.source !== 'SIM' && result.source !== 'UNAVAILABLE';
+      source = gotLive ? 'LIVE' : 'SIM';
     } catch (_) {
       // Fallback: use last known price from history
     }

@@ -16,10 +16,13 @@ function _getUpstoxAuth() {
   if (!_upstoxAuth) { try { _upstoxAuth = require('./upstoxAuth'); } catch (_) {} }
   return _upstoxAuth;
 }
-// True when an authenticated Upstox session exists — used to keep SIM prices
-// out of the response while real broker data is (or should be) available.
+// True only when the Upstox WebSocket is actually CONNECTED (i.e. a real feed is
+// flowing) — not merely when a token string exists. This is what keeps SIM out
+// of the response while genuine broker data is available, yet still lets a dead
+// or rejected token fall back to (moving) SIM prices instead of freezing on
+// UNAVAILABLE.
 function _brokerLive() {
-  try { return !!_getUpstoxAuth()?.isAuthenticated(); } catch (_) { return false; }
+  try { return !!_getUpstoxWS()?.getStatus?.().connected; } catch (_) { return false; }
 }
 
 // ── Upstox REST snapshot (tier 2) ─────────────────────────────────────────────
