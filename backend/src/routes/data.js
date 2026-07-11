@@ -10,6 +10,7 @@ router.get('/health',                   ctrl.getDataHealth);
 router.get('/stock/:symbol',            ctrl.getStock);
 
 // Read-only data endpoints — public (market data, quotes)
+router.get('/search',                   ctrl.searchStocks);    // symbol/name search (curated + full NSE master)
 router.get('/quote/:symbol',            ctrl.getQuote);
 router.get('/candles/:symbol',          ctrl.getCandles);      // Upstox OHLC candles for the chart
 router.get('/historical/:symbol',       ctrl.getHistorical);
