@@ -8,7 +8,7 @@ import StockCard    from '../components/StockCard';
 import TradePanel   from '../components/TradePanel';
 import PortfolioCard from '../components/PortfolioCard';
 import CapitalSetup from '../components/CapitalSetup';
-import TradingChart from '../components/TradingChart';
+import PriceChart from '../components/PriceChart';
 import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 import LiveOrderModal    from '../components/LiveOrderModal';
@@ -235,7 +235,7 @@ export default function Trade() {
             <div className="trade-left">
               <StockCard data={displayData} loading={loading} onRefresh={symbol ? () => fetchStock(symbol) : undefined} />
 
-              {data?.symbol && <TradingChart symbol={data.symbol} priceSource={displayData?.source} />}
+              {data?.symbol && <PriceChart symbol={data.symbol} />}
 
               {isSimSource && (
                 <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'color-mix(in srgb, var(--amber) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 20%, transparent)' }}>
