@@ -4,8 +4,9 @@
 //   • Line    — recharts area chart
 // Every price comes from Upstox; the live LTP overlays as a dashed reference.
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { BarChart3, CandlestickChart, RefreshCw } from 'lucide-react';
+import { BarChart3, CandlestickChart, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
 import { marketAPI } from '../services/api';
 import useLivePrice from '../hooks/useLivePrice';
 
@@ -121,7 +122,25 @@ export default function PriceChart({ symbol, height = 320 }) {
   const [candles, setCandles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fsH, setFsH] = useState(() => (typeof window !== 'undefined' ? window.innerHeight - 130 : 600));
   const live = useLivePrice(symbol);
+
+  // Fullscreen: lock body scroll, exit on Escape, track viewport height.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setFullscreen(false); };
+    const onResize = () => setFsH(window.innerHeight - 130);
+    onResize();
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [fullscreen]);
 
   useEffect(() => {
     if (!symbol) return;
@@ -145,15 +164,17 @@ export default function PriceChart({ symbol, height = 320 }) {
   const up = ltp != null && first != null ? ltp >= first : true;
   const lineColor = up ? GREEN : RED;
 
-  return (
-    <div className="card" style={{ padding: 14 }}>
+  const chartH = fullscreen ? fsH : height;
+
+  const card = (
+    <div className="card" style={{ padding: 14, ...(fullscreen ? { height: '100%', display: 'flex', flexDirection: 'column' } : {}) }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <BarChart3 size={15} style={{ color: 'var(--cyan)' }} />
         <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)' }}>{symbol}</span>
         <span style={{ fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-mono)', color: lineColor }}>{money(ltp)}</span>
         {live.isLive && <span style={{ fontSize: 9, fontWeight: 700, color: GREEN, border: '1px solid color-mix(in srgb, var(--green) 34%, transparent)', borderRadius: 99, padding: '1px 7px', fontFamily: 'var(--font-mono)' }}>LIVE</span>}
 
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: 4 }}>
             {[['candle', CandlestickChart, 'Candles'], ['area', BarChart3, 'Line']].map(([key, Icon, label]) => (
               <button key={key} onClick={() => setChartType(key)} title={label}
@@ -174,17 +195,27 @@ export default function PriceChart({ symbol, height = 320 }) {
                   color: interval === i.key ? 'var(--cyan)' : 'var(--text-muted)' }}>{i.label}</button>
             ))}
           </div>
+          <button
+            onClick={() => setFullscreen(f => !f)}
+            title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+            aria-label={fullscreen ? 'Exit fullscreen' : 'Open chart fullscreen'}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, cursor: 'pointer',
+              background: fullscreen ? 'color-mix(in srgb, var(--cyan) 14%, transparent)' : 'var(--bg-elevated)',
+              border: `1px solid ${fullscreen ? 'color-mix(in srgb, var(--cyan) 40%, transparent)' : 'var(--border)'}`,
+              color: fullscreen ? 'var(--cyan)' : 'var(--text-muted)', flexShrink: 0 }}>
+            {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+          </button>
         </div>
       </div>
 
-      <div style={{ height }}>
+      <div style={{ height: chartH }}>
         {loading ? (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 12 }}>
             <RefreshCw size={14} className="animate-spin" /> Loading chart…
           </div>
         ) : candles.length ? (
           chartType === 'candle' ? (
-            <Candlesticks candles={candles} height={height} ltp={ltp} fmtLabel={fmtLabel} />
+            <Candlesticks candles={candles} height={chartH} ltp={ltp} fmtLabel={fmtLabel} />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={areaData} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
@@ -212,4 +243,17 @@ export default function PriceChart({ symbol, height = 320 }) {
       </div>
     </div>
   );
+
+  // Fullscreen: portal to <body> (escapes transformed/filtered ancestors),
+  // full-viewport dark surface, Esc or the toolbar button to exit.
+  if (fullscreen) {
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9960, background: 'var(--bg-base)', padding: 12, display: 'flex', flexDirection: 'column' }}>
+        {card}
+      </div>,
+      document.body
+    );
+  }
+
+  return card;
 }
