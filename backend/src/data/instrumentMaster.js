@@ -18,6 +18,7 @@ const NSE_URL = process.env.UPSTOX_INSTRUMENTS_URL
 
 const _bySymbol = new Map();   // TRADING_SYMBOL → instrument_key  (NSE_EQ only)
 const _byKey    = new Map();   // instrument_key → TRADING_SYMBOL
+let _list       = [];          // [{ symbol, name }] for search
 let _loadedAt   = 0;
 let _loading    = null;        // in-flight promise (dedupe concurrent loads)
 
@@ -44,7 +45,7 @@ async function load(force = false) {
       if (buf[0] === 0x1f && buf[1] === 0x8b) buf = zlib.gunzipSync(buf);
       const list = JSON.parse(buf.toString('utf8'));
 
-      _bySymbol.clear(); _byKey.clear();
+      _bySymbol.clear(); _byKey.clear(); _list = [];
       for (const it of list) {
         const seg = it.segment || it.exchange;
         // NSE equities only (skip F&O, indices, etc.)
@@ -54,6 +55,7 @@ async function load(force = false) {
         if (!sym || !key) continue;
         _bySymbol.set(sym, key);
         _byKey.set(key, sym);
+        _list.push({ symbol: sym, name: it.name || it.short_name || sym });
       }
       _loadedAt = Date.now();
       logger.info(`[InstrumentMaster] loaded ${_bySymbol.size} NSE equity instruments`);
@@ -77,8 +79,28 @@ function reverse(instrumentKey) {
   if (!instrumentKey) return null;
   return _byKey.get(instrumentKey) || null;
 }
+// Ranked search across every NSE equity by symbol or company name.
+function search(query, limit = 10) {
+  const q = String(query || '').trim();
+  if (!q || !_list.length) return [];
+  const Q = q.toUpperCase(), Ql = q.toLowerCase();
+  const out = [];
+  for (const s of _list) {
+    const name = String(s.name).toLowerCase();
+    let rank = -1;
+    if (s.symbol === Q)              rank = 0;
+    else if (s.symbol.startsWith(Q)) rank = 1;
+    else if (s.symbol.includes(Q))   rank = 2;
+    else if (name.startsWith(Ql))    rank = 3;
+    else if (name.includes(Ql))      rank = 4;
+    if (rank >= 0) out.push({ symbol: s.symbol, name: s.name, _rank: rank });
+  }
+  out.sort((a, b) => a._rank - b._rank || a.symbol.localeCompare(b.symbol));
+  return out.slice(0, limit).map(({ symbol, name }) => ({ symbol, name }));
+}
+
 function getStats() {
   return { loaded: isLoaded(), count: _bySymbol.size, loadedAt: _loadedAt ? new Date(_loadedAt).toISOString() : null };
 }
 
-module.exports = { load, resolve, reverse, isLoaded, getStats };
+module.exports = { load, resolve, reverse, search, isLoaded, getStats };

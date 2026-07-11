@@ -383,8 +383,26 @@ function searchStocks(req, res) {
   const q     = (req.query.q || '').trim();
   const limit = Math.min(parseInt(req.query.limit || '10', 10), 30);
   if (!q) return res.json({ success: true, data: [], query: '' });
-  const results = stockMaster.search(q, limit);
-  return res.json({ success: true, data: results, query: q, total: results.length });
+
+  // Curated top-200 first (best names/ranking), then fill from the full NSE
+  // instrument master so ANY listed stock (Adani Power, Tata Steel, …) shows up.
+  const seen = new Set();
+  const merged = [];
+  for (const r of stockMaster.search(q, limit)) {
+    if (seen.has(r.symbol)) continue;
+    seen.add(r.symbol); merged.push(r);
+  }
+  if (merged.length < limit) {
+    try {
+      const master = require('../data/instrumentMaster');
+      for (const r of master.search(q, limit * 2)) {
+        if (merged.length >= limit) break;
+        if (seen.has(r.symbol)) continue;
+        seen.add(r.symbol); merged.push(r);
+      }
+    } catch (_) { /* master unavailable — curated list only */ }
+  }
+  return res.json({ success: true, data: merged, query: q, total: merged.length });
 }
 
 module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
