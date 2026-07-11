@@ -11,6 +11,7 @@ router.get('/stock/:symbol',            ctrl.getStock);
 
 // Read-only data endpoints — public (market data, quotes)
 router.get('/quote/:symbol',            ctrl.getQuote);
+router.get('/candles/:symbol',          ctrl.getCandles);      // Upstox OHLC candles for the chart
 router.get('/historical/:symbol',       ctrl.getHistorical);
 router.get('/prices/:symbol',           ctrl.getPrices);
 router.get('/nifty50',                  ctrl.getNifty50);

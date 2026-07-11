@@ -55,6 +55,46 @@ async function _fetchUpstoxSnapshot(base) {
   return price;
 }
 
+// ── Upstox historical candles (for the native chart) ──────────────────────────
+// GET /v2/historical-candle/{key}/{interval}/{to}/{from}  (+ intraday for today).
+// interval ∈ 1minute | 30minute | day | week | month. Returns newest-first
+// [ts,o,h,l,c,vol,oi]; we normalise to ascending { t,o,h,l,c,v }.
+async function getCandles(symbol, { interval = 'day', days = 120 } = {}) {
+  const base  = symbolMap.toBase(symbol);
+  const key   = symbolMap.toUpstox(base);
+  const token = _getUpstoxAuth()?.getAccessToken?.();
+  if (!key)   return { symbol: base, interval, candles: [], source: 'NONE', error: `No instrument key for ${base}` };
+  if (!token) return { symbol: base, interval, candles: [], source: 'NONE', error: 'Upstox not authenticated' };
+
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const to   = new Date();
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const headers = { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' };
+  const rows = [];
+
+  try {
+    const url = `https://api.upstox.com/v2/historical-candle/${encodeURIComponent(key)}/${interval}/${fmt(to)}/${fmt(from)}`;
+    const res = await axios.get(url, { headers, timeout: TIMEOUT_MS });
+    for (const c of (res.data?.data?.candles || [])) rows.push(c);
+  } catch (e) {
+    logger.debug(`[MarketData] candles ${base}: ${e.message}`);
+  }
+  // Append today's intraday (1-minute) so the chart includes the live session.
+  if (interval === 'day' || interval === '30minute') {
+    try {
+      const iurl = `https://api.upstox.com/v2/historical-candle/intraday/${encodeURIComponent(key)}/30minute`;
+      const ires = await axios.get(iurl, { headers, timeout: TIMEOUT_MS });
+      for (const c of (ires.data?.data?.candles || [])) rows.push(c);
+    } catch (_) {}
+  }
+
+  const candles = rows
+    .map(c => ({ t: c[0], o: +c[1], h: +c[2], l: +c[3], c: +c[4], v: +c[5] }))
+    .filter(c => isFinite(c.c))
+    .sort((a, b) => new Date(a.t) - new Date(b.t));
+  return { symbol: base, interval, candles, source: candles.length ? 'UPSTOX' : 'NONE' };
+}
+
 const TWELVEDATA_KEY = process.env.TWELVEDATA_API_KEY || '';
 const FINNHUB_KEY    = process.env.FINNHUB_API_KEY    || '';
 // Accept either MARKET_DATA_CACHE_TTL_MS (ms) or legacy MARKET_DATA_CACHE_TTL
@@ -450,4 +490,4 @@ async function healthCheck() {
   return r;
 }
 
-module.exports = { getLivePrice, getBestPrice, getBatchPrices, clearCache, getCacheStats, healthCheck };
+module.exports = { getLivePrice, getBestPrice, getBatchPrices, getCandles, clearCache, getCacheStats, healthCheck };

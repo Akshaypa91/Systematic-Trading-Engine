@@ -255,6 +255,18 @@ async function getMarketStatus(req, res) {
  * GET /api/data/health  (NEW)
  * Verifies Twelve Data API connectivity and returns cache diagnostics.
  */
+// ── GET /api/data/candles/:symbol ── Upstox historical candles for the chart ──
+async function getCandles(req, res) {
+  try {
+    const interval = ['1minute', '30minute', 'day', 'week', 'month'].includes(req.query.interval) ? req.query.interval : 'day';
+    const days = Math.min(parseInt(req.query.days, 10) || 120, 400);
+    const out = await marketDataService.getCandles(req.params.symbol, { interval, days });
+    return res.json({ success: true, ...out });
+  } catch (err) {
+    return res.status(200).json({ success: false, candles: [], error: err.message });
+  }
+}
+
 // Cache the health snapshot briefly — healthCheck() probes live providers
 // (incl. a slow NSE fetch), so rapid status-bar polls should reuse a result.
 let _healthCache = { at: 0, body: null };
@@ -376,5 +388,5 @@ function searchStocks(req, res) {
 }
 
 module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
-  searchStocks
+  searchStocks, getCandles
 };
