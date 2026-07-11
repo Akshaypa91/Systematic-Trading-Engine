@@ -3,6 +3,7 @@
 
 const axios     = require('axios');
 const symbolMap = require('../config/symbolMap');
+const symbols   = require('../config/symbols');   // has toUpstox (instrument keys); symbolMap does not
 const logger    = require('../config/logger');
 
 let _upstoxWS = null;
@@ -40,7 +41,7 @@ async function _fetchUpstoxSnapshot(base) {
   const auth  = _getUpstoxAuth();
   const token = auth?.getAccessToken?.();
   if (!token) throw new Error('Upstox not authenticated');
-  const key = symbolMap.toUpstox(base);
+  const key = symbols.toUpstox(base);
   if (!key) throw new Error(`No instrument key for ${base}`);
   const res = await axios.get('https://api.upstox.com/v2/market-quote/ltp', {
     headers: { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' },
@@ -61,7 +62,7 @@ async function _fetchUpstoxSnapshot(base) {
 // [ts,o,h,l,c,vol,oi]; we normalise to ascending { t,o,h,l,c,v }.
 async function getCandles(symbol, { interval = 'day', days = 120 } = {}) {
   const base  = symbolMap.toBase(symbol);
-  const key   = symbolMap.toUpstox(base);
+  const key   = symbols.toUpstox(base);
   const token = _getUpstoxAuth()?.getAccessToken?.();
   if (!key)   return { symbol: base, interval, candles: [], source: 'NONE', error: `No instrument key for ${base}` };
   if (!token) return { symbol: base, interval, candles: [], source: 'NONE', error: 'Upstox not authenticated' };
