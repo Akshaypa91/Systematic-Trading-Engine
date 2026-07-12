@@ -67,7 +67,11 @@ export default function SwingStrategy() {
   // sweep below when the backend doesn't have /api/swing yet.
   const runServerScan = useCallback(async () => {
     cancelRef.current = false;
-    await swingAPI.run();
+    const started = await swingAPI.run();
+    if (started.data?.error) {
+      setToast({ msg: started.data.error, type: 'error' });
+      return;
+    }
     setScan({ running: true, done: 0, total: 0, hits: [], at: null, server: true });
     for (;;) {
       if (cancelRef.current) { setScan(s => s && { ...s, running: false }); return; }
@@ -78,9 +82,8 @@ export default function SwingStrategy() {
       if (st.running) {
         setScan({ running: true, done: st.done, total: st.total || 1, hits, at: null, server: true });
       } else {
-        setScan({ running: false, done: st.total, total: st.total || 1, hits, at: st.finishedAt ? new Date(st.finishedAt) : new Date(), server: true });
-        const n = hits.filter(h => h.verdict === 'BREAKOUT').length;
-        setToast({ msg: n ? `${n} fresh breakout${n > 1 ? 's' : ''} found` : 'No fresh breakouts today — showing trend candidates', type: n ? 'success' : 'info' });
+        setScan({ running: false, done: st.total, total: st.total || 1, hits, at: st.finishedAt ? new Date(st.finishedAt) : new Date(), server: true, universe: st.universe });
+        setToast({ msg: hits.length ? `${hits.length} fresh breakout${hits.length > 1 ? 's' : ''} found` : 'No fresh breakouts — all rules strict, no signal today', type: hits.length ? 'success' : 'info' });
         return;
       }
     }
@@ -95,26 +98,23 @@ export default function SwingStrategy() {
       try {
         const r = await marketAPI.getCandles(sym, { interval: 'day', days: 420 });
         const rep = evaluateSwing(r.data?.candles || [], { capital, riskPct });
-        if (rep.ok && rep.verdict !== 'NO_SETUP') {
+        // STRICT: only report when every rule passes — no partial tiers.
+        if (rep.ok && rep.verdict === 'BREAKOUT') {
           hits.push({
             symbol: sym,
-            verdict: rep.verdict,
+            verdict: 'BREAKOUT',
             close: rep.close,
-            passed: rep.checks.filter(c => c.pass).length,
-            total: rep.checks.length,
             rr1: rep.levels.rr1,
             slPct: rep.levels.slPct,
-            freshBreak: rep.checks.find(c => c.key === 'fresh')?.pass,
           });
         }
       } catch { /* symbol failed — skip, keep scanning */ }
       setScan(s => s && ({ ...s, done: s.done + 1, hits: [...hits] }));
       await new Promise(res => setTimeout(res, 120)); // be gentle on the API
     }
-    hits.sort((a, b) => (a.verdict === b.verdict ? b.passed - a.passed : a.verdict === 'BREAKOUT' ? -1 : 1));
+    hits.sort((a, b) => b.rr1 - a.rr1);
     setScan({ running: false, done: UNIVERSE.length, total: UNIVERSE.length, hits, at: new Date() });
-    const n = hits.filter(h => h.verdict === 'BREAKOUT').length;
-    setToast({ msg: n ? `${n} fresh breakout${n > 1 ? 's' : ''} found` : 'No fresh breakouts today — showing trend candidates', type: n ? 'success' : 'info' });
+    setToast({ msg: hits.length ? `${hits.length} fresh breakout${hits.length > 1 ? 's' : ''} found` : 'No fresh breakouts — all rules strict, no signal today', type: hits.length ? 'success' : 'info' });
   }, [capital, riskPct]);
 
   // Dispatcher: server scan first, in-browser sweep as fallback.
@@ -235,7 +235,7 @@ export default function SwingStrategy() {
         <Card className="dash-section">
           <CardHeader
             title="Today's swing signals"
-            sub="Server scan across every supported symbol · extend the universe in config/symbols.js"
+            sub="All NSE-listed equities · strict — a stock appears only when every rule passes"
             action={
               scan?.running ? (
                 <Button variant="red" size="sm" icon={Square} onClick={() => { cancelRef.current = true; }}>
@@ -267,15 +267,15 @@ export default function SwingStrategy() {
 
           {!scan && (
             <p className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              Run a scan to list every stock currently passing the Fresh 52wk Breakout rules,
-              ranked by conditions met. Requires a connected Upstox session for candle history.
+              Scans every NSE-listed equity through the full rule set and lists only fresh
+              52-week breakouts. Requires a connected Upstox session. Full-market scan takes a few minutes.
             </p>
           )}
 
           {scan && !scan.running && scan.hits.length === 0 && (
             <p className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              No breakouts or trend candidates in the universe right now — breakouts are rare by design.
-              Try again after the next market close.
+              No stock passed all rules today. Fresh 52-week breakouts on 2× volume are rare —
+              that selectivity is the strategy. Re-scan after the next market close.
             </p>
           )}
 
@@ -288,31 +288,29 @@ export default function SwingStrategy() {
                   onClick={() => { setInput(h.symbol); analyze(h.symbol); }}
                   style={{
                     cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit', gap: 10,
-                    borderColor: h.verdict === 'BREAKOUT' ? 'color-mix(in srgb, var(--green) 35%, var(--border))' : undefined,
+                    borderColor: 'color-mix(in srgb, var(--green) 35%, var(--border))',
                   }}
                 >
                   <span className="ui-hstack" style={{ gap: 10, minWidth: 0 }}>
                     <span className="sym" style={{ fontSize: 12.5, minWidth: 92 }}>{h.symbol}</span>
-                    <Badge tone={h.verdict === 'BREAKOUT' ? 'buy' : 'hold'}>
-                      {h.verdict === 'BREAKOUT' ? 'BREAKOUT' : 'WATCHING'}
-                    </Badge>
+                    <Badge tone="buy">FRESH BREAKOUT</Badge>
                   </span>
                   <span className="ui-hstack" style={{ gap: 14, flexShrink: 0 }}>
-                    <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      {h.passed}/{h.total} rules
+                    <span className="mono nb-sm-up" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      SL −{Number(h.slPct).toFixed(1)}%
                     </span>
                     <span className="mono" style={{ fontSize: 11, color: 'var(--text-secondary)', minWidth: 78, textAlign: 'right' }}>
                       {money(h.close)}
                     </span>
-                    <span className="mono nb-sm-up" style={{ fontSize: 10.5, color: h.rr1 >= 1.5 ? 'var(--green)' : 'var(--text-muted)', minWidth: 66, textAlign: 'right' }}>
-                      R:R {h.rr1.toFixed(2)}
+                    <span className="mono" style={{ fontSize: 10.5, color: h.rr1 >= 1.5 ? 'var(--green)' : 'var(--text-muted)', minWidth: 66, textAlign: 'right' }}>
+                      R:R {Number(h.rr1).toFixed(2)}
                     </span>
                   </span>
                 </button>
               ))}
               {scan.at && (
                 <span className="mono" style={{ fontSize: 9.5, color: 'var(--text-dim)', textAlign: 'right', marginTop: 4 }}>
-                  Scanned {scan.at.toLocaleTimeString('en-IN', { hour12: false })} · tap a row for the full checklist &amp; trade plan
+                  Scanned {scan.universe || scan.total} stocks · {scan.at.toLocaleTimeString('en-IN', { hour12: false })} · tap a row for the full trade plan
                 </span>
               )}
             </div>
