@@ -1,5 +1,5 @@
 // src/utils/swingStrategy.js
-// "Fresh 52wk Breakout" swing strategy — by Akshay Pagare.
+// "Fresh 52wk Breakout" swing strategy — ADP Way, by Akshay Pagare.
 // Pure client-side evaluation over daily OHLCV candles from /api/data/candles.
 // Mirrors the TradingView Pine script 1:1 (plus the Chartink ATR band filter):
 //

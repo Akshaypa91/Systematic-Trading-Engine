@@ -289,7 +289,7 @@ export default function SwingStrategy() {
             </div>
             <div className="ui-grow" style={{ minWidth: 240 }}>
               <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)' }}>
-                Fresh 52wk Breakout <span style={{ color: 'var(--purple)' }}>· Akshay Pagare</span>
+                Fresh 52wk Breakout <span style={{ color: 'var(--purple)' }}>· ADP Way</span>
               </div>
               <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.6 }}>
                 Buy strength the day it proves itself: NIFTY-500 stocks in a rising 50/200-DMA uptrend,

@@ -1,5 +1,5 @@
 // src/services/swingScanService.js
-// "Fresh 52wk Breakout" swing scan — strategy by Akshay Pagare.
+// "Fresh 52wk Breakout" swing scan — ADP Way, strategy by Akshay Pagare.
 //
 // STRICT MODE: a stock is reported ONLY when EVERY rule passes — no partial
 // tiers, nothing added beyond the strategy:
