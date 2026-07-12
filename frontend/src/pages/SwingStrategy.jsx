@@ -57,12 +57,12 @@ function SignalRow({ symbol, date, entry, sl, slPct, t1, t2, rr1, onClick }) {
         borderColor: 'color-mix(in srgb, var(--green) 30%, var(--border))',
       }}
     >
-      <span className="ui-between" style={{ gap: 10 }}>
-        <span className="ui-hstack" style={{ gap: 10, minWidth: 0 }}>
-          <span className="sym" style={{ fontSize: 12.5 }}>{symbol}</span>
+      <span className="ui-between ui-wrap" style={{ gap: 8, rowGap: 4 }}>
+        <span className="ui-hstack ui-wrap" style={{ gap: 8, rowGap: 4, minWidth: 0 }}>
+          <span className="sym" style={{ fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis' }}>{symbol}</span>
           <Badge tone="buy">FRESH BREAKOUT</Badge>
         </span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(date)}</span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>{fmtDate(date)}</span>
       </span>
       <span className="ui-hstack ui-wrap" style={{ gap: 12, rowGap: 4 }}>
         {lv('Entry', entry, 'var(--cyan)')}
