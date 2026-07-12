@@ -1,0 +1,237 @@
+// src/pages/SwingStrategy.jsx
+// "Fresh 52wk Breakout" swing-trade setup scanner — strategy by Akshay Pagare.
+// Pulls real daily candles from /api/data/candles and evaluates the rule set
+// in utils/swingStrategy.js (same logic as the TradingView script). Frontend
+// only — no backend changes.
+import { useState, useCallback } from 'react';
+import AppShell from '../components/AppShell';
+import PriceChart from '../components/PriceChart';
+import Toast from '../components/Toast';
+import { marketAPI } from '../services/api';
+import { evaluateSwing } from '../utils/swingStrategy';
+import {
+  Rocket, Search, CheckCircle2, XCircle, RefreshCw, Target,
+  ShieldAlert, TrendingUp, Clock3, BadgeCheck,
+} from 'lucide-react';
+import { Card, CardHeader, Chip, Field, Input, Button, PageHeader } from '../components/ui';
+
+const QUICK = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'TATAMOTORS', 'BAJFINANCE'];
+const money = (v, d = 2) => v == null || !Number.isFinite(v) ? '—' : `₹${Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d })}`;
+
+const VERDICT = {
+  BREAKOUT: { label: 'FRESH 52WK BREAKOUT', color: 'var(--green)', sub: 'All conditions met — setup is live' },
+  WATCHING: { label: 'WATCHING',            color: 'var(--amber)', sub: 'Trend intact — waiting for a fresh breakout' },
+  NO_SETUP: { label: 'NO SETUP',            color: 'var(--red)',   sub: 'Core trend conditions not met' },
+};
+
+function LevelRow({ label, value, sub, color }) {
+  return (
+    <div className="ui-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+      <span className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{ textAlign: 'right' }}>
+        <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: color || 'var(--text-primary)' }}>{value}</span>
+        {sub && <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>{sub}</span>}
+      </span>
+    </div>
+  );
+}
+
+export default function SwingStrategy() {
+  const [symbol, setSymbol] = useState('');
+  const [input, setInput] = useState('');
+  const [capital, setCapital] = useState(200000);
+  const [riskPct, setRiskPct] = useState(1.0);
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const analyze = useCallback(async (symRaw, cap = capital, risk = riskPct) => {
+    const sym = String(symRaw || '').toUpperCase().trim();
+    if (!sym || sym.includes(' ')) { setToast({ msg: 'Enter a valid NSE symbol', type: 'error' }); return; }
+    setLoading(true); setReport(null); setSymbol(sym);
+    try {
+      const r = await marketAPI.getCandles(sym, { interval: 'day', days: 420 });
+      const candles = r.data?.candles || [];
+      const rep = evaluateSwing(candles, { capital: cap, riskPct: risk });
+      if (!rep.ok) {
+        setToast({ msg: rep.reason, type: 'error' });
+      } else {
+        setReport(rep);
+        const v = VERDICT[rep.verdict];
+        setToast({ msg: `${sym}: ${v.label}`, type: rep.verdict === 'BREAKOUT' ? 'success' : 'info' });
+      }
+    } catch (e) {
+      setToast({ msg: e.response?.data?.error || 'Could not load candles — connect Upstox for chart data', type: 'error' });
+    } finally { setLoading(false); }
+  }, [capital, riskPct]);
+
+  const v = report ? VERDICT[report.verdict] : null;
+  const L = report?.levels;
+
+  return (
+    <AppShell>
+      <main className="page-content" style={{ maxWidth: 1280 }}>
+        <PageHeader
+          title="Swing Setup"
+          subtitle="Fresh 52-week breakout system · NSE daily timeframe"
+          action={
+            <span className="ws-pill" style={{
+              background: 'color-mix(in srgb, var(--purple) 10%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--purple) 32%, transparent)',
+              color: 'var(--purple)', fontWeight: 700, gap: 6,
+            }}>
+              <BadgeCheck size={12} /> Strategy by Akshay Pagare
+            </span>
+          }
+        />
+
+        {/* Strategy pitch strip */}
+        <Card className="dash-section" style={{ borderColor: 'color-mix(in srgb, var(--purple) 18%, var(--border))' }}>
+          <div className="ui-hstack ui-wrap" style={{ gap: 16 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+              background: 'color-mix(in srgb, var(--purple) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--purple) 26%, transparent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Rocket size={19} style={{ color: 'var(--purple)' }} />
+            </div>
+            <div className="ui-grow" style={{ minWidth: 240 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)' }}>
+                Fresh 52wk Breakout <span style={{ color: 'var(--purple)' }}>· Investors Way</span>
+              </div>
+              <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.6 }}>
+                Buy strength the day it proves itself: NIFTY-500 stocks in a rising 50/200-DMA uptrend,
+                closing above their 52-week high for the first time on ≥2× volume. Risk 1% per trade,
+                book half at 1.5×ATR, half at 3×ATR, trail the rest — out in 15 sessions if it stalls.
+              </p>
+            </div>
+            <div className="ui-hstack" style={{ gap: 8, flexWrap: 'wrap' }}>
+              {['Trend-following', 'Volume-confirmed', '1% risk', 'R:R ≥ 1.5'].map(t => (
+                <span key={t} className="mono" style={{
+                  fontSize: 10, padding: '3px 9px', borderRadius: 99,
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)',
+                }}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Scanner controls */}
+        <Card className="dash-section">
+          <CardHeader title="Check a symbol" sub="Daily candles · needs ~1 year of history" />
+          <form
+            onSubmit={(e) => { e.preventDefault(); analyze(input); }}
+            className="ui-hstack ui-wrap"
+            style={{ gap: 12, alignItems: 'flex-end' }}
+          >
+            <Field label="NSE Symbol" style={{ flex: '2 1 180px' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Input value={input} onChange={e => setInput(e.target.value.toUpperCase())} placeholder="e.g. TATAMOTORS" style={{ paddingLeft: 32 }} />
+              </div>
+            </Field>
+            <Field label="Capital (₹)" style={{ flex: '1 1 120px' }}>
+              <Input type="number" min="10000" value={capital} onChange={e => setCapital(+e.target.value)} />
+            </Field>
+            <Field label="Risk %" style={{ flex: '0 1 90px' }}>
+              <Input type="number" step="0.25" min="0.25" max="5" value={riskPct} onChange={e => setRiskPct(+e.target.value)} />
+            </Field>
+            <Button type="submit" variant="primary" icon={Rocket} loading={loading} style={{ height: 38 }}>
+              {loading ? 'Scanning…' : 'Evaluate'}
+            </Button>
+          </form>
+          <div className="ui-hstack ui-wrap" style={{ gap: 6, marginTop: 12 }}>
+            <span className="section-label" style={{ alignSelf: 'center' }}>Quick:</span>
+            {QUICK.map(s => (
+              <Chip key={s} active={symbol === s} onClick={() => { setInput(s); analyze(s); }}>{s}</Chip>
+            ))}
+          </div>
+        </Card>
+
+        {/* Results */}
+        {report && (
+          <>
+            <div className="dash-grid-2 dash-section" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px' }}>
+              {/* Checklist */}
+              <Card className="fade-up">
+                <CardHeader
+                  title={`${symbol} — condition checklist`}
+                  sub={`Close ${money(report.close)} · ATR(14) ${money(report.atr)} (${(report.atrPct * 100).toFixed(2)}%)`}
+                  action={
+                    <span className="mono" style={{
+                      fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8,
+                      background: `color-mix(in srgb, ${v.color} 10%, transparent)`,
+                      border: `1px solid color-mix(in srgb, ${v.color} 32%, transparent)`,
+                      color: v.color, whiteSpace: 'nowrap',
+                    }}>{v.label}</span>
+                  }
+                />
+                <p className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 12 }}>{v.sub}</p>
+                <div className="ui-vstack" style={{ gap: 6 }}>
+                  {report.checks.map(c => (
+                    <div key={c.key} className="mini-tile" style={{ gap: 10 }}>
+                      <span className="ui-hstack" style={{ gap: 9, minWidth: 0 }}>
+                        {c.pass
+                          ? <CheckCircle2 size={14} style={{ color: 'var(--green)', flexShrink: 0 }} />
+                          : <XCircle size={14} style={{ color: 'var(--red)', flexShrink: 0 }} />}
+                        <span style={{ fontSize: 12.5, color: c.pass ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{c.label}</span>
+                      </span>
+                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>{c.detail}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Trade plan */}
+              <Card className="fade-up stagger-1">
+                <CardHeader title="Trade plan" sub={`₹${Number(L.risk).toLocaleString('en-IN')} at risk (${riskPct}%)`} action={<Target size={13} style={{ color: 'var(--text-muted)' }} />} />
+                <LevelRow label="Entry"            value={money(L.entry)} color="var(--cyan)" />
+                <LevelRow label="Stop loss"        value={money(L.sl)} sub={`−${L.slPct.toFixed(1)}%`} color="var(--red)" />
+                <LevelRow label="T1 · sell 50%"    value={money(L.t1)} sub={`R:R ${L.rr1.toFixed(2)}:1`} color="var(--green)" />
+                <LevelRow label="T2 · sell 50%"    value={money(L.t2)} sub={`R:R ${L.rr2.toFixed(2)}:1`} color="var(--green)" />
+                <LevelRow label="Quantity"         value={`${L.qty} shares`} sub={`${L.qtyHalf} + ${L.qty - L.qtyHalf}`} color="var(--purple)" />
+                <LevelRow
+                  label="SL width"
+                  value={`${L.slPct.toFixed(1)}% ${L.slPct <= 8 ? 'Good' : L.slPct <= 12 ? 'OK' : 'Wide — skip'}`}
+                  color={L.slPct <= 8 ? 'var(--green)' : L.slPct <= 12 ? 'var(--amber)' : 'var(--red)'}
+                />
+                <div className="ui-vstack" style={{ gap: 8, marginTop: 14 }}>
+                  <div className="ui-hstack" style={{ gap: 8 }}>
+                    <TrendingUp size={12} style={{ color: report.exits.trailExit ? 'var(--red)' : 'var(--text-muted)', flexShrink: 0 }} />
+                    <span className="mono" style={{ fontSize: 10.5, color: report.exits.trailExit ? 'var(--red)' : 'var(--text-muted)' }}>
+                      Trail exit: 2 closes below 10-EMA ({money(report.exits.ema10)}){report.exits.trailExit ? ' — TRIGGERED' : ''}
+                    </span>
+                  </div>
+                  <div className="ui-hstack" style={{ gap: 8 }}>
+                    <Clock3 size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>Time stop: exit after 15 sessions without progress</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Chart with the levels in context */}
+            <div className="dash-section">
+              <PriceChart symbol={symbol} height={340} />
+            </div>
+          </>
+        )}
+
+        {/* Disclaimer */}
+        <div className="ui-hstack" style={{ gap: 8, marginTop: 8 }}>
+          <ShieldAlert size={12} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
+          <p className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+            Educational tool — rule-based screening by Akshay Pagare, not investment advice. Markets carry risk; do your own research.
+          </p>
+        </div>
+      </main>
+
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
+          <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
+        </div>
+      )}
+    </AppShell>
+  );
+}

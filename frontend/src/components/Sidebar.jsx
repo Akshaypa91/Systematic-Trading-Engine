@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Zap, Search, TrendingUp, Radio, ArrowLeftRight,
-  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, ScrollText, Wallet, Activity,
+  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, Rocket, ScrollText, Wallet, Activity,
 } from 'lucide-react';
 
 const GROUPS = [
@@ -26,6 +26,7 @@ const GROUPS = [
       { to: '/screener',  icon: Search,     label: 'Screener',  kbd: 'G C' },
       { to: '/backtest',  icon: TrendingUp, label: 'Backtest',  kbd: 'G B' },
       { to: '/analytics', icon: BarChart2,  label: 'Analytics', kbd: 'G A' },
+      { to: '/swing',     icon: Rocket,     label: 'Swing Setup', kbd: 'G W' },
     ],
   },
   {

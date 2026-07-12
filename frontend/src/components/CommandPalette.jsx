@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, CornerDownLeft, LayoutDashboard, Zap, Radio, TrendingUp,
-  ArrowLeftRight, BookOpen, BarChart2, MessageSquare, Clock3, Flame,
+  ArrowLeftRight, BookOpen, BarChart2, MessageSquare, Clock3, Flame, Rocket,
 } from 'lucide-react';
 
 const PAGES = [
@@ -18,6 +18,7 @@ const PAGES = [
   { label: 'Screener',     path: '/screener',  icon: Search,          kbd: 'G C' },
   { label: 'Backtest',     path: '/backtest',  icon: TrendingUp,      kbd: 'G B' },
   { label: 'Analytics',    path: '/analytics', icon: BarChart2,       kbd: 'G A' },
+  { label: 'Swing Setup',  path: '/swing',     icon: Rocket,          kbd: 'G W' },
   { label: 'Journal',      path: '/journal',   icon: BookOpen,        kbd: 'G J' },
   { label: 'Feedback',     path: '/feedback',  icon: MessageSquare },
 ];

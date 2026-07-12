@@ -13,6 +13,7 @@ export const SHORTCUT_ROUTES = [
   { keys: 'g t', path: '/trade',     label: 'Trade' },
   { keys: 'g j', path: '/journal',   label: 'Journal' },
   { keys: 'g a', path: '/analytics', label: 'Analytics' },
+  { keys: 'g w', path: '/swing',     label: 'Swing Setup' },
 ];
 
 const ROUTE_MAP = SHORTCUT_ROUTES.reduce((m, r) => {

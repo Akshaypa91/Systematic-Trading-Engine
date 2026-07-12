@@ -22,6 +22,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const TradeJournal = lazy(() => import('./pages/TradeJournal'));
+const SwingStrategy = lazy(() => import('./pages/SwingStrategy'));
 
 function RouteFallback() {
   return (
@@ -91,6 +92,7 @@ export default function App() {
                 <Route path="/signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
                 <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/swing" element={<ProtectedRoute><SwingStrategy /></ProtectedRoute>} />
                 <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
                 <Route path="/journal" element={<ProtectedRoute><TradeJournal /></ProtectedRoute>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
