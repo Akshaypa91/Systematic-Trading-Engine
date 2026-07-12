@@ -7,7 +7,7 @@ import { useState, useCallback, useRef } from 'react';
 import AppShell from '../components/AppShell';
 import PriceChart from '../components/PriceChart';
 import Toast from '../components/Toast';
-import { marketAPI } from '../services/api';
+import { marketAPI, swingAPI } from '../services/api';
 import { evaluateSwing } from '../utils/swingStrategy';
 import {
   Rocket, Search, CheckCircle2, XCircle, RefreshCw, Target,
@@ -62,7 +62,31 @@ export default function SwingStrategy() {
   const [scan, setScan] = useState(null); // { running, done, total, hits: [], at }
   const cancelRef = useRef(false);
 
-  const runScan = useCallback(async () => {
+  // Preferred path: server-side scan (covers every backend-supported symbol,
+  // survives page reloads, one shared cache). Falls back to the in-browser
+  // sweep below when the backend doesn't have /api/swing yet.
+  const runServerScan = useCallback(async () => {
+    cancelRef.current = false;
+    await swingAPI.run();
+    setScan({ running: true, done: 0, total: 0, hits: [], at: null, server: true });
+    for (;;) {
+      if (cancelRef.current) { setScan(s => s && { ...s, running: false }); return; }
+      await new Promise(res => setTimeout(res, 2500));
+      const r = await swingAPI.state();
+      const st = r.data;
+      const hits = (st.hits || []).map(h => ({ ...h }));
+      if (st.running) {
+        setScan({ running: true, done: st.done, total: st.total || 1, hits, at: null, server: true });
+      } else {
+        setScan({ running: false, done: st.total, total: st.total || 1, hits, at: st.finishedAt ? new Date(st.finishedAt) : new Date(), server: true });
+        const n = hits.filter(h => h.verdict === 'BREAKOUT').length;
+        setToast({ msg: n ? `${n} fresh breakout${n > 1 ? 's' : ''} found` : 'No fresh breakouts today — showing trend candidates', type: n ? 'success' : 'info' });
+        return;
+      }
+    }
+  }, []);
+
+  const runClientScan = useCallback(async () => {
     cancelRef.current = false;
     setScan({ running: true, done: 0, total: UNIVERSE.length, hits: [], at: null });
     const hits = [];
@@ -92,6 +116,16 @@ export default function SwingStrategy() {
     const n = hits.filter(h => h.verdict === 'BREAKOUT').length;
     setToast({ msg: n ? `${n} fresh breakout${n > 1 ? 's' : ''} found` : 'No fresh breakouts today — showing trend candidates', type: n ? 'success' : 'info' });
   }, [capital, riskPct]);
+
+  // Dispatcher: server scan first, in-browser sweep as fallback.
+  const runScan = useCallback(async () => {
+    try {
+      await runServerScan();
+    } catch (e) {
+      if (e.response?.status === 404) runClientScan();
+      else setToast({ msg: e.response?.data?.error || 'Scan failed — is the backend running?', type: 'error' });
+    }
+  }, [runServerScan, runClientScan]);
 
   const analyze = useCallback(async (symRaw, cap = capital, risk = riskPct) => {
     const sym = String(symRaw || '').toUpperCase().trim();
@@ -201,7 +235,7 @@ export default function SwingStrategy() {
         <Card className="dash-section">
           <CardHeader
             title="Today's swing signals"
-            sub={`Scans ${UNIVERSE.length} NIFTY-50 stocks through every rule · ~1 min`}
+            sub="Server scan across every supported symbol · extend the universe in config/symbols.js"
             action={
               scan?.running ? (
                 <Button variant="red" size="sm" icon={Square} onClick={() => { cancelRef.current = true; }}>

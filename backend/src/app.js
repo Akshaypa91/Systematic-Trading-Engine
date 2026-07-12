@@ -31,6 +31,7 @@ const liveRoutes     = require('./routes/live');
 const feedbackRoutes = require('./routes/feedback');
 const tradeJournalRoutes = require('./routes/tradeJournal');
 const portfolioRoutes = require('./routes/portfolio');
+const swingRoutes    = require('./routes/swing');
 
 const liveDataFeed = require('./data/liveDataFeed');
 const scheduler    = require('./engine/scheduler');
@@ -146,6 +147,7 @@ app.use('/api/screener', screenerRoutes);
 app.use('/api/sim',      simRoutes);
 app.use('/api/live',     liveRoutes);
 app.use('/api/portfolio', portfolioRoutes);  // previously built but never mounted
+app.use('/api/swing',    swingRoutes);      // Fresh 52wk Breakout scan (Akshay Pagare)
 app.use('/api',          allRoutes);        // catch-all last
 
 // ── Error handling ────────────────────────────────────────────────────────────

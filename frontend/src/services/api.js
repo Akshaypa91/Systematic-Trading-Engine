@@ -118,6 +118,11 @@ export const marketAPI = {
   getMarketStatus: () => api.get('/data/market-status'),
 };
 
+export const swingAPI = {
+  state: () => api.get('/swing/scan'),
+  run:   () => api.post('/swing/scan/run'),
+};
+
 export const manualTradeAPI = {
   place: (symbol, action, qty) =>
     api.post('/trade/manual', { symbol, action, qty }),
