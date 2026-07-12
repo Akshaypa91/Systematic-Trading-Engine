@@ -116,30 +116,78 @@ export default function SwingStrategy() {
   // Preferred path: server-side scan (covers every backend-supported symbol,
   // survives page reloads, one shared cache). Falls back to the in-browser
   // sweep below when the backend doesn't have /api/swing yet.
-  const runServerScan = useCallback(async () => {
-    cancelRef.current = false;
-    const started = await swingAPI.run();
-    if (started.data?.error) {
-      setToast({ msg: started.data.error, type: 'error' });
-      return;
-    }
-    setScan({ running: true, done: 0, total: 0, hits: [], at: null, server: true });
+  const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+  // Poll the server scan until it finishes. Tolerates transient 5xx blips
+  // (Render cold starts / restarts) instead of aborting the whole watch.
+  const pollScan = useCallback(async ({ announce = true } = {}) => {
+    let misses = 0;
     for (;;) {
       if (cancelRef.current) { setScan(s => s && { ...s, running: false }); return; }
-      await new Promise(res => setTimeout(res, 2500));
-      const r = await swingAPI.state();
-      const st = r.data;
+      let st;
+      try {
+        st = (await swingAPI.state()).data;
+        misses = 0;
+      } catch {
+        misses += 1;
+        if (misses >= 8) { setToast({ msg: 'Lost contact with the backend — it may be restarting. Re-scan in a minute.', type: 'error' }); return; }
+        await sleep(4000);
+        continue;
+      }
       const hits = (st.hits || []).map(h => ({ ...h }));
       if (st.running) {
         setScan({ running: true, done: st.done, total: st.total || 1, hits, at: null, server: true });
+        await sleep(2500);
       } else {
         setScan({ running: false, done: st.total, total: st.total || 1, hits, at: st.finishedAt ? new Date(st.finishedAt) : new Date(), server: true, universe: st.universe });
-        setToast({ msg: hits.length ? `${hits.length} fresh breakout${hits.length > 1 ? 's' : ''} found` : 'No fresh breakouts — all rules strict, no signal today', type: hits.length ? 'success' : 'info' });
+        if (announce) {
+          setToast({ msg: hits.length ? `${hits.length} fresh breakout${hits.length > 1 ? 's' : ''} found` : 'No fresh breakouts — all rules strict, no signal today', type: hits.length ? 'success' : 'info' });
+        }
         loadHistory(); // scan results are persisted server-side
         return;
       }
     }
   }, [loadHistory]);
+
+  const runServerScan = useCallback(async () => {
+    cancelRef.current = false;
+    try {
+      const started = await swingAPI.run();
+      if (started.data?.error) {
+        setToast({ msg: started.data.error, type: 'error' });
+        return;
+      }
+    } catch (e) {
+      // POST failed (502 during deploy/cold start?). If a scan is already
+      // running server-side, just attach to it instead of erroring out.
+      const st = await swingAPI.state().then(r => r.data).catch(() => null);
+      if (!st?.running) throw e;
+    }
+    setScan({ running: true, done: 0, total: 0, hits: [], at: null, server: true });
+    await pollScan();
+  }, [pollScan]);
+
+  // On mount: if a server scan is already running (started earlier, page was
+  // reloaded, or another device kicked it off), resume watching it; if a
+  // finished scan is cached, show its results.
+  useEffect(() => {
+    let alive = true;
+    swingAPI.state().then(r => {
+      if (!alive) return;
+      const st = r.data;
+      if (st?.running) {
+        cancelRef.current = false;
+        setScan({ running: true, done: st.done, total: st.total || 1, hits: st.hits || [], at: null, server: true });
+        pollScan({ announce: false });
+      } else if (st?.finishedAt) {
+        setScan({
+          running: false, done: st.total, total: st.total || 1,
+          hits: st.hits || [], at: new Date(st.finishedAt), server: true, universe: st.universe,
+        });
+      }
+    }).catch(() => {}); // older backend / asleep — ignore
+    return () => { alive = false; cancelRef.current = true; };
+  }, [pollScan]);
 
   const runClientScan = useCallback(async () => {
     cancelRef.current = false;
@@ -180,7 +228,11 @@ export default function SwingStrategy() {
       await runServerScan();
     } catch (e) {
       if (e.response?.status === 404) runClientScan();
-      else setToast({ msg: e.response?.data?.error || 'Scan failed — is the backend running?', type: 'error' });
+      else if (!e.response || e.response.status >= 500) {
+        setToast({ msg: 'Backend is waking up or redeploying — try again in ~1 minute.', type: 'error' });
+      } else {
+        setToast({ msg: e.response?.data?.error || 'Scan failed', type: 'error' });
+      }
     }
   }, [runServerScan, runClientScan]);
 
