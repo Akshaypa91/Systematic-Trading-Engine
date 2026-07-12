@@ -6,11 +6,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWS } from '../context/WSContext';
 import {
-  LogOut, Zap, WifiOff, RefreshCw, Menu, X, Search, Bell,
+  LogOut, WifiOff, RefreshCw, Menu, X, Search, Bell,
   BookOpen, MessageSquare, ChevronDown, ArrowLeftRight,
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import CommandPalette from './CommandPalette';
+import BrandMark from './BrandMark';
 import TradingModeToggle from './TradingModeToggle';
 import { useTradingMode } from '../context/TradingModeContext';
 
@@ -109,15 +110,8 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
       </button>
 
       {/* Brand */}
-      <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none', flexShrink: 0 }}>
-        <div style={{
-          width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-          background: 'color-mix(in srgb, var(--cyan) 12%, transparent)',
-          border: '1px solid color-mix(in srgb, var(--cyan) 22%, transparent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Zap size={12} style={{ color: 'var(--cyan)' }} />
-        </div>
+      <Link to="/" className="flex items-center gap-2" style={{ textDecoration: 'none', flexShrink: 0 }} aria-label="SYSTRA home">
+        <BrandMark size={27} />
         <span className="nb-brand-text" style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.07em' }}>
           SYSTRA
         </span>
