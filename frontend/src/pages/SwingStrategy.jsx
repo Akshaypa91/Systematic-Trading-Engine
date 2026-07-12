@@ -3,7 +3,7 @@
 // Pulls real daily candles from /api/data/candles and evaluates the rule set
 // in utils/swingStrategy.js (same logic as the TradingView script). Frontend
 // only — no backend changes.
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import AppShell from '../components/AppShell';
 import PriceChart from '../components/PriceChart';
 import Toast from '../components/Toast';
@@ -11,11 +11,24 @@ import { marketAPI } from '../services/api';
 import { evaluateSwing } from '../utils/swingStrategy';
 import {
   Rocket, Search, CheckCircle2, XCircle, RefreshCw, Target,
-  ShieldAlert, TrendingUp, Clock3, BadgeCheck,
+  ShieldAlert, TrendingUp, Clock3, BadgeCheck, Radar, Square,
 } from 'lucide-react';
-import { Card, CardHeader, Chip, Field, Input, Button, PageHeader } from '../components/ui';
+import { Card, CardHeader, Chip, Field, Input, Button, PageHeader, Badge } from '../components/ui';
 
 const QUICK = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'TATAMOTORS', 'BAJFINANCE'];
+
+// Scan universe — NIFTY-50 constituents (edit freely; & symbols omitted as
+// they need URL-encoding the candles route doesn't do).
+const UNIVERSE = [
+  'RELIANCE', 'HDFCBANK', 'ICICIBANK', 'INFY', 'TCS', 'ITC', 'LT', 'AXISBANK',
+  'SBIN', 'BHARTIARTL', 'KOTAKBANK', 'ASIANPAINT', 'HINDUNILVR', 'BAJFINANCE',
+  'MARUTI', 'TITAN', 'SUNPHARMA', 'ULTRACEMCO', 'NTPC', 'POWERGRID',
+  'TATASTEEL', 'TATAMOTORS', 'WIPRO', 'HCLTECH', 'TECHM', 'ADANIENT',
+  'ADANIPORTS', 'JSWSTEEL', 'NESTLEIND', 'GRASIM', 'CIPLA', 'DRREDDY',
+  'APOLLOHOSP', 'BAJAJFINSV', 'BRITANNIA', 'COALINDIA', 'EICHERMOT',
+  'HEROMOTOCO', 'HINDALCO', 'INDUSINDBK', 'ONGC', 'SBILIFE', 'HDFCLIFE',
+  'TATACONSUM', 'BPCL', 'SHRIRAMFIN', 'BAJAJ-AUTO', 'DIVISLAB', 'UPL', 'TRENT',
+];
 const money = (v, d = 2) => v == null || !Number.isFinite(v) ? '—' : `₹${Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d })}`;
 
 const VERDICT = {
@@ -44,6 +57,41 @@ export default function SwingStrategy() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // Universe scan state
+  const [scan, setScan] = useState(null); // { running, done, total, hits: [], at }
+  const cancelRef = useRef(false);
+
+  const runScan = useCallback(async () => {
+    cancelRef.current = false;
+    setScan({ running: true, done: 0, total: UNIVERSE.length, hits: [], at: null });
+    const hits = [];
+    for (const sym of UNIVERSE) {
+      if (cancelRef.current) break;
+      try {
+        const r = await marketAPI.getCandles(sym, { interval: 'day', days: 420 });
+        const rep = evaluateSwing(r.data?.candles || [], { capital, riskPct });
+        if (rep.ok && rep.verdict !== 'NO_SETUP') {
+          hits.push({
+            symbol: sym,
+            verdict: rep.verdict,
+            close: rep.close,
+            passed: rep.checks.filter(c => c.pass).length,
+            total: rep.checks.length,
+            rr1: rep.levels.rr1,
+            slPct: rep.levels.slPct,
+            freshBreak: rep.checks.find(c => c.key === 'fresh')?.pass,
+          });
+        }
+      } catch { /* symbol failed — skip, keep scanning */ }
+      setScan(s => s && ({ ...s, done: s.done + 1, hits: [...hits] }));
+      await new Promise(res => setTimeout(res, 120)); // be gentle on the API
+    }
+    hits.sort((a, b) => (a.verdict === b.verdict ? b.passed - a.passed : a.verdict === 'BREAKOUT' ? -1 : 1));
+    setScan({ running: false, done: UNIVERSE.length, total: UNIVERSE.length, hits, at: new Date() });
+    const n = hits.filter(h => h.verdict === 'BREAKOUT').length;
+    setToast({ msg: n ? `${n} fresh breakout${n > 1 ? 's' : ''} found` : 'No fresh breakouts today — showing trend candidates', type: n ? 'success' : 'info' });
+  }, [capital, riskPct]);
 
   const analyze = useCallback(async (symRaw, cap = capital, risk = riskPct) => {
     const sym = String(symRaw || '').toUpperCase().trim();
@@ -147,6 +195,94 @@ export default function SwingStrategy() {
               <Chip key={s} active={symbol === s} onClick={() => { setInput(s); analyze(s); }}>{s}</Chip>
             ))}
           </div>
+        </Card>
+
+        {/* ── Universe scan: today's signals ── */}
+        <Card className="dash-section">
+          <CardHeader
+            title="Today's swing signals"
+            sub={`Scans ${UNIVERSE.length} NIFTY-50 stocks through every rule · ~1 min`}
+            action={
+              scan?.running ? (
+                <Button variant="red" size="sm" icon={Square} onClick={() => { cancelRef.current = true; }}>
+                  Stop
+                </Button>
+              ) : (
+                <Button variant="primary" size="sm" icon={Radar} onClick={runScan}>
+                  {scan ? 'Re-scan' : 'Scan for signals'}
+                </Button>
+              )
+            }
+          />
+
+          {scan?.running && (
+            <div style={{ marginBottom: 14 }}>
+              <div className="ui-between" style={{ marginBottom: 6 }}>
+                <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                  Scanning… {scan.done}/{scan.total}
+                </span>
+                <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-secondary)' }}>
+                  {scan.hits.length} candidate{scan.hits.length !== 1 ? 's' : ''} so far
+                </span>
+              </div>
+              <div className="meter">
+                <span style={{ width: `${(scan.done / scan.total) * 100}%`, background: 'var(--cyan)' }} />
+              </div>
+            </div>
+          )}
+
+          {!scan && (
+            <p className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              Run a scan to list every stock currently passing the Fresh 52wk Breakout rules,
+              ranked by conditions met. Requires a connected Upstox session for candle history.
+            </p>
+          )}
+
+          {scan && !scan.running && scan.hits.length === 0 && (
+            <p className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              No breakouts or trend candidates in the universe right now — breakouts are rare by design.
+              Try again after the next market close.
+            </p>
+          )}
+
+          {scan?.hits.length > 0 && (
+            <div className="ui-vstack" style={{ gap: 6 }}>
+              {scan.hits.map(h => (
+                <button
+                  key={h.symbol}
+                  className="mini-tile"
+                  onClick={() => { setInput(h.symbol); analyze(h.symbol); }}
+                  style={{
+                    cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit', gap: 10,
+                    borderColor: h.verdict === 'BREAKOUT' ? 'color-mix(in srgb, var(--green) 35%, var(--border))' : undefined,
+                  }}
+                >
+                  <span className="ui-hstack" style={{ gap: 10, minWidth: 0 }}>
+                    <span className="sym" style={{ fontSize: 12.5, minWidth: 92 }}>{h.symbol}</span>
+                    <Badge tone={h.verdict === 'BREAKOUT' ? 'buy' : 'hold'}>
+                      {h.verdict === 'BREAKOUT' ? 'BREAKOUT' : 'WATCHING'}
+                    </Badge>
+                  </span>
+                  <span className="ui-hstack" style={{ gap: 14, flexShrink: 0 }}>
+                    <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      {h.passed}/{h.total} rules
+                    </span>
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--text-secondary)', minWidth: 78, textAlign: 'right' }}>
+                      {money(h.close)}
+                    </span>
+                    <span className="mono nb-sm-up" style={{ fontSize: 10.5, color: h.rr1 >= 1.5 ? 'var(--green)' : 'var(--text-muted)', minWidth: 66, textAlign: 'right' }}>
+                      R:R {h.rr1.toFixed(2)}
+                    </span>
+                  </span>
+                </button>
+              ))}
+              {scan.at && (
+                <span className="mono" style={{ fontSize: 9.5, color: 'var(--text-dim)', textAlign: 'right', marginTop: 4 }}>
+                  Scanned {scan.at.toLocaleTimeString('en-IN', { hour12: false })} · tap a row for the full checklist &amp; trade plan
+                </span>
+              )}
+            </div>
+          )}
         </Card>
 
         {/* Results */}
