@@ -18,4 +18,14 @@ router.post('/scan/run', requireAuth, async (req, res) => {
   res.json({ success: true, ...out });
 });
 
+// Persisted signal history (deduped per day+symbol)
+router.get('/history', requireAuth, async (req, res) => {
+  try {
+    const signals = await swingScan.getHistory({ limit: req.query.limit });
+    res.json({ success: true, signals });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

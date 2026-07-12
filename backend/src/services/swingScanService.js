@@ -21,6 +21,7 @@ const axios = require('axios');
 const zlib = require('zlib');
 const symbols = require('../config/symbols');
 const logger = require('../config/logger');
+const db = require('../config/database');
 
 const MASTER_URL = 'https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz';
 const MASTER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -163,6 +164,7 @@ function evaluateSwing(candles) {
   return {
     ok: true,
     breakout: true,
+    signalDate: String(last(candles).t).slice(0, 10),
     close,
     entry: Number(entry.toFixed(2)),
     sl: Number(sl.toFixed(2)),
@@ -172,6 +174,61 @@ function evaluateSwing(candles) {
     rr1: Number((slDist > 0 ? (entry + 1.5 * atr - entry) / slDist : 0).toFixed(2)),
     rr2: Number((slDist > 0 ? (entry + 3.0 * atr - entry) / slDist : 0).toFixed(2)),
   };
+}
+
+// ── Signal history persistence (TiDB) ─────────────────────────────────────────
+let _tableReady = false;
+async function ensureTable() {
+  if (_tableReady) return;
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS swing_signals (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      signal_date DATE NOT NULL,
+      symbol VARCHAR(40) NOT NULL,
+      close_price DECIMAL(14,2),
+      entry DECIMAL(14,2),
+      sl DECIMAL(14,2),
+      sl_pct DECIMAL(7,2),
+      t1 DECIMAL(14,2),
+      t2 DECIMAL(14,2),
+      rr1 DECIMAL(7,2),
+      rr2 DECIMAL(7,2),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_signal (signal_date, symbol)
+    )
+  `);
+  _tableReady = true;
+}
+
+async function persistHits(hits) {
+  if (!hits.length) return;
+  try {
+    await ensureTable();
+    for (const h of hits) {
+      // INSERT IGNORE: re-scanning the same day never duplicates a signal
+      await db.query(
+        `INSERT IGNORE INTO swing_signals
+           (signal_date, symbol, close_price, entry, sl, sl_pct, t1, t2, rr1, rr2)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [h.signalDate, h.symbol, h.close, h.entry, h.sl, h.slPct, h.t1, h.t2, h.rr1, h.rr2]
+      );
+    }
+    logger.info(`[SwingScan] Persisted ${hits.length} signal(s) to history`);
+  } catch (err) {
+    logger.warn(`[SwingScan] History persist failed (non-fatal): ${err.message}`);
+  }
+}
+
+async function getHistory({ limit = 200 } = {}) {
+  await ensureTable();
+  const [rows] = await db.query(
+    `SELECT signal_date, symbol, close_price, entry, sl, sl_pct, t1, t2, rr1, rr2, created_at
+       FROM swing_signals
+      ORDER BY signal_date DESC, rr1 DESC
+      LIMIT ?`,
+    [Math.min(Number(limit) || 200, 500)]
+  );
+  return rows;
 }
 
 // ── Scan state ────────────────────────────────────────────────────────────────
@@ -231,6 +288,7 @@ async function runScan() {
     state.running = false;
     state.finishedAt = new Date().toISOString();
     logger.info(`[SwingScan] Done — ${state.hits.length} fresh breakouts, ${state.errors} fetch errors`);
+    await persistHits(state.hits);
   })().catch(err => {
     state.running = false;
     state.finishedAt = new Date().toISOString();
@@ -245,4 +303,4 @@ function getState() {
   return { ...state };
 }
 
-module.exports = { runScan, getState, evaluateSwing };
+module.exports = { runScan, getState, getHistory, evaluateSwing };

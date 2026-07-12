@@ -3,7 +3,7 @@
 // Pulls real daily candles from /api/data/candles and evaluates the rule set
 // in utils/swingStrategy.js (same logic as the TradingView script). Frontend
 // only — no backend changes.
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import AppShell from '../components/AppShell';
 import PriceChart from '../components/PriceChart';
 import Toast from '../components/Toast';
@@ -37,6 +37,48 @@ const VERDICT = {
   NO_SETUP: { label: 'NO SETUP',            color: 'var(--red)',   sub: 'Core trend conditions not met' },
 };
 
+const fmtDate = (d) => d ? new Date(String(d).slice(0, 10)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+/* Signal row — symbol + date on top, full trade levels below. Used for both
+   today's scan hits and the persisted history. */
+function SignalRow({ symbol, date, entry, sl, slPct, t1, t2, rr1, onClick }) {
+  const lv = (label, val, color) => (
+    <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+      {label} <b style={{ color, fontWeight: 700 }}>{money(val)}</b>
+    </span>
+  );
+  return (
+    <button
+      className="mini-tile"
+      onClick={onClick}
+      style={{
+        flexDirection: 'column', alignItems: 'stretch', gap: 7,
+        cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit',
+        borderColor: 'color-mix(in srgb, var(--green) 30%, var(--border))',
+      }}
+    >
+      <span className="ui-between" style={{ gap: 10 }}>
+        <span className="ui-hstack" style={{ gap: 10, minWidth: 0 }}>
+          <span className="sym" style={{ fontSize: 12.5 }}>{symbol}</span>
+          <Badge tone="buy">FRESH BREAKOUT</Badge>
+        </span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(date)}</span>
+      </span>
+      <span className="ui-hstack ui-wrap" style={{ gap: 12, rowGap: 4 }}>
+        {lv('Entry', entry, 'var(--cyan)')}
+        <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+          SL <b style={{ color: 'var(--red)', fontWeight: 700 }}>{money(sl)}</b> (−{Number(slPct).toFixed(1)}%)
+        </span>
+        {lv('T1', t1, 'var(--green)')}
+        {lv('T2', t2, 'var(--green)')}
+        <span className="mono" style={{ fontSize: 10.5, color: Number(rr1) >= 1.5 ? 'var(--green)' : 'var(--text-muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+          R:R {Number(rr1).toFixed(2)}:1
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function LevelRow({ label, value, sub, color }) {
   return (
     <div className="ui-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
@@ -62,6 +104,15 @@ export default function SwingStrategy() {
   const [scan, setScan] = useState(null); // { running, done, total, hits: [], at }
   const cancelRef = useRef(false);
 
+  // Persisted signal history (server, deduped per day+symbol)
+  const [history, setHistory] = useState([]);
+  const loadHistory = useCallback(() => {
+    swingAPI.history(200)
+      .then(r => setHistory(r.data?.signals || []))
+      .catch(() => {}); // older backend — hide the section
+  }, []);
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
   // Preferred path: server-side scan (covers every backend-supported symbol,
   // survives page reloads, one shared cache). Falls back to the in-browser
   // sweep below when the backend doesn't have /api/swing yet.
@@ -84,10 +135,11 @@ export default function SwingStrategy() {
       } else {
         setScan({ running: false, done: st.total, total: st.total || 1, hits, at: st.finishedAt ? new Date(st.finishedAt) : new Date(), server: true, universe: st.universe });
         setToast({ msg: hits.length ? `${hits.length} fresh breakout${hits.length > 1 ? 's' : ''} found` : 'No fresh breakouts — all rules strict, no signal today', type: hits.length ? 'success' : 'info' });
+        loadHistory(); // scan results are persisted server-side
         return;
       }
     }
-  }, []);
+  }, [loadHistory]);
 
   const runClientScan = useCallback(async () => {
     cancelRef.current = false;
@@ -103,9 +155,14 @@ export default function SwingStrategy() {
           hits.push({
             symbol: sym,
             verdict: 'BREAKOUT',
+            signalDate: new Date().toISOString().slice(0, 10),
             close: rep.close,
-            rr1: rep.levels.rr1,
+            entry: rep.levels.entry,
+            sl: rep.levels.sl,
             slPct: rep.levels.slPct,
+            t1: rep.levels.t1,
+            t2: rep.levels.t2,
+            rr1: rep.levels.rr1,
           });
         }
       } catch { /* symbol failed — skip, keep scanning */ }
@@ -282,31 +339,13 @@ export default function SwingStrategy() {
           {scan?.hits.length > 0 && (
             <div className="ui-vstack" style={{ gap: 6 }}>
               {scan.hits.map(h => (
-                <button
+                <SignalRow
                   key={h.symbol}
-                  className="mini-tile"
+                  symbol={h.symbol}
+                  date={h.signalDate}
+                  entry={h.entry} sl={h.sl} slPct={h.slPct} t1={h.t1} t2={h.t2} rr1={h.rr1}
                   onClick={() => { setInput(h.symbol); analyze(h.symbol); }}
-                  style={{
-                    cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit', gap: 10,
-                    borderColor: 'color-mix(in srgb, var(--green) 35%, var(--border))',
-                  }}
-                >
-                  <span className="ui-hstack" style={{ gap: 10, minWidth: 0 }}>
-                    <span className="sym" style={{ fontSize: 12.5, minWidth: 92 }}>{h.symbol}</span>
-                    <Badge tone="buy">FRESH BREAKOUT</Badge>
-                  </span>
-                  <span className="ui-hstack" style={{ gap: 14, flexShrink: 0 }}>
-                    <span className="mono nb-sm-up" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      SL −{Number(h.slPct).toFixed(1)}%
-                    </span>
-                    <span className="mono" style={{ fontSize: 11, color: 'var(--text-secondary)', minWidth: 78, textAlign: 'right' }}>
-                      {money(h.close)}
-                    </span>
-                    <span className="mono" style={{ fontSize: 10.5, color: h.rr1 >= 1.5 ? 'var(--green)' : 'var(--text-muted)', minWidth: 66, textAlign: 'right' }}>
-                      R:R {Number(h.rr1).toFixed(2)}
-                    </span>
-                  </span>
-                </button>
+                />
               ))}
               {scan.at && (
                 <span className="mono" style={{ fontSize: 9.5, color: 'var(--text-dim)', textAlign: 'right', marginTop: 4 }}>
@@ -316,6 +355,41 @@ export default function SwingStrategy() {
             </div>
           )}
         </Card>
+
+        {/* ── Signal history (persisted server-side, deduped per day) ── */}
+        {history.length > 0 && (
+          <Card className="dash-section">
+            <CardHeader
+              title="Signal history"
+              sub={`${history.length} signal${history.length !== 1 ? 's' : ''} recorded · every scan saves new breakouts with their date`}
+              action={<Clock3 size={13} style={{ color: 'var(--text-muted)' }} />}
+            />
+            <div className="ui-vstack" style={{ gap: 14, maxHeight: 560, overflowY: 'auto' }} >
+              {Object.entries(
+                history.reduce((g, s) => {
+                  const d = String(s.signal_date).slice(0, 10);
+                  (g[d] = g[d] || []).push(s);
+                  return g;
+                }, {})
+              ).map(([date, rows]) => (
+                <div key={date} className="ui-vstack" style={{ gap: 6, flexShrink: 0 }}>
+                  <div className="section-label" style={{ paddingBottom: 2, borderBottom: '1px solid var(--border)' }}>
+                    {fmtDate(date)} · {rows.length} signal{rows.length !== 1 ? 's' : ''}
+                  </div>
+                  {rows.map(s => (
+                    <SignalRow
+                      key={`${date}-${s.symbol}`}
+                      symbol={s.symbol}
+                      date={date}
+                      entry={s.entry} sl={s.sl} slPct={s.sl_pct} t1={s.t1} t2={s.t2} rr1={s.rr1}
+                      onClick={() => { setInput(s.symbol); analyze(s.symbol); }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Results */}
         {report && (

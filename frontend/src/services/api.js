@@ -119,8 +119,9 @@ export const marketAPI = {
 };
 
 export const swingAPI = {
-  state: () => api.get('/swing/scan'),
-  run:   () => api.post('/swing/scan/run'),
+  state:   () => api.get('/swing/scan'),
+  run:     () => api.post('/swing/scan/run'),
+  history: (limit) => api.get('/swing/history', { params: { limit } }),
 };
 
 export const manualTradeAPI = {
