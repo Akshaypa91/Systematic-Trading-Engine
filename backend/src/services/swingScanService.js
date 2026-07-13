@@ -26,9 +26,10 @@ const db = require('../config/database');
 const MASTER_URL = 'https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz';
 const MASTER_TTL_MS = 24 * 60 * 60 * 1000;
 const CANDLE_DAYS = 400;            // calendar days → ~270 trading candles
-const CONCURRENCY = 4;
-const STAGGER_MS = 60;              // pacing per worker between requests
+const CONCURRENCY = 6;
+const STAGGER_MS = 40;              // pacing per worker between requests
 const TIMEOUT_MS = 10000;
+const QUOTE_CHUNK = 200;            // batch size for the quote pre-filter
 
 function _getUpstoxAuth() {
   try { return require('./upstoxAuth'); } catch { return null; }
@@ -62,6 +63,52 @@ async function getUniverse() {
     logger.warn(`[SwingScan] Instrument master unavailable (${err.message}) — falling back to mapped symbols`);
     return symbols.allSymbols().map(s => ({ symbol: s, key: symbols.toUpstox(s) })).filter(e => e.key);
   }
+}
+
+// ── Quote pre-filter ──────────────────────────────────────────────────────────
+// Three of the strategy's rules need only the latest quote:
+//   price_ok  ltp > ₹50
+//   liq_ok    volume × ltp > ₹2 Cr
+//   move_ok   ltp > prev close × 1.005   (prev close = ltp − net_change)
+// Batch quotes (200 instruments/call) knock out ~90% of the market in ~12
+// requests, so full candle history is fetched only for the survivors.
+// This is a strict SUBSET of the rules — it can never change the results.
+// On any chunk failure we fail OPEN (keep those symbols for the full check).
+async function prefilterUniverse(universe, token, sleep) {
+  const survivors = [];
+  const headers = { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' };
+  for (let i = 0; i < universe.length; i += QUOTE_CHUNK) {
+    const chunk = universe.slice(i, i + QUOTE_CHUNK);
+    try {
+      const url = 'https://api.upstox.com/v2/market-quote/quotes?instrument_key='
+        + encodeURIComponent(chunk.map(e => e.key).join(','));
+      const res = await axios.get(url, { headers, timeout: 20000 });
+      const data = res.data?.data || {};
+      // Response keys vary ('SEG:ISIN' or 'SEG:SYMBOL') — index both ways.
+      const byKey = {};
+      for (const [k, v] of Object.entries(data)) {
+        byKey[k.replace(':', '|')] = v;
+        const part = k.split(':')[1];
+        if (part) byKey[part] = v;
+      }
+      for (const e of chunk) {
+        const q = byKey[e.key] || byKey[e.symbol];
+        if (!q) continue; // no quote at all → cannot pass liquidity anyway
+        const ltp = Number(q.last_price);
+        const vol = Number(q.volume);
+        const prevClose = ltp - Number(q.net_change ?? 0);
+        if (!isFinite(ltp) || !isFinite(vol)) continue;
+        if (ltp > 50 && vol * ltp > 20000000 && prevClose > 0 && ltp > prevClose * 1.005) {
+          survivors.push(e);
+        }
+      }
+      await sleep(120);
+    } catch (err) {
+      logger.warn(`[SwingScan] prefilter chunk ${i / QUOTE_CHUNK + 1} failed (${err.message}) — keeping ${chunk.length} symbols for full check`);
+      survivors.push(...chunk);
+    }
+  }
+  return survivors;
 }
 
 // ── Direct daily-candle fetch by instrument key ───────────────────────────────
@@ -262,12 +309,19 @@ async function runScan() {
 
   (async () => {
     logger.info(`[SwingScan] Scanning ${universe.length} NSE equities (strict — all rules must pass)`);
+
+    // Phase 1: batch-quote pre-filter (price / liquidity / up-move) — cheap.
+    const survivors = await prefilterUniverse(universe, token, sleep);
+    state.done = universe.length - survivors.length; // skipped = already ruled out
+    logger.info(`[SwingScan] Pre-filter: ${survivors.length}/${universe.length} need full history`);
+
+    // Phase 2: full candle history + remaining rules for the survivors.
     let idx = 0;
     async function worker() {
       for (;;) {
         const i = idx++;
-        if (i >= universe.length) return;
-        const { symbol, key } = universe[i];
+        if (i >= survivors.length) return;
+        const { symbol, key } = survivors[i];
         try {
           const candles = await fetchDailyCandles(key, token);
           const rep = evaluateSwing(candles);
