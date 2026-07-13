@@ -131,7 +131,16 @@ async function runScreener(symbols, opts = {}) {
  */
 async function scoreSymbol(symbol, minBars) {
   try {
-    const bars = await dataStore.getRecentPrices(symbol, minBars + 50);
+    let bars = await dataStore.getRecentPrices(symbol, minBars + 50);
+    // Fallback: DB has no history for most NSE symbols (sim keeps prices in
+    // memory; NSE store unused). Pull real daily candles from Upstox instead.
+    if (!bars || bars.length < minBars) {
+      try {
+        const md = require('../services/marketDataService');
+        const { candles } = await md.getCandles(symbol, { interval: 'day', days: minBars + 90 });
+        if (Array.isArray(candles) && candles.length) bars = candles.map(c => ({ close: c.c }));
+      } catch (_) { /* keep whatever the DB gave */ }
+    }
     if (!bars || bars.length < minBars) {
       logger.debug(`[Screener] Skipping ${symbol}: only ${bars?.length ?? 0} bars (need ${minBars})`);
       return null;
