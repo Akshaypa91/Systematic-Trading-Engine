@@ -280,20 +280,24 @@ export default function LiveTrading() {
     }
   }
 
-  // Safe portfolio values
-  const equity         = n(portfolio?.equity ?? portfolio?.capital);
-  const initCap        = n(portfolio?.initialCapital, 1000000);
-  const totalReturn    = n(portfolio?.totalReturn ?? portfolio?.totalReturnPct);
-  const totalPnl       = n(portfolio?.totalPnl ?? portfolio?.totalPnL);
+  // Safe portfolio values — handle BOTH the WS-normalised shape (equity,
+  // totalReturn, openPnl, openPositions) and the REST /sim/portfolio shape
+  // (totalValue, totalPnLPct, unrealizedPnL, positions). Missing keys caused
+  // Total Return to read 0% and positions to show empty.
+  const positionsObj   = portfolio?.openPositions ?? portfolio?.positions ?? {};
   const openPnl        = n(portfolio?.openPnl ?? portfolio?.unrealizedPnL);
-  const openPosCount   = n(portfolio?.openPositionCount ?? portfolio?.openPositions
-    ? Object.keys(portfolio?.openPositions ?? {}).length : 0);
+  const initCap        = n(portfolio?.initialCapital, 1000000);
+  const equity         = n(portfolio?.equity ?? portfolio?.totalValue ?? (portfolio?.capital != null ? portfolio.capital + openPnl : undefined) ?? portfolio?.capital);
+  const totalReturn    = n(portfolio?.totalReturn ?? portfolio?.totalReturnPct ?? portfolio?.totalPnLPct
+    ?? (initCap ? ((equity - initCap) / initCap) * 100 : 0));
+  const totalPnl       = n(portfolio?.totalPnl ?? portfolio?.totalPnL);
+  const openPosCount   = Object.keys(positionsObj).length;
   const retColor       = totalReturn >= 0 ? 'var(--green)' : 'var(--red)';
 
   const winTrades      = trades.filter(t => n(t?.pnl) > 0).length;
   const winRate        = trades.length ? ((winTrades / trades.length) * 100).toFixed(0) : null;
   const filteredSig    = filter === 'ALL' ? signals : signals.filter(s => s?.signal === filter);
-  const openPositions  = Object.entries(portfolio?.openPositions ?? {});
+  const openPositions  = Object.entries(positionsObj);
 
   return (
     <AppShell>
