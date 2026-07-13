@@ -348,7 +348,7 @@ export default function LiveTrading() {
         <SignalMixBar signals={signals} />
 
         {/* ── Stats row ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 20 }}>
           <StatCard label="Portfolio Equity" color="var(--cyan)" loading={portLoading}
             value={portfolio ? `₹${fmt(equity)}` : '—'}
             sub={portfolio ? `Initial ₹${(initCap / 1e5).toFixed(0)}L` : ''}
@@ -445,7 +445,7 @@ export default function LiveTrading() {
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, overflowY: 'auto', maxHeight: 400 }}>
+              <div className="scroll-y" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 8, overflowY: 'auto', maxHeight: 400 }}>
                 {filteredSig.map(s => s && <SignalCard key={s.symbol} signal={s} />)}
               </div>
             )}
