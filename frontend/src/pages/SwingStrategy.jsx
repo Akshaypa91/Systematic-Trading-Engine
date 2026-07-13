@@ -6,11 +6,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import AppShell from '../components/AppShell';
 import PriceChart from '../components/PriceChart';
+import SearchBar from '../components/SearchBar';
 import Toast from '../components/Toast';
 import { marketAPI, swingAPI } from '../services/api';
 import { evaluateSwing } from '../utils/swingStrategy';
 import {
-  Rocket, Search, CheckCircle2, XCircle, RefreshCw, Target,
+  Rocket, CheckCircle2, XCircle, RefreshCw, Target,
   ShieldAlert, TrendingUp, Clock3, BadgeCheck, Radar, Square,
 } from 'lucide-react';
 import { Card, CardHeader, Chip, Field, Input, Button, PageHeader, Badge } from '../components/ui';
@@ -98,7 +99,6 @@ function LevelRow({ label, value, sub, color }) {
 
 export default function SwingStrategy() {
   const [symbol, setSymbol] = useState('');
-  const [input, setInput] = useState('');
   const [capital, setCapital] = useState(200000);
   const [riskPct, setRiskPct] = useState(1.0);
   const [report, setReport] = useState(null);
@@ -315,32 +315,26 @@ export default function SwingStrategy() {
 
         {/* Scanner controls */}
         <Card className="dash-section">
-          <CardHeader title="Check a symbol" sub="Daily candles · needs ~1 year of history" />
-          <form
-            onSubmit={(e) => { e.preventDefault(); analyze(input); }}
-            className="ui-hstack ui-wrap"
-            style={{ gap: 12, alignItems: 'flex-end' }}
-          >
-            <Field label="NSE Symbol" style={{ flex: '2 1 180px' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <Input value={input} onChange={e => setInput(e.target.value.toUpperCase())} placeholder="e.g. TATAMOTORS" style={{ paddingLeft: 32 }} />
-              </div>
-            </Field>
-            <Field label="Capital (₹)" style={{ flex: '1 1 120px' }}>
+          <CardHeader title="Check a symbol" sub="Search any NSE stock — evaluates on selection · needs ~1 year of history" />
+          {/* Real autocomplete (same search as the Trade page: full NSE master,
+              debounced, keyboard navigation). Selecting a suggestion runs the
+              evaluation directly. */}
+          <SearchBar onSearch={analyze} loading={loading} />
+          <div className="ui-hstack ui-wrap" style={{ gap: 12, marginTop: 12, alignItems: 'flex-end' }}>
+            <Field label="Capital (₹)" style={{ flex: '1 1 140px', maxWidth: 240 }}>
               <Input type="number" min="10000" value={capital} onChange={e => setCapital(+e.target.value)} />
             </Field>
-            <Field label="Risk %" style={{ flex: '0 1 90px' }}>
+            <Field label="Risk %" style={{ flex: '0 1 110px' }}>
               <Input type="number" step="0.25" min="0.25" max="5" value={riskPct} onChange={e => setRiskPct(+e.target.value)} />
             </Field>
-            <Button type="submit" variant="primary" icon={Rocket} loading={loading} style={{ height: 38, flex: '1 1 130px', justifyContent: 'center' }}>
-              {loading ? 'Scanning…' : 'Evaluate'}
-            </Button>
-          </form>
+            <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', paddingBottom: 10 }}>
+              Position sizing uses these on the next evaluation
+            </span>
+          </div>
           <div className="ui-hstack ui-wrap" style={{ gap: 6, marginTop: 12 }}>
             <span className="section-label" style={{ alignSelf: 'center' }}>Quick:</span>
             {QUICK.map(s => (
-              <Chip key={s} active={symbol === s} onClick={() => { setInput(s); analyze(s); }}>{s}</Chip>
+              <Chip key={s} active={symbol === s} onClick={() => analyze(s)}>{s}</Chip>
             ))}
           </div>
         </Card>
@@ -401,7 +395,7 @@ export default function SwingStrategy() {
                   symbol={h.symbol}
                   date={h.signalDate}
                   entry={h.entry} sl={h.sl} slPct={h.slPct} t1={h.t1} t2={h.t2} rr1={h.rr1}
-                  onClick={() => { setInput(h.symbol); analyze(h.symbol); }}
+                  onClick={() => analyze(h.symbol)}
                 />
               ))}
               {scan.at && (
@@ -439,7 +433,7 @@ export default function SwingStrategy() {
                       symbol={s.symbol}
                       date={date}
                       entry={s.entry} sl={s.sl} slPct={s.sl_pct} t1={s.t1} t2={s.t2} rr1={s.rr1}
-                      onClick={() => { setInput(s.symbol); analyze(s.symbol); }}
+                      onClick={() => analyze(s.symbol)}
                     />
                   ))}
                 </div>
