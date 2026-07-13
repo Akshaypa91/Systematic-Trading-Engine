@@ -1,5 +1,5 @@
 // src/pages/SwingStrategy.jsx
-// "Fresh 52wk Breakout" swing-trade setup scanner — strategy by Akshay Pagare.
+// "Fresh 52wk Breakout" swing-trade setup scanner — ADP Way, by Akshay Pagare.
 // Pulls real daily candles from /api/data/candles and evaluates the rule set
 // in utils/swingStrategy.js (same logic as the TradingView script). Frontend
 // only — no backend changes.
@@ -271,7 +271,7 @@ export default function SwingStrategy() {
               borderColor: 'color-mix(in srgb, var(--purple) 32%, transparent)',
               color: 'var(--purple)', fontWeight: 700, gap: 6,
             }}>
-              <BadgeCheck size={12} /> Strategy by Akshay Pagare
+              <BadgeCheck size={12} /> ADP Way · by Akshay Pagare
             </span>
           }
         />
@@ -516,7 +516,7 @@ export default function SwingStrategy() {
         <div className="ui-hstack" style={{ gap: 8, marginTop: 8 }}>
           <ShieldAlert size={12} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
           <p className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
-            Educational tool — rule-based screening by Akshay Pagare, not investment advice. Markets carry risk; do your own research.
+            Educational tool — ADP Way rule-based screening by Akshay Pagare, not investment advice. Markets carry risk; do your own research.
           </p>
         </div>
       </main>
