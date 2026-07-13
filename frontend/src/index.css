@@ -2039,6 +2039,16 @@ html:not([data-theme="light"]) .sig-stat {
     var(--bg-elevated) 55%);
 }
 
+/* ── Swing Setup layout ───────────────────────────────────────────────────── */
+.swing-result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px; align-items: start;
+}
+@media (max-width: 1200px) {
+  .swing-result-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Live Portfolio layout ────────────────────────────────────────────────── */
 .lp-grid {
   display: grid;

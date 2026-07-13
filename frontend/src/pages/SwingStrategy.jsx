@@ -333,7 +333,7 @@ export default function SwingStrategy() {
             <Field label="Risk %" style={{ flex: '0 1 90px' }}>
               <Input type="number" step="0.25" min="0.25" max="5" value={riskPct} onChange={e => setRiskPct(+e.target.value)} />
             </Field>
-            <Button type="submit" variant="primary" icon={Rocket} loading={loading} style={{ height: 38 }}>
+            <Button type="submit" variant="primary" icon={Rocket} loading={loading} style={{ height: 38, flex: '1 1 130px', justifyContent: 'center' }}>
               {loading ? 'Scanning…' : 'Evaluate'}
             </Button>
           </form>
@@ -451,10 +451,11 @@ export default function SwingStrategy() {
         {/* Results */}
         {report && (
           <>
-            <div className="dash-grid-2 dash-section" style={{ gridTemplateColumns: 'minmax(0,1fr) 360px' }}>
+            <div className="swing-result-grid dash-section">
               {/* Checklist */}
               <Card className="fade-up">
                 <CardHeader
+                  style={{ flexWrap: 'wrap', rowGap: 8 }}
                   title={`${symbol} — condition checklist`}
                   sub={`Close ${money(report.close)} · ATR(14) ${money(report.atr)} (${(report.atrPct * 100).toFixed(2)}%)`}
                   action={
@@ -469,14 +470,14 @@ export default function SwingStrategy() {
                 <p className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 12 }}>{v.sub}</p>
                 <div className="ui-vstack" style={{ gap: 6 }}>
                   {report.checks.map(c => (
-                    <div key={c.key} className="mini-tile" style={{ gap: 10 }}>
+                    <div key={c.key} className="mini-tile" style={{ gap: 10, flexWrap: 'wrap', rowGap: 4 }}>
                       <span className="ui-hstack" style={{ gap: 9, minWidth: 0 }}>
                         {c.pass
                           ? <CheckCircle2 size={14} style={{ color: 'var(--green)', flexShrink: 0 }} />
                           : <XCircle size={14} style={{ color: 'var(--red)', flexShrink: 0 }} />}
                         <span style={{ fontSize: 12.5, color: c.pass ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{c.label}</span>
                       </span>
-                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>{c.detail}</span>
+                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'right', marginLeft: 'auto', minWidth: 0, overflowWrap: 'anywhere' }}>{c.detail}</span>
                     </div>
                   ))}
                 </div>
