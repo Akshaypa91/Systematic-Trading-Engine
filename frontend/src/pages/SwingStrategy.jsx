@@ -29,7 +29,12 @@ const UNIVERSE = [
   'HEROMOTOCO', 'HINDALCO', 'INDUSINDBK', 'ONGC', 'SBILIFE', 'HDFCLIFE',
   'TATACONSUM', 'BPCL', 'SHRIRAMFIN', 'BAJAJ-AUTO', 'DIVISLAB', 'UPL', 'TRENT',
 ];
-const money = (v, d = 2) => v == null || !Number.isFinite(v) ? '—' : `₹${Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d })}`;
+// Coerce before the finite check — MySQL DECIMAL columns arrive as strings,
+// which Number.isFinite() rejects without coercion (history showed '—').
+const money = (v, d = 2) => {
+  const n = Number(v);
+  return v == null || v === '' || !Number.isFinite(n) ? '—' : `₹${n.toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d })}`;
+};
 
 const VERDICT = {
   BREAKOUT: { label: 'FRESH 52WK BREAKOUT', color: 'var(--green)', sub: 'All conditions met — setup is live' },
