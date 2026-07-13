@@ -167,8 +167,8 @@ function DetailPanel({ row, onClose, onBacktest }) {
               value={row.rsi != null ? Number(row.rsi).toFixed(1) : '—'}
               color={row.rsi > 70 ? 'var(--red)' : row.rsi < 30 ? 'var(--green)' : 'var(--text-primary)'} />
             <StatBlock label="Z-Score"
-              value={signal?.zScore != null ? Number(signal.zScore).toFixed(3) : '—'}
-              color={Math.abs(signal?.zScore || 0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)'} />
+              value={(signal?.zScore ?? row.zScore) != null ? Number(signal?.zScore ?? row.zScore).toFixed(3) : '—'}
+              color={Math.abs(signal?.zScore ?? row.zScore ?? 0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)'} />
             <StatBlock label="MA Fast" value={signal?.maFast != null ? `₹${Number(signal.maFast).toFixed(0)}` : '—'} />
             <StatBlock label="MA Slow" value={signal?.maSlow != null ? `₹${Number(signal.maSlow).toFixed(0)}` : '—'} />
           </div>

@@ -111,8 +111,16 @@ async function runScreener(symbols, opts = {}) {
   // ── Sort descending by composite score ───────────────────────────────
   ranked.sort((a, b) => b.compositeScore - a.compositeScore);
 
-  // ── Assign ranks ──────────────────────────────────────────────────────
-  ranked = ranked.map((s, i) => ({ rank: i + 1, ...s }));
+  // ── Assign ranks + display aliases the frontend expects ────────────────
+  // (frontend reads momentumScore/volatilityScore/mrScore as normalised 0–1)
+  ranked = ranked.map((s, i) => ({
+    rank: i + 1,
+    ...s,
+    score:           s.compositeScore,
+    momentumScore:   s.momentumNorm,
+    volatilityScore: s.volatilityNorm,
+    mrScore:         s.mrScoreNorm,     // normalised for consistent display
+  }));
 
   // ── Optional filter ───────────────────────────────────────────────────
   let filtered = ranked;
