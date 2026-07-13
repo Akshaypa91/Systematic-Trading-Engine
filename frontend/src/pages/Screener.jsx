@@ -276,7 +276,7 @@ export default function Screener() {
           </div>
 
           {results.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 16 }}>
               {[
                 { label: 'BUY Candidates',  count: results.filter(r => r.signal === 'BUY').length,  color: 'var(--green)', icon: TrendingUp },
                 { label: 'HOLD',            count: results.filter(r => r.signal === 'HOLD').length, color: 'var(--amber)', icon: Minus },
@@ -332,10 +332,10 @@ export default function Screener() {
                 onFocus={e => e.target.style.borderColor = 'color-mix(in srgb, var(--cyan) 40%, transparent)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--border)'} />
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%', paddingBottom: 2 }}>
               {FILTERS.map(f => (
                 <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded text-xs font-mono transition-all"
-                  style={{ background: filter === f ? 'color-mix(in srgb, var(--cyan) 12%, transparent)' : 'var(--bg-elevated)', border: filter === f ? '1px solid color-mix(in srgb, var(--cyan) 35%, transparent)' : '1px solid var(--border)', color: filter === f ? 'var(--cyan)' : 'var(--text-muted)' }}>
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0, background: filter === f ? 'color-mix(in srgb, var(--cyan) 12%, transparent)' : 'var(--bg-elevated)', border: filter === f ? '1px solid color-mix(in srgb, var(--cyan) 35%, transparent)' : '1px solid var(--border)', color: filter === f ? 'var(--cyan)' : 'var(--text-muted)' }}>
                   {f.replace(/_/g, ' ')}
                 </button>
               ))}
