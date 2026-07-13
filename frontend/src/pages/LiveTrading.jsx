@@ -368,7 +368,9 @@ export default function LiveTrading() {
         </div>
 
         {/* ── Equity + Positions ─────────────────────────────────────────── */}
-        <div className="dash-grid-2" style={{ gridTemplateColumns: '1fr 340px', gap: 16, marginBottom: 20 }}>
+        {/* dash-grid-2 handles columns responsively (stacks <1200px) — never
+            override its template inline or phones get crushed side-by-side */}
+        <div className="dash-grid-2" style={{ gap: 16, marginBottom: 20 }}>
           <div className="card fade-up stagger-1" style={{ padding: 20 }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
               <div>
