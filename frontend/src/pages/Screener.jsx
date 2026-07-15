@@ -169,8 +169,8 @@ function DetailPanel({ row, onClose, onBacktest }) {
             <StatBlock label="Z-Score"
               value={(signal?.zScore ?? row.zScore) != null ? Number(signal?.zScore ?? row.zScore).toFixed(3) : '—'}
               color={Math.abs(signal?.zScore ?? row.zScore ?? 0) > 1.5 ? 'var(--amber)' : 'var(--text-primary)'} />
-            <StatBlock label="MA Fast" value={signal?.maFast != null ? `₹${Number(signal.maFast).toFixed(0)}` : '—'} />
-            <StatBlock label="MA Slow" value={signal?.maSlow != null ? `₹${Number(signal.maSlow).toFixed(0)}` : '—'} />
+            <StatBlock label="MA Fast" value={(signal?.maFast ?? row.maFast) != null ? `₹${Number(signal?.maFast ?? row.maFast).toFixed(0)}` : '—'} />
+            <StatBlock label="MA Slow" value={(signal?.maSlow ?? row.maSlow) != null ? `₹${Number(signal?.maSlow ?? row.maSlow).toFixed(0)}` : '—'} />
           </div>
         </div>
 

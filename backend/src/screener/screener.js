@@ -177,6 +177,10 @@ async function scoreSymbol(symbol, minBars) {
     // ── RSI ───────────────────────────────────────────────────────────────
     const rsiVal    = mu.rsi(closes, 14);
 
+    // ── Moving averages (for the detail panel) ────────────────────────────
+    const maFast    = closes.length >= 5  ? mu.mean(closes.slice(-20)) : null;
+    const maSlow    = closes.length >= 10 ? mu.mean(closes.slice(-50)) : null;
+
     return {
       symbol,
       lastPrice:  parseFloat(latest.toFixed(4)),
@@ -185,6 +189,8 @@ async function scoreSymbol(symbol, minBars) {
       mrScore:    parseFloat(mrScore.toFixed(6)),
       zScore:     parseFloat(zScore.toFixed(4)),
       rsi:        rsiVal ? parseFloat(rsiVal.toFixed(2)) : null,
+      maFast:     maFast != null ? parseFloat(maFast.toFixed(2)) : null,
+      maSlow:     maSlow != null ? parseFloat(maSlow.toFixed(2)) : null,
     };
   } catch (err) {
     logger.warn(`[Screener] ${symbol} score failed: ${err.message}`);
