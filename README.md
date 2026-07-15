@@ -233,3 +233,10 @@ frontend/src/
 ## Disclaimer
 
 **LIVE mode executes real-money orders through your connected Upstox account.** This software is provided for educational and research purposes, without warranty of any kind. Charges shown are estimates and may differ from your broker's contract note. Always validate against the Upstox **sandbox** before trading live. The authors are not registered investment advisors; nothing here is financial advice. Trading involves substantial risk of loss — you are solely responsible for orders placed through this system.
+
+## Author
+
+**Akshay Pagare** — creator of SYSTRA and the ADP Way swing strategy.
+
+- GitHub: [github.com/Akshaypa91](https://github.com/Akshaypa91)
+- LinkedIn: [linkedin.com/in/akshaypagare](https://www.linkedin.com/in/akshaypagare)

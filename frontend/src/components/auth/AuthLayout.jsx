@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { useThemeContext } from '../../context/ThemeContext';
 import { Sun, Moon, Zap, LineChart, Shield, PieChart, Radio, FlaskConical } from 'lucide-react';
+import CreatorLinks from '../CreatorLinks';
 
 /* ── Brand logo (single source for all auth pages) ─────────────────────────── */
 export function SystraLogo({ size = 40 }) {
@@ -187,8 +188,9 @@ export default function AuthLayout({ children, footer }) {
 
         {children}
 
-        <div className="auth-foot">
-          {footer || <>SYSTRA · NSE India · {new Date().getFullYear()}</>}
+        <div className="auth-foot" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span>{footer || <>SYSTRA · NSE India · {new Date().getFullYear()}</>}</span>
+          <CreatorLinks />
         </div>
       </main>
     </div>

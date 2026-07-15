@@ -518,6 +518,7 @@ export default function SwingStrategy() {
           <p className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
             Educational tool — ADP Way rule-based screening by Akshay Pagare, not investment advice. Markets carry risk; do your own research.
           </p>
+          <CreatorLinks compact style={{ flexShrink: 0 }} />
         </div>
       </main>
 

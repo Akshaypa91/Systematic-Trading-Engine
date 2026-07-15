@@ -12,6 +12,7 @@ import {
 import { useWS } from '../context/WSContext';
 import { useAuth } from '../context/AuthContext';
 import { useSystemStatus } from '../hooks/useSystemStatus';
+import CreatorLinks from './CreatorLinks';
 
 function useLiveClock() {
   const [now, setNow] = useState(new Date());
@@ -268,6 +269,7 @@ export default function StatusBar({ onOpenShortcuts }) {
             SYSTRA v{backend.version}
           </span>
         )}
+        <CreatorLinks compact style={{ paddingRight: 4 }} />
       </div>
     </footer>
   );
