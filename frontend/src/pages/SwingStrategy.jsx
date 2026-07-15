@@ -8,6 +8,7 @@ import AppShell from '../components/AppShell';
 import PriceChart from '../components/PriceChart';
 import SearchBar from '../components/SearchBar';
 import Toast from '../components/Toast';
+import CreatorLinks from '../components/CreatorLinks';
 import { marketAPI, swingAPI } from '../services/api';
 import { evaluateSwing } from '../utils/swingStrategy';
 import {

@@ -2,5 +2,5 @@
 export const CREATOR = {
   name: 'Akshay Pagare',
   github: 'https://github.com/Akshaypa91',
-  linkedin: 'https://www.linkedin.com/in/akshaypagare',
+  linkedin: 'https://www.linkedin.com/in/akshaypagare91/',
 };
