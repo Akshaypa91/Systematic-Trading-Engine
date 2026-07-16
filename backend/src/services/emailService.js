@@ -10,7 +10,10 @@ function getResend() {
   }
   return _resend;
 }
-const FROM = process.env.EMAIL_FROM || 'SYSTRA <noreply@systra.trade>';
+// Default to Resend's shared test sender so a fresh account works before a
+// domain is verified. NOTE: with the test sender you can only deliver to the
+// Resend account owner's email until you verify your own domain.
+const FROM = process.env.EMAIL_FROM || 'SYSTRA <onboarding@resend.dev>';
 
 // FRONTEND_URL must be a single URL — if it's ever set to a comma-separated
 // list (e.g. copy-pasted from ALLOWED_ORIGINS), fall back to the first one
@@ -21,7 +24,10 @@ async function sendPasswordReset(email, token) {
   const resend   = getResend();
   const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
   if (!resend) { logger.info(`[Email] DEV reset link for ${email}: ${resetUrl}`); return { success:true, dev:true, resetUrl }; }
-  await resend.emails.send({
+  // The Resend SDK returns { data, error } — it does NOT throw on API errors
+  // (e.g. unverified sender domain). Check the error explicitly so the caller
+  // can fall back instead of pretending the mail was delivered.
+  const { data, error } = await resend.emails.send({
     from: FROM, to: email,
     subject: 'Reset your SYSTRA password',
     html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#111827;color:#f9fafb;border-radius:16px">
@@ -31,7 +37,11 @@ async function sendPasswordReset(email, token) {
       <p style="color:#4B5563;font-size:12px;margin-top:24px">If you didn't request this, ignore this email.</p>
     </div>`,
   });
-  logger.info(`[Email] Reset sent to ${email}`);
+  if (error) {
+    logger.warn(`[Email] Resend error for ${email}: ${error.message || JSON.stringify(error)}`);
+    throw new Error(error.message || 'Email send failed');
+  }
+  logger.info(`[Email] Reset sent to ${email} (id=${data?.id})`);
   return { success: true };
 }
 
