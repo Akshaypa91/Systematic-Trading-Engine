@@ -158,16 +158,22 @@ async function forgotPassword(req, res) {
 
     logger.info(`[Auth] Password reset requested for ${email}`);
 
-    // Send email
+    // Send email. sendPasswordReset returns { dev:true } when no email provider
+    // (RESEND_API_KEY) is configured — in that case nothing was actually sent.
+    let emailed = false;
     try {
       const { sendPasswordReset } = require('../services/emailService');
-      await sendPasswordReset(email, token);
+      const r = await sendPasswordReset(email, token);
+      emailed = !(r && r.dev);   // dev:true => not actually delivered
     } catch (emailErr) {
       logger.warn(`[Auth] Email send failed: ${emailErr.message}`);
-      // Fall back to dev token in non-production
-      if (process.env.NODE_ENV !== 'production') {
-        return res.json({ ...SUCCESS_MSG, _devToken: token });
-      }
+      emailed = false;
+    }
+
+    // If no email went out (provider unconfigured or send failed), surface the
+    // reset token to the client outside production so the user can still reset.
+    if (!emailed && process.env.NODE_ENV !== 'production') {
+      return res.json({ ...SUCCESS_MSG, _devToken: token });
     }
 
     return res.json(SUCCESS_MSG);
