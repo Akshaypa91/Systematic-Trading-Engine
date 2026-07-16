@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Lock, ShieldCheck, KeyRound } from 'lucide-react';
 import AuthLayout from '../components/auth/AuthLayout';
 import {
@@ -12,7 +13,12 @@ import {
 export default function ResetPassword() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const token = params.get('token') || '';
+
+  // If a stale session token lingers in the browser, clear it on arrival so
+  // resetting the password can't silently auto-log-in with the OLD session.
+  useEffect(() => { try { logout?.(); } catch (_) { /* noop */ } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [state, setState] = useState('idle');
