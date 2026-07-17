@@ -13,7 +13,7 @@ import {
   Link2, Link2Off, RefreshCw, PlugZap, Wallet, ShieldCheck, Clock3, AlertTriangle,
 } from 'lucide-react';
 import { liveAPI } from '../services/api';
-import { inr } from '../utils/format';
+import { inr, colorOf } from '../utils/format';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
@@ -21,6 +21,17 @@ function fmtTime(iso) {
   if (!iso) return '—';
   try { return new Date(iso).toLocaleString('en-IN', { hour12: false, dateStyle: 'medium', timeStyle: 'short' }); }
   catch { return '—'; }
+}
+
+// Token expiry urgency: red once expired, amber inside the final 6 hours,
+// neutral otherwise (it was hard-coded amber, which read as a warning 24/7).
+function expiryColor(iso) {
+  if (!iso) return undefined;
+  const ms = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(ms)) return undefined;
+  if (ms <= 0) return 'var(--red)';
+  if (ms < 6 * 60 * 60 * 1000) return 'var(--amber)';
+  return undefined;
 }
 
 function Row({ label, value, mono = true, color }) {
@@ -135,14 +146,18 @@ export default function BrokerStatusCard({ onStatusChange }) {
 
             <div style={{ height: 10 }} />
             <SectionHead icon={Wallet} label="Funds" />
-            <Row label="Available Funds" value={funds.available != null ? inr(funds.available, { decimals: 2 }) : '—'} color="var(--green)" />
-            <Row label="Used Margin"     value={funds.used != null ? inr(funds.used, { decimals: 2 }) : '—'} color="var(--amber)" />
-            <Row label="Equity"          value={funds.equity != null ? inr(funds.equity, { decimals: 2 }) : '—'} />
+            {/* Sign-driven colors — a negative balance must never render green */}
+            <Row label="Available Funds" value={funds.available != null ? inr(funds.available, { decimals: 2 }) : '—'}
+                 color={funds.available != null ? colorOf(funds.available) : undefined} />
+            <Row label="Used Margin"     value={funds.used != null ? inr(funds.used, { decimals: 2 }) : '—'}
+                 color={funds.used > 0 ? 'var(--amber)' : undefined} />
+            <Row label="Equity"          value={funds.equity != null ? inr(funds.equity, { decimals: 2 }) : '—'}
+                 color={funds.equity != null ? colorOf(funds.equity) : undefined} />
 
             <div style={{ height: 10 }} />
             <SectionHead icon={Clock3} label="Session" />
             <Row label="Connection Time" value={fmtTime(data?.connectionTime)} />
-            <Row label="Token Expiry"    value={fmtTime(data?.tokenExpiry)} color="var(--amber)" />
+            <Row label="Token Expiry"    value={fmtTime(data?.tokenExpiry)} color={expiryColor(data?.tokenExpiry)} />
             <Row label="WebSocket"       value={data?.websocket?.connected ? 'Live' : 'Down'} color={data?.websocket?.connected ? 'var(--green)' : 'var(--red)'} />
 
             {/* Actions */}
