@@ -91,11 +91,21 @@ function SignalMixBar({ signals }) {
 // ── Open position row ─────────────────────────────────────────────────────────
 function PositionRow({ sym, pos }) {
   if (!pos) return null;
-  const pnl    = n(pos.unrealizedPnl);
-  const entry  = n(pos.entryPrice);
-  const curr   = n(pos.currentPrice);
-  const pnlPct = entry > 0 ? ((curr - entry) / entry * 100).toFixed(2) : '—';
-  const green  = pnl >= 0;
+  const qty    = n(pos.qty);
+  const entry  = n(pos.entryPrice ?? pos.avgPrice);
+  const curr   = n(pos.currentPrice ?? pos.ltp ?? pos.lastPrice);
+  const isShort = String(pos.side || '').toUpperCase() === 'SELL' || qty < 0;
+  // Prefer an explicit P&L field (any of several shapes); otherwise derive it
+  // from qty × price move. Deriving is essential — the sim portfolio doesn't
+  // send unrealizedPnl, which made every row read ₹0 (and a 0 P&L falsely
+  // colored losers green).
+  const rawPnl = [pos.unrealizedPnl, pos.unrealizedPnL, pos.pnl, pos.openPnl]
+    .find(v => isFinite(Number(v)) && Number(v) !== 0);
+  const move   = (curr - entry) * Math.abs(qty);
+  const pnl    = rawPnl != null ? Number(rawPnl) : (entry > 0 && curr > 0 ? (isShort ? -move : move) : 0);
+  const pctVal = entry > 0 ? ((curr - entry) / entry * 100) * (isShort ? -1 : 1) : null;
+  const pnlPct = pctVal == null ? '—' : pctVal.toFixed(2);
+  const green  = pnl > 0 || (pnl === 0 && (pctVal ?? 0) >= 0);
   const Icon   = green ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="card-elevated trade-row" style={{ padding: '12px 14px', borderRadius: 10 }}>
@@ -111,8 +121,8 @@ function PositionRow({ sym, pos }) {
         {pos.qty ?? 0} shares · Entry ₹{entry > 0 ? entry.toLocaleString('en-IN') : '—'} → ₹{curr > 0 ? curr.toLocaleString('en-IN') : '—'}
       </div>
       <div className="flex gap-3 font-mono" style={{ fontSize: 10, marginTop: 5 }}>
-        <span style={{ color: 'color-mix(in srgb, var(--red) 70%, transparent)' }}>SL ₹{n(pos.stopLoss).toLocaleString('en-IN') || '—'}</span>
-        <span style={{ color: 'color-mix(in srgb, var(--green) 70%, transparent)' }}>TP ₹{n(pos.takeProfit).toLocaleString('en-IN') || '—'}</span>
+        <span style={{ color: 'color-mix(in srgb, var(--red) 70%, transparent)' }}>SL {n(pos.stopLoss) > 0 ? `₹${n(pos.stopLoss).toLocaleString('en-IN')}` : '—'}</span>
+        <span style={{ color: 'color-mix(in srgb, var(--green) 70%, transparent)' }}>TP {n(pos.takeProfit) > 0 ? `₹${n(pos.takeProfit).toLocaleString('en-IN')}` : '—'}</span>
         {pos.source && <SourceBadge source={pos.source} />}
       </div>
     </div>
