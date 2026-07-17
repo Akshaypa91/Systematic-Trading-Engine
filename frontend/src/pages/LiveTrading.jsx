@@ -95,26 +95,36 @@ function PositionRow({ sym, pos }) {
   const entry  = n(pos.entryPrice ?? pos.avgPrice);
   const curr   = n(pos.currentPrice ?? pos.ltp ?? pos.lastPrice);
   const isShort = String(pos.side || '').toUpperCase() === 'SELL' || qty < 0;
+  const havePrice = curr > 0;   // no live quote → don't fabricate a -100% loss
   // Prefer an explicit P&L field (any of several shapes); otherwise derive it
   // from qty × price move. Deriving is essential — the sim portfolio doesn't
-  // send unrealizedPnl, which made every row read ₹0 (and a 0 P&L falsely
-  // colored losers green).
+  // always send unrealizedPnl, which made every row read ₹0 (and a 0 P&L
+  // falsely colored losers green). But only derive when we actually have a
+  // current price; otherwise show "—" rather than a bogus total loss.
   const rawPnl = [pos.unrealizedPnl, pos.unrealizedPnL, pos.pnl, pos.openPnl]
     .find(v => isFinite(Number(v)) && Number(v) !== 0);
   const move   = (curr - entry) * Math.abs(qty);
-  const pnl    = rawPnl != null ? Number(rawPnl) : (entry > 0 && curr > 0 ? (isShort ? -move : move) : 0);
-  const pctVal = entry > 0 ? ((curr - entry) / entry * 100) * (isShort ? -1 : 1) : null;
+  const pnl    = rawPnl != null ? Number(rawPnl)
+               : (entry > 0 && havePrice ? (isShort ? -move : move) : null);
+  const pctVal = entry > 0 && havePrice ? ((curr - entry) / entry * 100) * (isShort ? -1 : 1) : null;
   const pnlPct = pctVal == null ? '—' : pctVal.toFixed(2);
-  const green  = pnl > 0 || (pnl === 0 && (pctVal ?? 0) >= 0);
+  const known  = pnl != null;
+  const green  = known ? (pnl > 0 || (pnl === 0 && (pctVal ?? 0) >= 0)) : true;
   const Icon   = green ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="card-elevated trade-row" style={{ padding: '12px 14px', borderRadius: 10 }}>
       <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{sym}</span>
-        <div className="flex items-center gap-1 font-mono" style={{ fontSize: 12, fontWeight: 600, color: green ? 'var(--green)' : 'var(--red)' }}>
-          <Icon size={12} />
-          {pnl >= 0 ? '+' : ''}₹{Math.abs(pnl).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          <span style={{ fontSize: 10, opacity: 0.7 }}>({pnlPct}%)</span>
+        <div className="flex items-center gap-1 font-mono" style={{ fontSize: 12, fontWeight: 600, color: !known ? 'var(--text-muted)' : green ? 'var(--green)' : 'var(--red)' }}>
+          {known ? (
+            <>
+              <Icon size={12} />
+              {pnl >= 0 ? '+' : ''}₹{Math.abs(pnl).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              <span style={{ fontSize: 10, opacity: 0.7 }}>({pnlPct}%)</span>
+            </>
+          ) : (
+            <span title="No live price — market closed or symbol unresolved">— <span style={{ fontSize: 10, opacity: 0.7 }}>(no quote)</span></span>
+          )}
         </div>
       </div>
       <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>

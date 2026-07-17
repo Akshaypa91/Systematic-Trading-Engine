@@ -78,9 +78,12 @@ async function getPortfolio(req, res) {
         }
       } catch (priceErr) {
         logger.warn(`[SimCtrl] price fetch failed: ${priceErr.message} — using entry prices`);
-        for (const [sym, pos] of Object.entries(state.positions)) {
-          priceMap[sym] = parseFloat(pos.entryPrice) || 0;
-        }
+      }
+      // Guard: any symbol without a valid (>0) live price — unresolved symbol,
+      // market closed, or a 0 tick — must fall back to its entry price so P&L
+      // reads flat (0%) instead of a bogus -100% loss against a zero price.
+      for (const [sym, pos] of Object.entries(state.positions)) {
+        if (!(priceMap[sym] > 0)) priceMap[sym] = parseFloat(pos.entryPrice) || 0;
       }
     }
 
