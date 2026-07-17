@@ -13,13 +13,34 @@ import { useAuth } from './AuthContext';
 
 const TradingModeContext = createContext(null);
 
+// Real-money safety interlock. The user must explicitly "arm" real-money order
+// placement once per browser session (type CONFIRM). We keep this in
+// sessionStorage — NOT localStorage — so it resets every session: closing the
+// tab or reopening the app requires re-arming. This is deliberately a
+// per-session gate, independent of the PAPER/LIVE toggle.
+const ARM_KEY = 'systra.realMoneyArmed';
+function readArmed() {
+  try { return sessionStorage.getItem(ARM_KEY) === '1'; } catch { return false; }
+}
+
 export function TradingModeProvider({ children }) {
   const { isAuthenticated } = useAuth();
-  const [mode,         setMode]         = useState('PAPER');
-  const [brokerLinked, setBrokerLinked] = useState(false);
-  const [loading,      setLoading]      = useState(true);
+  const [mode,           setMode]           = useState('PAPER');
+  const [brokerLinked,   setBrokerLinked]   = useState(false);
+  const [loading,        setLoading]        = useState(true);
+  const [realMoneyArmed, setRealMoneyArmed] = useState(readArmed);
   const modeRef = useRef('PAPER');
   modeRef.current = mode;
+
+  // Arm / disarm the real-money interlock, mirrored to sessionStorage.
+  const armRealMoney = useCallback(() => {
+    try { sessionStorage.setItem(ARM_KEY, '1'); } catch { /* noop */ }
+    setRealMoneyArmed(true);
+  }, []);
+  const disarmRealMoney = useCallback(() => {
+    try { sessionStorage.removeItem(ARM_KEY); } catch { /* noop */ }
+    setRealMoneyArmed(false);
+  }, []);
 
   // Initial + periodic sync with the server's notion of mode/broker.
   const sync = useCallback(async () => {
@@ -34,25 +55,33 @@ export function TradingModeProvider({ children }) {
 
   useEffect(() => { sync(); }, [sync]);
 
-  // Persist a mode change to the server.
+  // Persist a mode change to the server. Leaving LIVE disarms the interlock so
+  // the user must re-confirm CONFIRM before the next real-money session.
   const changeMode = useCallback((next) => {
     if (next === 'LIVE' && !brokerLinked) return;   // guard: no LIVE without broker
+    if (next !== 'LIVE') disarmRealMoney();
     setMode(next);
     liveAPI.setMode(next).catch(() => {});
-  }, [brokerLinked]);
+  }, [brokerLinked, disarmRealMoney]);
 
   // Broker connection reported by BrokerStatusCard. If it drops while LIVE,
-  // force PAPER and tell the server.
+  // force PAPER and tell the server — and disarm, since the session is gone.
   const reportBroker = useCallback((connected) => {
     setBrokerLinked(connected);
-    if (!connected && modeRef.current === 'LIVE') {
-      setMode('PAPER');
-      liveAPI.setMode('PAPER').catch(() => {});
+    if (!connected) {
+      disarmRealMoney();
+      if (modeRef.current === 'LIVE') {
+        setMode('PAPER');
+        liveAPI.setMode('PAPER').catch(() => {});
+      }
     }
-  }, []);
+  }, [disarmRealMoney]);
 
   return (
-    <TradingModeContext.Provider value={{ mode, brokerLinked, loading, changeMode, reportBroker, refresh: sync }}>
+    <TradingModeContext.Provider value={{
+      mode, brokerLinked, loading, changeMode, reportBroker, refresh: sync,
+      realMoneyArmed, armRealMoney, disarmRealMoney,
+    }}>
       {children}
     </TradingModeContext.Provider>
   );

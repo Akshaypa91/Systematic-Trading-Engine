@@ -13,11 +13,13 @@ import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../servic
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
 import LiveOrderModal    from '../components/LiveOrderModal';
 import LiveOrderPanel    from '../components/LiveOrderPanel';
+import RealMoneyArmModal from '../components/RealMoneyArmModal';
 import BrokerStatusCard  from '../components/BrokerStatusCard';
 import LiveModeBanner    from '../components/LiveModeBanner';
 import { useTradingMode } from '../context/TradingModeContext';
 import useLivePrice      from '../hooks/useLivePrice';
 import { Chip }          from '../components/ui';
+import { ShieldAlert, Lock } from 'lucide-react';
 
 const MAX_HISTORY = 8;
 
@@ -32,9 +34,10 @@ export default function Trade() {
   const [checkingInit,     setCheckingInit]     = useState(true);
 
   // ── Live trading state (mode + broker come from the shared context) ─────────
-  const { mode: tradingMode, brokerLinked, reportBroker } = useTradingMode();
+  const { mode: tradingMode, brokerLinked, reportBroker, realMoneyArmed, armRealMoney } = useTradingMode();
   const [liveModal,     setLiveModal]     = useState(null);   // pending order
   const [liveLoading,   setLiveLoading]   = useState(false);
+  const [armOpen,       setArmOpen]       = useState(false);  // real-money interlock modal
 
   // ── Live price feed ─────────────────────────────────────────────────────────
   // Subscribes to the currently displayed symbol over the shared WebSocket and
@@ -253,12 +256,38 @@ export default function Trade() {
             <div className="trade-right" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <BrokerStatusCard onStatusChange={reportBroker} />
               {tradingMode === 'LIVE' ? (
-                <LiveOrderPanel
-                  symbol={data?.symbol ?? symbol}
-                  currentPrice={displayData?.price}
-                  onReview={(o) => setLiveModal(o)}
-                  disabled={loading || !brokerLinked}
-                />
+                realMoneyArmed ? (
+                  <LiveOrderPanel
+                    symbol={data?.symbol ?? symbol}
+                    currentPrice={displayData?.price}
+                    onReview={(o) => setLiveModal(o)}
+                    disabled={loading || !brokerLinked}
+                  />
+                ) : (
+                  <div className="card" style={{ padding: 20, border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+                      <ShieldAlert size={16} style={{ color: 'var(--red)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>Real-money trading is locked</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 14 }}>
+                      LIVE mode is on, but order placement is disabled until you arm it. This is a one-time
+                      safety step per session — you'll type <b>CONFIRM</b> to unlock the order ticket.
+                    </p>
+                    <button type="button" onClick={() => setArmOpen(true)} disabled={!brokerLinked}
+                      style={{ width: '100%', padding: '11px 0', borderRadius: 9, fontSize: 13.5, fontWeight: 700,
+                        cursor: brokerLinked ? 'pointer' : 'not-allowed', opacity: brokerLinked ? 1 : 0.5,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                        background: 'color-mix(in srgb, var(--red) 14%, transparent)',
+                        border: '1px solid color-mix(in srgb, var(--red) 45%, transparent)', color: 'var(--red)' }}>
+                      <Lock size={14} /> Arm real-money trading
+                    </button>
+                    {!brokerLinked && (
+                      <p className="font-mono" style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 8, textAlign: 'center' }}>
+                        Connect Upstox first.
+                      </p>
+                    )}
+                  </div>
+                )
               ) : (
                 <TradePanel
                   symbol={data?.symbol ?? symbol}
@@ -278,6 +307,11 @@ export default function Trade() {
         onConfirm={confirmLiveOrder}
         onCancel={() => setLiveModal(null)}
         loading={liveLoading}
+      />
+      <RealMoneyArmModal
+        open={armOpen}
+        onArm={() => { armRealMoney(); setArmOpen(false); showToast('Real-money trading armed for this session', 'success'); }}
+        onCancel={() => setArmOpen(false)}
       />
     </AppShell>
   );

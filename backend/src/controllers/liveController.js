@@ -95,7 +95,13 @@ async function getBrokerStatus(req, res) {
       raw:        eq,
     };
   } else {
-    out.errors.funds = fundsRes.reason?.message || 'funds fetch failed';
+    // Upstox locks the funds/margin endpoint (HTTP 423) during its nightly EOD
+    // settlement window (~00:00–05:30 IST). Surface that clearly instead of a
+    // raw status code.
+    const st = fundsRes.reason?.response?.status;
+    out.errors.funds = st === 423
+      ? 'Funds temporarily unavailable — Upstox locks funds/margin during its nightly settlement (~12am–5:30am IST). Available in market hours.'
+      : (fundsRes.reason?.message || 'funds fetch failed');
   }
 
   // connectionTime = when the WS connected (approx via token grant if WS lacks it)
