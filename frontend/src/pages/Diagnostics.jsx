@@ -38,7 +38,7 @@ export default function Diagnostics() {
   }, []);
 
   const ref = useRef();
-  useEffect(() => { load(); ref.current = setInterval(load, 2000); return () => clearInterval(ref.current); }, [load]);
+  useEffect(() => { load(); ref.current = setInterval(load, 5000); return () => clearInterval(ref.current); }, [load]);
 
   const ws = diag?.websocket || {};
   const connected = !!ws.connected;

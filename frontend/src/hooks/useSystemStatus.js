@@ -10,9 +10,12 @@ import { marketAPI, liveAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
-const HEALTH_INTERVAL = 15000;
-const MARKET_INTERVAL = 30000;
-const TRADING_INTERVAL = 20000;
+// Slower status-bar polling to stay well under the backend rate limit (the
+// status bar is mounted app-wide, so these fire on every page). Health/market
+// data change slowly; 30–60s is plenty for a status indicator.
+const HEALTH_INTERVAL = 30000;
+const MARKET_INTERVAL = 60000;
+const TRADING_INTERVAL = 30000;
 
 export function useSystemStatus() {
   const { isAuthenticated } = useAuth();
