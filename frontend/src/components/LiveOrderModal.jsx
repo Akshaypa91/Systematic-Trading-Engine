@@ -45,8 +45,11 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
     : estValue;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
-      <div className="card fade-in" style={{ width: '100%', maxWidth: 440, padding: 24, margin: 16, border: '1px solid color-mix(in srgb, var(--amber) 40%, transparent)', boxShadow: '0 0 40px color-mix(in srgb, var(--amber) 8%, transparent)' }}>
+    // NOTE: no align-items:center here — a centered flex child taller than the
+    // viewport gets its top clipped and unreachable. `margin:auto` on the card
+    // centers it when it fits and allows full scrolling when it doesn't.
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', overflowY: 'auto', padding: '24px 16px' }}>
+      <div className="card fade-in" style={{ width: '100%', maxWidth: 440, padding: 24, margin: 'auto', border: '1px solid color-mix(in srgb, var(--amber) 40%, transparent)', boxShadow: '0 0 40px color-mix(in srgb, var(--amber) 8%, transparent)' }}>
         {/* Header */}
         <div className="flex items-start justify-between" style={{ marginBottom: 16 }}>
           <div className="flex items-center gap-3">
