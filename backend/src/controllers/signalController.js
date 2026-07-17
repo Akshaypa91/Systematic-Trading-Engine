@@ -10,8 +10,25 @@ const BB         = require('../strategies/bollingerBands');
 const { detectRegimeWithRouting, resetSmoothing } = require('../engine/regimeDetector');
 const signalEngine = require('../engine/signalEngine');
 const simEngine    = require('../engine/simulationEngine');
+const marketData   = require('../services/marketDataService');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
+
+// Real-market fallback: when the local DB has too few bars, pull daily candles
+// straight from Upstox (only works when a broker session is live) so signals
+// are computed on real prices instead of falling through to the sim engine.
+// Returns bar objects shaped like dataStore.getRecentPrices ({ close, ... }).
+async function _upstoxBars(symbol, minBars) {
+  try {
+    const cd = await marketData.getCandles(symbol, { interval: 'day', days: 400 });
+    const candles = cd?.candles || [];
+    if (candles.length < minBars) return null;
+    return candles.map(c => ({ ts: c.t, open: c.o, high: c.h, low: c.l, close: c.c, volume: c.v }));
+  } catch (e) {
+    logger.debug(`[SignalCtrl] Upstox candle fallback failed for ${symbol}: ${e.message}`);
+    return null;
+  }
+}
 
 // ── GET /api/signal/:symbol ───────────────────────────────────────────────────
 async function getSignal(req, res) {
@@ -23,11 +40,22 @@ async function getSignal(req, res) {
     const useRegime   = req.query.regime !== 'false';  // default: regime ON
 
     let bars = [];
+    let dataSource = 'DB';
     try { bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback); } catch (_) {}
 
-    // ── Sim fallback: DB empty → use simulation engine price history ──────────
+    // ── Upstox candle fallback: thin/empty DB → real daily candles (broker) ───
+    if (!bars || bars.length < 60) {
+      const ub = await _upstoxBars(symbol.toUpperCase(), 60);
+      if (ub) {
+        logger.info(`[SignalCtrl] Using Upstox candles for ${symbol} (${ub.length} bars, DB had ${bars?.length ?? 0})`);
+        bars = ub;
+        dataSource = 'UPSTOX';
+      }
+    }
+
+    // ── Sim fallback: DB empty and no broker candles → simulation engine ──────
     if (!bars || bars.length < 20) {
-      logger.info(`[SignalCtrl] DB empty for ${symbol} (${bars?.length ?? 0} bars) — falling back to sim engine`);
+      logger.info(`[SignalCtrl] No real data for ${symbol} (${bars?.length ?? 0} bars) — falling back to sim engine`);
 
       // Ensure sim engine has generated history for this symbol
       simEngine.addSymbol(symbol.toUpperCase());
@@ -92,7 +120,7 @@ async function getSignal(req, res) {
       );
     } catch (_) {}
 
-    res.json({ success: true, symbol: symbol.toUpperCase(), strategy, ...result });
+    res.json({ success: true, symbol: symbol.toUpperCase(), strategy, dataSource, ...result });
   } catch (err) {
     logger.error(`[SignalCtrl] ${err.message}`);
     res.status(500).json({ success: false, error: err.message });
@@ -107,7 +135,11 @@ async function getRegime(req, res) {
     const { symbol }  = req.params;
     const lookback    = parseInt(req.query.lookback || '250', 10);
 
-    const bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback);
+    let bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback);
+    if (!bars || bars.length < 60) {
+      const ub = await _upstoxBars(symbol.toUpperCase(), 60);
+      if (ub) bars = ub;
+    }
     if (!bars || bars.length < 60) {
       return res.status(422).json({
         success: false,
