@@ -420,6 +420,11 @@ body {
   .page-content { padding: 16px 16px !important; }
   .trade-grid { grid-template-columns: 1fr !important; }
   .trade-right { position:static !important; order:-1; }
+  /* The mobile drawer runs to the bottom of the screen, but the floating
+     bottom-nav pill sits above it (higher z-index). Reserve clearance so the
+     drawer's footer (Quick actions + NSE Market) never hides behind the pill;
+     the nav list scrolls within the remaining space. */
+  .sidebar { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
