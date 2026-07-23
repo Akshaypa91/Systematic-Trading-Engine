@@ -3,6 +3,7 @@
 
 const dataStore  = require('../data/dataStore');
 const backtester = require('../engine/backtester');
+const { runPortfolioBacktest } = require('../engine/portfolioBacktester');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
 
@@ -211,4 +212,34 @@ async function getBacktestTrades(req, res) {
   }
 }
 
-module.exports = { runBacktest, getBacktestRuns, getBacktestTrades };
+// ── POST /api/backtest/portfolio ──────────────────────────────────────────────
+// Multi-symbol shared-capital backtest mirroring the live engine. Fetches
+// corporate-action-ADJUSTED daily candles per symbol, then runs the portfolio
+// engine (strategyCore + positionSizing + concurrency + SL/TP).
+async function runPortfolio(req, res) {
+  const { symbols, ...config } = req.body || {};
+  const syms = Array.isArray(symbols) ? symbols.map(s => String(s).toUpperCase()).slice(0, 25) : [];
+  if (syms.length < 1) return res.status(400).json({ success: false, error: 'symbols[] required (1–25)' });
+
+  try {
+    const md = getMarketData();
+    const series = {};
+    for (const sym of syms) {
+      try {
+        const cd = await md.getCandles(sym, { interval: 'day', days: 500 });
+        const candles = (cd?.candles || []).map(c => ({ date: String(c.t).slice(0, 10), open: c.o, high: c.h, low: c.l, close: c.c }));
+        if (candles.length >= 60) series[sym] = candles;
+      } catch (e) { logger.debug(`[PortfolioBT] ${sym}: ${e.message}`); }
+    }
+    if (Object.keys(series).length === 0)
+      return res.status(422).json({ success: false, error: 'No symbol had ≥60 daily bars (broker session may be required)' });
+
+    const result = runPortfolioBacktest({ series, config });
+    return res.json({ success: true, ...result, skipped: syms.filter(s => !series[s]) });
+  } catch (err) {
+    logger.error(`[PortfolioBT] ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { runBacktest, runPortfolio, getBacktestRuns, getBacktestTrades };
