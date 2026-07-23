@@ -6,6 +6,7 @@ const db         = require('../config/database');
 const broker     = require('./brokerAdapter');
 const logger     = require('../config/logger');
 const riskLimits = require('../risk/riskLimits');
+const executionQuality = require('./executionQuality');
 
 const _n = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
@@ -47,11 +48,28 @@ async function _isDuplicate(userId, symbol, side) {
   return rows.length > 0;
 }
 
+// Best-effort store of the expected (reference) price for slippage tracking.
+// Guarded: a missing column (pre-migration) is ignored, never breaks the order.
+async function _setExpectedPrice(orderId, expectedPrice) {
+  if (orderId == null || !(Number(expectedPrice) > 0)) return;
+  try {
+    await db.query('UPDATE live_orders SET expected_price = ? WHERE id = ?', [Number(expectedPrice), orderId]);
+  } catch (e) {
+    if (!/unknown column|no column|1054/i.test(e.message)) logger.debug(`[LiveTrading] expected_price: ${e.message}`);
+  }
+}
+
 // ── Save order to DB ──────────────────────────────────────────────────────────
 // Tries the full (Phase 2) column set first; if the migration hasn't been run
 // yet the DB rejects the unknown columns and we fall back to the base insert so
 // nothing breaks pre-migration.
 async function _saveOrder(data) {
+  const _id = await _insertOrder(data);
+  await _setExpectedPrice(_id, data.expectedPrice);
+  return _id;
+}
+
+async function _insertOrder(data) {
   try {
     const [, r] = await db.query(
       `INSERT INTO live_orders
@@ -221,7 +239,11 @@ async function placeOrder(userId, params) {
   }
 
   // 7. Place order via broker
-  const orderMeta = { orderType: ot, product, validity, triggerPrice, disclosedQty, isAmo, sandbox };
+  // expectedPrice = reference price at submit time (LTP for market, limit price
+  // otherwise) — used later to measure slippage vs the actual fill.
+  const expectedPrice = (ot === 'LIMIT' || ot === 'SL') ? Number(price) || Number(currentPrice) || 0
+                                                        : Number(currentPrice) || Number(price) || 0;
+  const orderMeta = { orderType: ot, product, validity, triggerPrice, disclosedQty, isAmo, sandbox, expectedPrice };
   let brokerResponse, brokerOrderId, status, errorMessage;
   try {
     logger.info(`[LiveTrading] Placing LIVE ${side} ${qty}×${sym} type=${ot} product=${product} sandbox=${sandbox} user=${userId}`);
@@ -434,6 +456,51 @@ async function getOrders(userId) {
   });
 }
 
+// ── Execution quality (slippage) ──────────────────────────────────────────────
+// Reconcile filled orders: pull actual fills from the broker book and persist
+// avg_price + slippage_bps vs the expected price we stored at submit time.
+async function reconcileFills(userId) {
+  let orders = [];
+  try { orders = await getOrders(userId); } catch (e) { logger.debug(`[ExecQuality] getOrders: ${e.message}`); return { updated: 0 }; }
+  let updated = 0;
+  for (const o of orders) {
+    if (!(Number(o.avgPrice) > 0)) continue;
+    if (!['COMPLETED', 'PARTIAL'].includes(o.status)) continue;
+    let expected = 0;
+    try {
+      const [rows] = await db.query('SELECT expected_price FROM live_orders WHERE id = ?', [o.id]);
+      expected = Number(rows?.[0]?.expected_price);
+    } catch (_) { continue; }   // pre-migration
+    if (!(expected > 0)) continue;
+    const s = executionQuality.computeSlippage({ side: o.side, expectedPrice: expected, fillPrice: o.avgPrice });
+    if (!s) continue;
+    try {
+      await db.query('UPDATE live_orders SET avg_price = ?, filled_qty = ?, slippage_bps = ? WHERE id = ?',
+        [Number(o.avgPrice), o.filledQty ?? null, s.slippageBps, o.id]);
+      updated++;
+    } catch (e) { if (!/unknown column|1054/i.test(e.message)) logger.debug(`[ExecQuality] persist: ${e.message}`); }
+  }
+  return { updated };
+}
+
+// Aggregate execution quality + a measured slippage estimate for backtests.
+async function getExecutionQuality(userId) {
+  let rows = [];
+  try {
+    [rows] = await db.query(
+      `SELECT symbol, side, qty, expected_price, avg_price
+       FROM live_orders
+       WHERE user_id = ? AND expected_price IS NOT NULL AND avg_price IS NOT NULL AND avg_price > 0
+       ORDER BY created_at DESC LIMIT 500`, [userId]);
+  } catch (_) { rows = []; }   // columns missing → empty summary
+  const orders = rows.map(r => ({
+    symbol: r.symbol, side: r.side, qty: r.qty,
+    expectedPrice: Number(r.expected_price), fillPrice: Number(r.avg_price),
+  }));
+  const summary = executionQuality.aggregate(orders);
+  return { ...summary, suggestedBacktestSlippagePct: executionQuality.estimateBacktestSlippagePct(summary) };
+}
+
 async function getFunds(userId) {
   return broker.getFunds(userId);
 }
@@ -467,4 +534,5 @@ module.exports = {
   getHoldings, cancelOrder, setKillSwitch, isKillSwitchEngaged,
   exitPosition, squareOffAll, cancelAllOrders,
   getRiskLimits, setRiskLimits,
+  reconcileFills, getExecutionQuality,
 };

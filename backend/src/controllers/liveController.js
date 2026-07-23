@@ -259,6 +259,19 @@ async function getOrders(req, res) {
   }
 }
 
+// ── GET /api/live/execution-quality ──────────────────────────────────────────
+// Reconciles fills (best-effort) then returns slippage analytics + a measured
+// slippage estimate to feed the backtester.
+async function getExecutionQuality(req, res) {
+  try {
+    try { await lts.reconcileFills(uid(req)); } catch (_) { /* best-effort */ }
+    const data = await lts.getExecutionQuality(uid(req));
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 // ── GET /api/live/funds ───────────────────────────────────────────────────────
 async function getFunds(req, res) {
   try {
@@ -444,5 +457,5 @@ module.exports = {
   placeOrder, getCharges, getPositions, getOrders, getFunds, cancelOrder, getStatus, setMode, killSwitch,
   getBrokerStatus, brokerReconnect, brokerDisconnect, brokerRefresh,
   getFundsNormalized, getHoldings, exitPosition, squareOffAll, cancelAllOrders, emergencyStop,
-  getRisk, setRisk, setKillSwitch, getDiagnostics,
+  getRisk, setRisk, setKillSwitch, getDiagnostics, getExecutionQuality,
 };
