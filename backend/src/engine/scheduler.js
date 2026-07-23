@@ -18,6 +18,7 @@ const alertEngine     = require('./alertEngine');
 const liveDataFeed    = require('../data/liveDataFeed');
 const liveSignalEngine = require('./liveSignalEngine');
 const execEngine      = require('./executionEngine');
+const corpActionLoader = require('../data/corpActionLoader');
 const db              = require('../config/database');
 const C               = require('../config/constants');
 const logger          = require('../config/logger');
@@ -222,6 +223,18 @@ async function dataSyncJob() {
   logger.info(`[Scheduler] EOD sync complete: ${synced}/10 symbols updated`);
 }
 
+// NEW: Refresh corporate actions (splits/bonuses) from NSE into the
+// corporate_actions table so price adjustment stays current. Weekly is plenty —
+// corporate actions are announced days ahead of their ex-date.
+async function corpActionsSyncJob() {
+  const symbols = (C.NIFTY50_SYMBOLS || []).slice(0, 50);
+  if (symbols.length === 0) return;
+  const results = await corpActionLoader.loadMany(symbols);
+  const saved = results.reduce((a, r) => a + (r.saved || 0), 0);
+  const errors = results.filter(r => r.error).length;
+  logger.info(`[Scheduler] Corp-actions sync: ${saved} action(s) saved across ${symbols.length} symbols (${errors} fetch errors)`);
+}
+
 // ── Initialise all jobs ───────────────────────────────────────────────────────
 
 function start() {
@@ -232,6 +245,15 @@ function start() {
   registerJob('MARKET_SCAN',       marketScanJob,       15 * 60 * 1000, { marketHoursOnly: true,  runOnStart: false });
   registerJob('SIGNAL_SNAPSHOT',   signalSnapshotJob,   60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('DATA_SYNC',         dataSyncJob,         24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
+  registerJob('CORP_ACTIONS_SYNC', corpActionsSyncJob,   7 * 24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
+
+  // One-shot backfill ~90s after boot so a fresh deploy (or free-tier cold
+  // start that never reaches the weekly timer) still refreshes corp actions.
+  // Delayed + non-blocking so it never holds up startup; NSE calls are
+  // rate-limited and the upsert is idempotent.
+  setTimeout(() => {
+    corpActionsSyncJob().catch(err => logger.warn(`[Scheduler] initial corp-actions sync failed: ${err.message}`));
+  }, 90_000);
 
   logger.info(`[Scheduler] Started ${jobs.size} jobs`);
 }
