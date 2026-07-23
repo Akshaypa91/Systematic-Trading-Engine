@@ -1093,7 +1093,12 @@ body.nav-open { overflow:hidden; }
   padding: 10px 10px 5px;
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.09em;
   text-transform: uppercase; color: var(--text-muted);
-  white-space: nowrap; overflow: hidden;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* Don't let flexbox compress the label height when nav content overflows on
+     short viewports — otherwise the uppercase text gets vertically clipped
+     (e.g. "Quick actions" showing as a sliver). Keep intrinsic height; the
+     nav scrolls instead. */
+  flex-shrink: 0;
   transition: opacity 0.15s;
 }
 .sb-item {
