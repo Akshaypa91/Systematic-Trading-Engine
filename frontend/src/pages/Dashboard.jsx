@@ -96,7 +96,9 @@ export default function Dashboard() {
           <Card className="fade-in dash-section">
             <CardHeader title="Backtest Configuration" sub="Historical strategy simulation" />
             <form onSubmit={runBacktest}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12 }}>
+              {/* auto-fit so the 8 fields wrap to 2-up on phones instead of
+                  crushing into a fixed 8-column row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                 <Field label="Symbol" style={{ gridColumn: 'span 2' }}>
                   <Input
                     value={btForm.symbol}
@@ -253,17 +255,22 @@ export default function Dashboard() {
               <EmptyState icon={Clock} description="No saved runs" style={{ padding: '32px 0', border: 'none', background: 'transparent' }} />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {recentRuns.map((run, i) => (
+                {recentRuns.map((run, i) => {
+                  const loadRun = async () => {
+                    try {
+                      const r = await backtestAPI.getTrades(run.id);
+                      setTrades(r.data.data || []);
+                      showToast(`Loaded run #${run.id}`, 'info');
+                    } catch (_err) {
+                      showToast('Could not load trades for this run', 'error');
+                    }
+                  };
+                  return (
                   <div key={run.id || i} className="mini-tile" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4, cursor: 'pointer' }}
-                    onClick={async () => {
-                      try {
-                        const r = await backtestAPI.getTrades(run.id);
-                        setTrades(r.data.data || []);
-                        showToast(`Loaded run #${run.id}`, 'info');
-                      } catch (_err) {
-                        showToast('Could not load trades for this run', 'error');
-                      }
-                    }}>
+                    role="button" tabIndex={0}
+                    aria-label={`Load backtest run ${run.symbol} ${run.strategy}, return ${pct(run.total_return_pct)}`}
+                    onClick={loadRun}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadRun(); } }}>
                     <div className="ui-between">
                       <span className="sym">{run.symbol}</span>
                       <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: Number(run.total_return_pct) >= 0 ? 'var(--green)' : 'var(--red)' }}>
@@ -277,7 +284,8 @@ export default function Dashboard() {
                       </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Card>
