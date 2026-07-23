@@ -26,6 +26,24 @@ const upstoxAuth = require('../services/upstoxAuth');
 const logger    = require('../config/logger');
 
 const ENABLED = process.env.LIVE_EXECUTION_ENABLED === 'true';
+// Autonomous ENTRIES are the riskiest path (they OPEN real positions), so they
+// require a SECOND explicit flag on top of the master switch. Reconcile + exits
+// can run with just LIVE_EXECUTION_ENABLED; entries need both.
+const ENTRIES_ENABLED = ENABLED && process.env.LIVE_AUTO_ENTRIES_ENABLED === 'true';
+
+// Entry sizing / bracket config (conservative defaults).
+const AUTO_QTY     = parseInt(process.env.LIVE_AUTO_QTY || '1', 10);
+const AUTO_SL_PCT  = parseFloat(process.env.LIVE_AUTO_SL_PCT || '0.02');   // 2%
+const AUTO_TP_PCT  = parseFloat(process.env.LIVE_AUTO_TP_PCT || '0.04');   // 4%
+const MIN_CONF     = parseFloat(process.env.LIVE_AUTO_MIN_CONFIDENCE || '0.6');
+const MAX_NEW_PER_TICK = parseInt(process.env.LIVE_AUTO_MAX_NEW_PER_TICK || '1', 10);
+
+// Dead-man's switch: after this many consecutive failed ticks, halt (engage the
+// kill switch) so a degraded engine can't keep trading blind.
+const DEADMAN_MAX_ERRORS = parseInt(process.env.LIVE_DEADMAN_MAX_ERRORS || '3', 10);
+let _consecutiveErrors = 0;
+let _lastHeartbeat = null;
+let _lastResult = null;
 
 // Market hours (IST 09:15–15:30, Mon–Fri) — kept local so the engine has no
 // hidden coupling to the trade service's copy.
@@ -131,30 +149,163 @@ async function manageExits(userId) {
   return { checked: targets.length, exits, deactivated, errors };
 }
 
+// ── Safety: daily-loss auto-halt ──────────────────────────────────────────────
+// If today's realised+unrealised P&L breaches the configured daily-loss limit,
+// engage the kill switch so NOTHING else trades until a human releases it. This
+// is proactive — placeOrder also rejects on the limit, but the halt stops the
+// whole engine (exits still allowed to run through manageExits are fine; entries
+// are blocked because the kill switch is now engaged).
+async function _enforceDailyLossHalt(userId) {
+  try {
+    const limits = await lts.getRiskLimits();
+    if (!(limits.dailyLossLimit > 0)) return { halted: false };
+    const positions = await lts.getPositions(userId);
+    const pnl = (positions || []).reduce((a, p) => a + (Number(p.overallPnl) || 0), 0);
+    if (pnl < 0 && Math.abs(pnl) >= limits.dailyLossLimit) {
+      await lts.setKillSwitch(false);   // false = live trading DISABLED (kill engaged)
+      logger.error(`[LiveExec] DAILY-LOSS HALT: P&L ₹${pnl} ≥ limit ₹${limits.dailyLossLimit} — kill switch engaged`);
+      return { halted: true, pnl };
+    }
+    return { halted: false, pnl };
+  } catch (e) {
+    logger.warn(`[LiveExec] daily-loss check unavailable: ${e.message}`);
+    return { halted: false, error: e.message };
+  }
+}
+
+// Recent BUY signals from the signals table (default entry source).
+async function _recentSignals(minutes = 10) {
+  try {
+    const [rows] = await db.query(
+      `SELECT symbol, signal_type AS signal, confidence, price_at_signal AS price
+       FROM signals
+       WHERE signal_type = 'BUY' AND signal_ts >= (NOW() - INTERVAL ? MINUTE)
+       ORDER BY signal_ts DESC LIMIT 20`,
+      [minutes]
+    );
+    return rows || [];
+  } catch (e) { logger.debug(`[LiveExec] recent signals: ${e.message}`); return []; }
+}
+
+// ── Autonomous entries (double-gated) ─────────────────────────────────────────
+// Turn BUY signals into real orders + a bracket target. Skips symbols that
+// already have an open position or an active target, caps new entries per tick,
+// and routes every order through lts.placeOrder (full risk gauntlet). `signals`
+// is injectable for testing; otherwise pulled from the provided source.
+async function manageEntries(userId, { signals } = {}) {
+  if (!ENTRIES_ENABLED) return { enabled: false, placed: 0, skipped: 0, errors: 0 };
+  const sigs = Array.isArray(signals) ? signals : [];
+  if (!sigs.length) return { enabled: true, placed: 0, skipped: 0, errors: 0 };
+
+  // What we already hold / have working, so we don't double-enter.
+  let held = new Set();
+  try {
+    const positions = await lts.getPositions(userId);
+    held = new Set((positions || []).filter(p => Math.abs(Number(p.qty)) > 0).map(p => String(p.symbol).toUpperCase()));
+  } catch (_) {}
+  let targeted = new Set();
+  try {
+    const t = await positionTargets.getActiveTargets(userId);
+    targeted = new Set(t.map(x => String(x.symbol).toUpperCase()));
+  } catch (_) {}
+
+  let placed = 0, skipped = 0, errors = 0;
+  for (const sig of sigs) {
+    if (placed >= MAX_NEW_PER_TICK) break;
+    const symbol = String(sig.symbol || '').toUpperCase();
+    const price  = Number(sig.price || sig.currentPrice);
+    if (String(sig.signal).toUpperCase() !== 'BUY') { skipped++; continue; }
+    if (!(Number(sig.confidence) >= MIN_CONF))       { skipped++; continue; }
+    if (!symbol || !(price > 0))                     { skipped++; continue; }
+    if (held.has(symbol) || targeted.has(symbol))    { skipped++; continue; }
+
+    try {
+      await lts.placeOrder(userId, {
+        symbol, side: 'BUY', qty: AUTO_QTY, orderType: 'MARKET',
+        product: 'CNC', validity: 'DAY', confirmed: true, currentPrice: price,
+      });
+      // Bracket the new position with SL/TP from config.
+      await positionTargets.upsertTarget(userId, symbol, {
+        side: 'BUY',
+        stopLoss:   +(price * (1 - AUTO_SL_PCT)).toFixed(2),
+        takeProfit: +(price * (1 + AUTO_TP_PCT)).toFixed(2),
+      });
+      placed++;
+      held.add(symbol);
+      logger.info(`[LiveExec] AUTO-ENTRY BUY ${AUTO_QTY}×${symbol} @₹${price} (conf ${sig.confidence})`);
+    } catch (e) {
+      errors++;
+      logger.warn(`[LiveExec] auto-entry ${symbol} rejected: ${e.message}`);
+    }
+  }
+  return { enabled: true, placed, skipped, errors };
+}
+
 /**
  * One guarded tick of the live OMS loop. Returns a structured status so the
  * scheduler/diagnostics can see exactly why it did or didn't act.
  */
-async function runOnce(userId) {
+async function runOnce(userId, opts = {}) {
   if (!ENABLED)            return { ran: false, reason: 'disabled' };
   if (!userId)            return { ran: false, reason: 'no-user' };
   if (!upstoxAuth.isAuthenticated?.()) return { ran: false, reason: 'broker-unauthenticated' };
   if (await lts.isKillSwitchEngaged()) return { ran: false, reason: 'kill-switch' };
   if (!_isMarketOpen())    return { ran: false, reason: 'market-closed' };
 
+  let tickErrors = 0;
   const reconcileRes = await reconcile(userId);
-  // Slippage on freshly-filled orders (best-effort; safe if columns missing).
+  if (reconcileRes.error) tickErrors++;
   try { await lts.reconcileFills(userId); } catch (_) {}
-  // Exit management: fire SL/TP/trailing exits on breached positions.
+
+  // Daily-loss auto-halt BEFORE any new risk. If it halts, exits still ran via
+  // reconcile; entries are now blocked by the engaged kill switch.
+  const halt = await _enforceDailyLossHalt(userId);
+
   let exitsRes = { checked: 0, exits: 0, deactivated: 0, errors: 0 };
   try { exitsRes = await manageExits(userId); }
-  catch (e) { logger.error(`[LiveExec] manageExits: ${e.message}`); exitsRes.errors++; }
-  // NEXT INCREMENT (still gated by ENABLED): signal→order entries(userId).
-  return { ran: true, reconcile: reconcileRes, exits: exitsRes };
+  catch (e) { logger.error(`[LiveExec] manageExits: ${e.message}`); exitsRes.errors++; tickErrors++; }
+
+  let entriesRes = { enabled: ENTRIES_ENABLED, placed: 0, skipped: 0, errors: 0 };
+  if (!halt.halted) {
+    try {
+      // Use injected signals (tests) or pull recent BUY signals when entries are on.
+      const entryOpts = opts.signals ? opts : (ENTRIES_ENABLED ? { signals: await _recentSignals() } : {});
+      entriesRes = await manageEntries(userId, entryOpts);
+    }
+    catch (e) { logger.error(`[LiveExec] manageEntries: ${e.message}`); entriesRes.errors++; tickErrors++; }
+  }
+
+  // Dead-man's switch: sustained failures → halt so a degraded engine can't
+  // keep operating blind.
+  if (tickErrors > 0) _consecutiveErrors++; else _consecutiveErrors = 0;
+  let deadman = false;
+  if (_consecutiveErrors >= DEADMAN_MAX_ERRORS) {
+    try { await lts.setKillSwitch(false); deadman = true; _consecutiveErrors = 0;
+      logger.error(`[LiveExec] DEAD-MAN SWITCH: ${DEADMAN_MAX_ERRORS} consecutive failed ticks — kill switch engaged`);
+    } catch (_) {}
+  }
+
+  _lastHeartbeat = new Date().toISOString();
+  _lastResult = { ran: true, reconcile: reconcileRes, exits: exitsRes, entries: entriesRes,
+    dailyLossHalt: halt.halted, deadman, consecutiveErrors: _consecutiveErrors };
+  return _lastResult;
 }
 
 function getStatus() {
-  return { enabled: ENABLED, marketOpen: _isMarketOpen() };
+  return {
+    enabled: ENABLED,
+    entriesEnabled: ENTRIES_ENABLED,
+    marketOpen: _isMarketOpen(),
+    consecutiveErrors: _consecutiveErrors,
+    lastHeartbeat: _lastHeartbeat,
+    lastResult: _lastResult,
+  };
 }
 
-module.exports = { reconcile, manageExits, runOnce, getStatus, _isMarketOpen, ENABLED };
+// Test hook to reset internal counters between cases.
+function _resetSafety() { _consecutiveErrors = 0; _lastHeartbeat = null; _lastResult = null; }
+
+module.exports = {
+  reconcile, manageExits, manageEntries, runOnce, getStatus,
+  _enforceDailyLossHalt, _isMarketOpen, _resetSafety, ENABLED, ENTRIES_ENABLED,
+};
