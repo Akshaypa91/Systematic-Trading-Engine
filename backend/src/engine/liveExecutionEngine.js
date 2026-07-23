@@ -20,6 +20,8 @@ const db        = require('../config/database');
 const broker    = require('../services/brokerAdapter');
 const lts       = require('../services/liveTradingService');
 const lifecycle = require('./orderLifecycle');
+const { evaluateExit } = require('./positionExit');
+const positionTargets  = require('../risk/positionTargets');
 const upstoxAuth = require('../services/upstoxAuth');
 const logger    = require('../config/logger');
 
@@ -86,6 +88,50 @@ async function reconcile(userId) {
 }
 
 /**
+ * Monitor open live positions against their stored exit intents (SL/TP/trailing)
+ * and fire a real market exit on breach. Exits go through lts.exitPosition,
+ * which routes to the broker's exit path. A target with no matching open
+ * position is deactivated (position already closed elsewhere).
+ * @returns {{checked, exits, deactivated, errors}}
+ */
+async function manageExits(userId) {
+  const targets = await positionTargets.getActiveTargets(userId);
+  if (!targets.length) return { checked: 0, exits: 0, deactivated: 0, errors: 0 };
+
+  let positions = [];
+  try { positions = await lts.getPositions(userId); }
+  catch (e) { return { checked: targets.length, exits: 0, deactivated: 0, errors: 1, error: `positions: ${e.message}` }; }
+  const bySym = new Map((positions || []).map(p => [String(p.symbol).toUpperCase(), p]));
+
+  let exits = 0, deactivated = 0, errors = 0;
+  for (const t of targets) {
+    const pos = bySym.get(String(t.symbol).toUpperCase());
+    // No live position (qty 0 / closed) → retire the target.
+    if (!pos || !(Math.abs(Number(pos.qty)) > 0)) {
+      await positionTargets.deactivate(userId, t.symbol); deactivated++;
+      continue;
+    }
+    const price = Number(pos.ltp) || Number(pos.avgPrice);
+    const res = evaluateExit({ ...t, price });
+    // Persist an advanced trailing high/low-water mark even when not exiting.
+    if (t.trailingPct && res.newTrailRef && res.newTrailRef !== t.trailRef) {
+      await positionTargets.updateTrailRef(userId, t.symbol, res.newTrailRef);
+    }
+    if (!res.shouldExit) continue;
+    try {
+      logger.info(`[LiveExec] EXIT ${t.symbol} via ${res.reason} @₹${price}`);
+      await lts.exitPosition(userId, t.symbol);
+      await positionTargets.deactivate(userId, t.symbol);
+      exits++;
+    } catch (e) {
+      errors++;
+      logger.error(`[LiveExec] exit ${t.symbol} failed: ${e.message}`);
+    }
+  }
+  return { checked: targets.length, exits, deactivated, errors };
+}
+
+/**
  * One guarded tick of the live OMS loop. Returns a structured status so the
  * scheduler/diagnostics can see exactly why it did or didn't act.
  */
@@ -99,12 +145,16 @@ async function runOnce(userId) {
   const reconcileRes = await reconcile(userId);
   // Slippage on freshly-filled orders (best-effort; safe if columns missing).
   try { await lts.reconcileFills(userId); } catch (_) {}
-  // NEXT INCREMENTS (still gated by ENABLED): manageExits(userId), entries(userId).
-  return { ran: true, reconcile: reconcileRes };
+  // Exit management: fire SL/TP/trailing exits on breached positions.
+  let exitsRes = { checked: 0, exits: 0, deactivated: 0, errors: 0 };
+  try { exitsRes = await manageExits(userId); }
+  catch (e) { logger.error(`[LiveExec] manageExits: ${e.message}`); exitsRes.errors++; }
+  // NEXT INCREMENT (still gated by ENABLED): signal→order entries(userId).
+  return { ran: true, reconcile: reconcileRes, exits: exitsRes };
 }
 
 function getStatus() {
   return { enabled: ENABLED, marketOpen: _isMarketOpen() };
 }
 
-module.exports = { reconcile, runOnce, getStatus, _isMarketOpen, ENABLED };
+module.exports = { reconcile, manageExits, runOnce, getStatus, _isMarketOpen, ENABLED };

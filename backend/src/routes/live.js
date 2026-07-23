@@ -27,6 +27,9 @@ router.post  ('/emergency/cancel-all', ctrl.cancelAllOrders);
 router.get   ('/status',               ctrl.getStatus);
 router.get   ('/diagnostics',          ctrl.getDiagnostics);   // real-time market-data diagnostics
 router.get   ('/execution-quality',    ctrl.getExecutionQuality); // slippage analytics + backtest estimate
+router.get   ('/targets',              ctrl.getTargets);       // exit intents (SL/TP/trailing)
+router.post  ('/targets',              ctrl.setTarget);
+router.delete('/targets/:symbol',      ctrl.clearTarget);
 router.post  ('/mode',                 ctrl.setMode);
 
 // ── Broker (Upstox) connection — Phase 1: read-only status + connection mgmt ──

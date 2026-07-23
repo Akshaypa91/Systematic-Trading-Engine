@@ -56363,3 +56363,4 @@
 {"level":"info","message":"[CorpLoader] LT: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:48.086"}
 {"level":"info","message":"[CorpLoader] AXISBANK: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:48.265"}
 {"level":"info","message":"[CorpLoader] TATASTEEL: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:49:48.359"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 01:11:40.421"}

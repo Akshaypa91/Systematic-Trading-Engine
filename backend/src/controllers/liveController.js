@@ -10,6 +10,7 @@ const upstoxWS   = require('../ws/upstoxWS');
 const broker     = require('../services/brokerAdapter');
 const liveFeed   = require('../data/liveDataFeed');
 const marketData = require('../services/marketDataService');
+const positionTargets = require('../risk/positionTargets');
 
 function uid(req) { return req.user?.userId ?? req.user?.id ?? null; }
 
@@ -272,6 +273,30 @@ async function getExecutionQuality(req, res) {
   }
 }
 
+// ── Exit-intent (SL/TP/trailing) targets monitored by the execution engine ────
+async function getTargets(req, res) {
+  try { return res.json({ success: true, data: await positionTargets.getActiveTargets(uid(req)) }); }
+  catch (err) { return res.status(500).json({ success: false, error: err.message }); }
+}
+async function setTarget(req, res) {
+  const { symbol, side, stopLoss, takeProfit, trailingPct } = req.body || {};
+  if (!symbol) return res.status(400).json({ success: false, error: 'symbol required' });
+  if (stopLoss == null && takeProfit == null && trailingPct == null)
+    return res.status(400).json({ success: false, error: 'provide at least one of stopLoss, takeProfit, trailingPct' });
+  try {
+    const data = await positionTargets.upsertTarget(uid(req), symbol, { side, stopLoss, takeProfit, trailingPct });
+    auditLog('live.target_set', req, { userId: uid(req), symbol, stopLoss, takeProfit, trailingPct });
+    return res.json({ success: true, data });
+  } catch (err) { return res.status(500).json({ success: false, error: err.message }); }
+}
+async function clearTarget(req, res) {
+  try {
+    await positionTargets.deactivate(uid(req), req.params.symbol);
+    auditLog('live.target_cleared', req, { userId: uid(req), symbol: req.params.symbol });
+    return res.json({ success: true });
+  } catch (err) { return res.status(500).json({ success: false, error: err.message }); }
+}
+
 // ── GET /api/live/funds ───────────────────────────────────────────────────────
 async function getFunds(req, res) {
   try {
@@ -458,4 +483,5 @@ module.exports = {
   getBrokerStatus, brokerReconnect, brokerDisconnect, brokerRefresh,
   getFundsNormalized, getHoldings, exitPosition, squareOffAll, cancelAllOrders, emergencyStop,
   getRisk, setRisk, setKillSwitch, getDiagnostics, getExecutionQuality,
+  getTargets, setTarget, clearTarget,
 };
