@@ -54,7 +54,7 @@ export default function Diagnostics() {
             <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Market Data Diagnostics</h1>
             <button onClick={load} className="ws-pill" style={{ marginLeft: 'auto', cursor: 'pointer' }}><RefreshCw size={11} /> Refresh</button>
           </div>
-          <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>Live WebSocket diagnostics · 2s poll</p>
+          <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>Live WebSocket diagnostics · 5s poll</p>
 
           {/* Provider banner */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 10, marginBottom: 16,

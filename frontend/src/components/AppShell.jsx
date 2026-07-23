@@ -21,16 +21,21 @@ export default function AppShell({ children }) {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
+      {/* Keyboard users can jump straight past the nav to the page content. */}
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <Navbar onMenuToggle={() => setMenuOpen(o => !o)} menuOpen={menuOpen} />
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* Main content — offset by sidebar on desktop, status bar at bottom */}
       <div
+        id="main-content"
+        tabIndex={-1}
         style={{
           paddingTop:  'var(--navbar-h)',
           paddingLeft: 'var(--sidebar-w)',
           minHeight:   '100vh',
           transition:  'padding-left 0.25s',
+          outline:     'none',
         }}
         className="main-content-area"
       >

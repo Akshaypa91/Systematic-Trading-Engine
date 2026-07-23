@@ -842,6 +842,17 @@ body.nav-open { overflow:hidden; }
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 22%, transparent);
 }
 
+/* ── Skip to main content (keyboard/screen-reader users) ──────────────────── */
+.skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: 100;
+  transform: translateY(-150%);
+  padding: 9px 16px; border-radius: 8px;
+  background: var(--cyan); color: #04121f; font-size: 13px; font-weight: 700;
+  text-decoration: none; box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  transition: transform 0.18s var(--ease-out, ease);
+}
+.skip-link:focus { transform: translateY(0); outline: none; }
+
 /* Respect reduced-motion preference across the whole app */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
