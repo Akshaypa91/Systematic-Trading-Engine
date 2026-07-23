@@ -22,6 +22,7 @@ const lts       = require('../services/liveTradingService');
 const lifecycle = require('./orderLifecycle');
 const { evaluateExit } = require('./positionExit');
 const { computeQty }   = require('../risk/positionSizing');
+const { executeSliced } = require('./executionAlgos');
 const positionTargets  = require('../risk/positionTargets');
 const upstoxAuth = require('../services/upstoxAuth');
 const logger    = require('../config/logger');
@@ -44,6 +45,9 @@ const RISK_PER_TRADE   = parseFloat(process.env.LIVE_RISK_PER_TRADE || '0.01'); 
 const TARGET_VOL       = parseFloat(process.env.LIVE_TARGET_VOL || '0.02');
 const SIZING_CAPITAL_FB = parseFloat(process.env.LIVE_SIZING_CAPITAL || '0');       // fallback if funds unavailable
 const MAX_CONCURRENT   = parseInt(process.env.LIVE_MAX_CONCURRENT_POSITIONS || '5', 10);
+// Execution algo: split entries larger than this into child orders (0 = off).
+const EXEC_MAX_CHILD_QTY = parseInt(process.env.LIVE_EXEC_MAX_CHILD_QTY || '0', 10);
+const EXEC_CHILD_INTERVAL_MS = parseInt(process.env.LIVE_EXEC_CHILD_INTERVAL_MS || '1500', 10);
 
 // Dead-man's switch: after this many consecutive failed ticks, halt (engage the
 // kill switch) so a degraded engine can't keep trading blind.
@@ -248,10 +252,16 @@ async function manageEntries(userId, { signals } = {}) {
     if (!(qty > 0)) { skipped++; continue; }          // sizing says no room
 
     try {
-      await lts.placeOrder(userId, {
-        symbol, side: 'BUY', qty, orderType: 'MARKET',
-        product: 'CNC', validity: 'DAY', confirmed: true, currentPrice: price,
-      });
+      const parent = { symbol, side: 'BUY', orderType: 'MARKET', product: 'CNC', validity: 'DAY', confirmed: true, currentPrice: price };
+      if (EXEC_MAX_CHILD_QTY > 0 && qty > EXEC_MAX_CHILD_QTY) {
+        // Slice large entries into child orders to reduce market impact.
+        const res = await executeSliced((child) => lts.placeOrder(userId, child),
+          { ...parent, qty }, { maxChildQty: EXEC_MAX_CHILD_QTY, intervalMs: EXEC_CHILD_INTERVAL_MS });
+        if (res.placed === 0) throw new Error('all child slices rejected');
+        logger.info(`[LiveExec] sliced ${symbol} ${qty} into ${res.children} child order(s)`);
+      } else {
+        await lts.placeOrder(userId, { ...parent, qty });
+      }
       await positionTargets.upsertTarget(userId, symbol, {
         side: 'BUY',
         stopLoss:   +(price * (1 - AUTO_SL_PCT)).toFixed(2),

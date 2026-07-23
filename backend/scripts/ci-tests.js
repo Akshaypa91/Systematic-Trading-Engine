@@ -44,6 +44,8 @@ const SUITES = [
   'scripts/test-auto-entries.js',
   'scripts/test-position-sizing.js',
   'scripts/test-entry-sizing.js',
+  'scripts/test-execution-algos.js',
+  'scripts/test-order-slicing.js',
 ];
 for (const s of SUITES) {
   const p = path.join(ROOT, s);
