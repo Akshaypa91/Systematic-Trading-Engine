@@ -52,6 +52,11 @@ jobs:
           DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/ci_test
         run: npm test
 
+      - name: Safety & data-layer tests (syntax + order/risk + strategy + corp-actions)
+        env:
+          LOG_LEVEL: silent
+        run: npm run test:unit
+
   # ── Frontend: install + lint + production build ───────────────────────────
   frontend:
     name: Frontend (lint + build)

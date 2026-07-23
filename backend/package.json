@@ -7,6 +7,7 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "node tests/run-tests.js",
+    "test:unit": "node scripts/ci-tests.js",
     "backtest:sample": "node scripts/run-sample-backtest.js",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/setup-complete.js",
