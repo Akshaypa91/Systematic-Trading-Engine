@@ -56,6 +56,7 @@
 const crypto        = require('crypto');
 const dataStore     = require('../data/dataStore');
 const aggregator    = require('../strategies/aggregator');
+const strategyCore  = require('./strategyCore');
 const execEngine    = require('./executionEngine');
 const liveDataFeed  = require('../data/liveDataFeed');
 const riskMgr       = require('../risk/riskManager');
@@ -153,7 +154,8 @@ async function _processSymbol(symbol) {
     const today       = _today();
 
     // ── 2. Generate signal ─────────────────────────────────────────────
-    const result = aggregator.aggregate(closes, {
+    // Canonical decision via strategyCore — identical to backtest & /signal.
+    const result = strategyCore.evaluate('AGGREGATED', closes, {
       symbol,
       method:    'weighted',
       useRegime: true,

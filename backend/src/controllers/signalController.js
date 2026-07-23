@@ -2,11 +2,7 @@
 'use strict';
 
 const dataStore  = require('../data/dataStore');
-const aggregator = require('../strategies/aggregator');
-const MR         = require('../strategies/meanReversion');
-const MA         = require('../strategies/maCrossover');
-const RSI        = require('../strategies/rsiStrategy');
-const BB         = require('../strategies/bollingerBands');
+const strategyCore = require('../engine/strategyCore');
 const { detectRegimeWithRouting, resetSmoothing } = require('../engine/regimeDetector');
 const signalEngine = require('../engine/signalEngine');
 const simEngine    = require('../engine/simulationEngine');
@@ -96,19 +92,14 @@ async function getSignal(req, res) {
     }
 
     const closes = bars.map(b => b.close);
-    let result;
 
-    switch (strategy) {
-      case 'MEAN_REVERSION': result = MR.generateSignal(closes);  break;
-      case 'MA_CROSSOVER':   result = MA.generateSignal(closes);  break;
-      case 'RSI':            result = RSI.generateSignal(closes); break;
-      case 'BOLLINGER':      result = BB.generateSignal(closes, {
-        mode: req.query.bbMode || 'mean_reversion',
-      }); break;
-      default:               result = aggregator.aggregate(closes, {
-        method, symbol: symbol.toUpperCase(), useRegime,
-      }); break;
-    }
+    // Canonical signal decision — same code path as backtest & live.
+    const result = strategyCore.evaluate(strategy, closes, {
+      method,
+      symbol: symbol.toUpperCase(),
+      useRegime,
+      bbMode: req.query.bbMode || 'mean_reversion',
+    });
 
     // Persist signal
     try {
@@ -179,7 +170,7 @@ async function getSignalHistory(req, res) {
 
 // ── GET /api/signal/describe ──────────────────────────────────────────────────
 function describeStrategies(req, res) {
-  res.json({ success: true, data: aggregator.describeWeights() });
+  res.json({ success: true, data: strategyCore.describeWeights() });
 }
 
 module.exports = { getSignal, getRegime, getSignalHistory, describeStrategies };

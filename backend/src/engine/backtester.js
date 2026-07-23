@@ -25,11 +25,12 @@ const logger  = require('../config/logger');
 const txCosts = require('../utils/transactionCosts');
 const { detectRegime } = require('./regimeDetector');
 
+const strategyCore = require('./strategyCore');
+
+// Valid strategy keys for backtesting (mirrors strategyCore.VALID minus BOLLINGER
+// which the backtest loop doesn't wire an exit for yet).
 const strategies = {
-  MEAN_REVERSION: require('../strategies/meanReversion'),
-  MA_CROSSOVER:   require('../strategies/maCrossover'),
-  RSI:            require('../strategies/rsiStrategy'),
-  AGGREGATED:     require('../strategies/aggregator'),
+  MEAN_REVERSION: true, MA_CROSSOVER: true, RSI: true, AGGREGATED: true,
 };
 
 const BT = C.BACKTEST;
@@ -271,17 +272,12 @@ function _checkExit(bar, position, closes, stratKey, aggrMethod, minConfidence) 
 // ── Signal dispatch (regime-aware for AGGREGATED) ─────────────────────────────
 
 function _getSignal(closes, stratKey, aggrMethod, regimeWeights = null) {
-  switch (stratKey) {
-    case 'MEAN_REVERSION': return strategies.MEAN_REVERSION.generateSignal(closes);
-    case 'MA_CROSSOVER':   return strategies.MA_CROSSOVER.generateSignal(closes);
-    case 'RSI':            return strategies.RSI.generateSignal(closes);
-    case 'AGGREGATED':
-    default: {
-      const opts = { method: aggrMethod };
-      if (regimeWeights) opts.overrideWeights = regimeWeights;
-      return strategies.AGGREGATED.aggregate(closes, opts);
-    }
-  }
+  // Delegates to the shared strategyCore so backtest signals are computed by the
+  // exact same code as live/paper signals — identical bars → identical decision.
+  return strategyCore.evaluate(stratKey, closes, {
+    method: aggrMethod,
+    overrideWeights: regimeWeights || undefined,
+  });
 }
 
 // ── Performance metrics ───────────────────────────────────────────────────────
