@@ -33,6 +33,7 @@
     "mathjs": "^12.2.1",
     "morgan": "^1.10.0",
     "mysql2": "^3.22.6",
+    "protobufjs": "^8.7.1",
     "resend": "^6.12.3",
     "technicalindicators": "^3.1.0",
     "uuid": "^14.0.0",

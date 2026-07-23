@@ -1,13 +1,32 @@
-// src/ws/upstoxWS.js — HARDENED
+// src/ws/upstoxWS.js — V3 real-time feed (authorize handshake + protobuf)
+// ─────────────────────────────────────────────────────────────────────────────
+// The Upstox v2/v3 market-data WebSocket is NOT a plain authenticated socket:
+//   1. GET  /v3/feed/market-data-feed/authorize  (Bearer token) → a one-time
+//      `authorized_redirect_uri` (wss://...) that already carries auth.
+//   2. Connect the WS to that redirect URI (no auth header).
+//   3. Send the subscription as a BINARY frame (Buffer of JSON).
+//   4. Incoming frames are BINARY protobuf (FeedResponse) — decode via
+//      upstoxProto. The previous build connected directly and skipped binary,
+//      which is why it never streamed ("WebSocket: Down").
+//
+// SAFETY: gated behind UPSTOX_WS_ENABLED (default OFF). While off, connect() is a
+// no-op so the reliable REST poller (upstoxRestFeed) stays the price source and
+// a not-yet-live-verified protobuf schema can never feed wrong prices into the
+// WS cache tier. Flip UPSTOX_WS_ENABLED=true only after confirming a live tick.
+// ─────────────────────────────────────────────────────────────────────────────
 'use strict';
 
 const WebSocket    = require('ws');
+const axios        = require('axios');
 const upstoxAuth   = require('../services/upstoxAuth');
 const liveDataFeed = require('../data/liveDataFeed');
+const upstoxProto  = require('./upstoxProto');
 const symbols      = require('../config/symbols');
 const logger       = require('../config/logger');
 
-const UPSTOX_WS_URL  = 'wss://api.upstox.com/v2/feed/market-data-feed';
+const AUTHORIZE_URL  = 'https://api.upstox.com/v3/feed/market-data-feed/authorize';
+const SUB_MODE       = process.env.UPSTOX_WS_MODE || 'ltpc';   // ltpc | full | full_d30 | option_greeks
+const WS_ENABLED     = process.env.UPSTOX_WS_ENABLED === 'true';
 const RECONNECT_BASE = 5_000;
 const MAX_RECONNECTS = 20;
 const PING_INTERVAL  = 30_000;
@@ -53,50 +72,55 @@ function getCachedPrice(baseSymbol) {
 
 // ── Connect ───────────────────────────────────────────────────────────────────
 
-function connect(instrumentKeys) {
+// Step 1: exchange the Bearer token for a one-time authorized wss URI.
+async function _authorize(token) {
+  const res = await axios.get(AUTHORIZE_URL, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    timeout: 15_000,
+  });
+  const uri = res.data?.data?.authorized_redirect_uri || res.data?.data?.authorizedRedirectUri;
+  if (!uri) throw new Error('authorize: no authorized_redirect_uri in response');
+  return uri;
+}
+
+async function connect(instrumentKeys) {
+  if (!WS_ENABLED) {
+    logger.info('[UpstoxWS] disabled (UPSTOX_WS_ENABLED!=true) — REST feed remains the price source');
+    return;
+  }
+  if (_connected && _ws?.readyState === WebSocket.OPEN) {
+    logger.debug('[UpstoxWS] Already connected');
+    return;
+  }
+
+  const token = upstoxAuth.getAccessToken();
+  if (!token) throw new Error('No Upstox token — OAuth first');
+
+  _destroyed      = false;
+  _subscribedKeys = instrumentKeys || _defaultWatchlist();
+
+  const redirectUri = await _authorize(token);
+  logger.info(`[UpstoxWS] Authorized — connecting (${_subscribedKeys.length} instruments, mode=${SUB_MODE})`);
+
   return new Promise((resolve, reject) => {
-    if (_connected && _ws?.readyState === WebSocket.OPEN) {
-      logger.debug('[UpstoxWS] Already connected');
-      return resolve();
-    }
-
-    const token = upstoxAuth.getAccessToken();
-    if (!token) {
-      return reject(new Error('No Upstox token — OAuth first'));
-    }
-
-    _destroyed      = false;
-    _subscribedKeys = instrumentKeys || _defaultWatchlist();
-
-    logger.info(`[UpstoxWS] Connecting (${_subscribedKeys.length} instruments) token_len=${token.length}`);
-
-    _ws = new WebSocket(UPSTOX_WS_URL, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Api-Version':   '2.0',
-      },
-      handshakeTimeout: 15_000,
-    });
+    // The redirect URI already embeds auth — no headers needed.
+    _ws = new WebSocket(redirectUri, { handshakeTimeout: 15_000 });
 
     let resolved = false;
-    const done = (err) => {
-      if (resolved) return;
-      resolved = true;
-      err ? reject(err) : resolve();
-    };
+    const done = (err) => { if (resolved) return; resolved = true; err ? reject(err) : resolve(); };
 
     _ws.on('open', () => {
       _connected      = true;
       _reconnectCount = 0;
       _connectedAt    = new Date().toISOString();
-      logger.info('[UpstoxWS] ✅ Connected');
+      logger.info('[UpstoxWS] ✅ Connected (V3)');
       _subscribe(_subscribedKeys);
       _startPing();
       done();
     });
 
     _ws.on('message', (data) => {
-      try { _onMessage(data); } catch (e) { logger.debug(`[UpstoxWS] msg parse: ${e.message}`); }
+      try { _onMessage(data); } catch (e) { logger.debug(`[UpstoxWS] msg decode: ${e.message}`); }
     });
 
     _ws.on('close', (code, reason) => {
@@ -133,13 +157,14 @@ function disconnect() {
 
 function _subscribe(keys) {
   if (!_ws || _ws.readyState !== WebSocket.OPEN || !keys?.length) return;
-  const msg = JSON.stringify({
+  // V3 expects the control message as a BINARY frame (Buffer of the JSON).
+  const payload = {
     guid:   `sub-${Date.now()}`,
     method: 'sub',
-    data:   { mode: 'ltpc', instrumentKeys: keys },
-  });
-  _ws.send(msg);
-  logger.info(`[UpstoxWS] Subscribed ${keys.length} instruments`);
+    data:   { mode: SUB_MODE, instrumentKeys: keys },
+  };
+  _ws.send(Buffer.from(JSON.stringify(payload)));
+  logger.info(`[UpstoxWS] Subscribed ${keys.length} instruments (mode=${SUB_MODE})`);
 }
 
 function subscribe(baseSymbols) {
@@ -153,51 +178,41 @@ function subscribe(baseSymbols) {
 // ── Message handler ───────────────────────────────────────────────────────────
 
 function _onMessage(raw) {
-  let text;
-  try {
-    text = Buffer.isBuffer(raw) ? raw.toString('utf8') : raw;
-    if (!text.startsWith('{') && !text.startsWith('[')) return; // binary proto — skip
-  } catch (_) { return; }
+  if (!Buffer.isBuffer(raw)) {
+    // Rare: a text frame (e.g. an error string). Log and ignore.
+    try { logger.debug(`[UpstoxWS] text frame: ${String(raw).slice(0, 120)}`); } catch (_) {}
+    return;
+  }
 
-  let msg;
-  try { msg = JSON.parse(text); } catch (_) { return; }
+  let decoded;
+  try { decoded = upstoxProto.decode(raw); }
+  catch (e) { logger.debug(`[UpstoxWS] protobuf decode failed: ${e.message}`); return; }
 
-  if (msg.type === 'pong') return;
+  const feeds = decoded?.feeds;
+  if (!feeds) return;
 
-  const feeds = msg.feeds;
-  if (!feeds || typeof feeds !== 'object') return;
-
-  const ts    = new Date(msg.currentTs || Date.now()).toISOString();
+  const ts    = new Date(decoded.currentTs || Date.now()).toISOString();
   const rawTs = Date.now();
 
-  for (const [instrumentKey, feed] of Object.entries(feeds)) {
-    const ltpc = feed?.ltpc || feed;
-    if (!ltpc) continue;
-
-    const ltp = parseFloat(ltpc.ltp ?? ltpc.last_price ?? 0);
-    if (!isFinite(ltp) || ltp <= 0) continue;
-
-    const cp        = parseFloat(ltpc.cp ?? ltpc.close_price ?? 0) || ltp;
-    const change    = parseFloat((ltp - cp).toFixed(2));
-    const changePct = cp > 0 ? parseFloat(((change / cp) * 100).toFixed(2)) : 0;
+  for (const [instrumentKey, t] of Object.entries(feeds)) {
+    const ltp = t.ltp;
+    if (!(ltp > 0)) continue;
 
     _priceCache.set(instrumentKey, { price: ltp, ts, rawTs });
     _recordTick();
 
     const baseSymbol = symbols.fromUpstox(instrumentKey);
-
     liveDataFeed.broadcastAll({
       type:         'PRICE',
       symbol:       baseSymbol || instrumentKey,
       instrumentKey,
       price:        ltp,
-      change,
-      changePct,
+      change:       t.change,
+      changePct:    t.changePct,
       source:       'LIVE_UPSTOX',
       ts,
     });
-
-    logger.debug(`[UpstoxWS] Tick ${baseSymbol || instrumentKey} ₹${ltp} (${changePct >= 0 ? '+' : ''}${changePct}%)`);
+    logger.debug(`[UpstoxWS] Tick ${baseSymbol || instrumentKey} ₹${ltp} (${t.changePct >= 0 ? '+' : ''}${t.changePct}%)`);
   }
 }
 
@@ -206,9 +221,8 @@ function _onMessage(raw) {
 function _startPing() {
   _stopPing();
   _pingTimer = setInterval(() => {
-    if (_ws?.readyState === WebSocket.OPEN) {
-      _ws.send(JSON.stringify({ guid: `ping-${Date.now()}`, method: 'ping', data: {} }));
-    }
+    // Protocol-level ping keeps the connection alive; V3 has no JSON ping frame.
+    if (_ws?.readyState === WebSocket.OPEN) { try { _ws.ping(); } catch (_) {} }
   }, PING_INTERVAL);
 }
 
@@ -254,6 +268,8 @@ function _defaultWatchlist() {
 
 function getStatus() {
   return {
+    enabled:         WS_ENABLED,
+    mode:            SUB_MODE,
     connected:       _connected,
     readyState:      _ws?.readyState ?? -1,
     subscribedCount: _subscribedKeys.length,
