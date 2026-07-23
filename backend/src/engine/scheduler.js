@@ -19,6 +19,7 @@ const liveDataFeed    = require('../data/liveDataFeed');
 const liveSignalEngine = require('./liveSignalEngine');
 const execEngine      = require('./executionEngine');
 const corpActionLoader = require('../data/corpActionLoader');
+const liveExecution   = require('./liveExecutionEngine');
 const db              = require('../config/database');
 const C               = require('../config/constants');
 const logger          = require('../config/logger');
@@ -235,6 +236,17 @@ async function corpActionsSyncJob() {
   logger.info(`[Scheduler] Corp-actions sync: ${saved} action(s) saved across ${symbols.length} symbols (${errors} fetch errors)`);
 }
 
+// NEW: Live OMS tick — reconcile our live orders with the broker book (and, in
+// later increments, drive exits/entries). Entirely gated by
+// LIVE_EXECUTION_ENABLED inside the engine; this job only runs the tick for the
+// operator's own user id (LIVE_EXECUTION_USER_ID) while the app is single-user.
+async function liveExecutionJob() {
+  const uid = process.env.LIVE_EXECUTION_USER_ID;
+  if (!uid) return;                       // no operator user configured — skip
+  const res = await liveExecution.runOnce(Number(uid));
+  if (res.ran) logger.info(`[Scheduler] Live OMS tick: ${res.reconcile?.transitions ?? 0} transition(s)`);
+}
+
 // ── Initialise all jobs ───────────────────────────────────────────────────────
 
 function start() {
@@ -246,6 +258,7 @@ function start() {
   registerJob('SIGNAL_SNAPSHOT',   signalSnapshotJob,   60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('DATA_SYNC',         dataSyncJob,         24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('CORP_ACTIONS_SYNC', corpActionsSyncJob,   7 * 24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
+  registerJob('LIVE_EXECUTION',    liveExecutionJob,     30 * 1000,               { marketHoursOnly: true,  runOnStart: false });
 
   // One-shot backfill ~90s after boot so a fresh deploy (or free-tier cold
   // start that never reaches the weekly timer) still refreshes corp actions.
