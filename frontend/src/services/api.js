@@ -143,6 +143,7 @@ export const liveAPI = {
   funds:       ()           => api.get('/live/funds'),
   // Broker (Upstox) connection — Phase 1
   diagnostics:      ()      => api.get('/live/diagnostics'),
+  executionQuality: ()      => api.get('/live/execution-quality'),
   brokerStatus:     ()      => api.get('/live/broker/status'),
   brokerReconnect:  ()      => api.post('/live/broker/reconnect'),
   brokerDisconnect: ()      => api.post('/live/broker/disconnect'),

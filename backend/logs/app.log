@@ -56348,3 +56348,18 @@
 {"level":"info","message":"[CorpLoader] AXISBANK: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:17:04.097"}
 {"level":"info","message":"[CorpLoader] TATASTEEL: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:17:04.167"}
 {"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:44:42.673"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:49:26.445"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:49:37.017"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:49:46.138"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-07-24 00:49:46.358"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-07-24 00:49:46.359"}
+{"level":"info","message":"[CorpLoader] RELIANCE: 20 rows → 2 split/bonus → 2 saved","timestamp":"2026-07-24 00:49:46.581"}
+{"level":"info","message":"[CorpLoader] TCS: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:49:46.751"}
+{"level":"info","message":"[CorpLoader] INFY: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:46.910"}
+{"level":"info","message":"[CorpLoader] HDFCBANK: 20 rows → 3 split/bonus → 3 saved","timestamp":"2026-07-24 00:49:47.265"}
+{"level":"info","message":"[CorpLoader] ICICIBANK: 20 rows → 2 split/bonus → 2 saved","timestamp":"2026-07-24 00:49:47.538"}
+{"level":"info","message":"[CorpLoader] SBIN: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:49:47.670"}
+{"level":"info","message":"[CorpLoader] ITC: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:47.865"}
+{"level":"info","message":"[CorpLoader] LT: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:48.086"}
+{"level":"info","message":"[CorpLoader] AXISBANK: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:48.265"}
+{"level":"info","message":"[CorpLoader] TATASTEEL: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:49:48.359"}

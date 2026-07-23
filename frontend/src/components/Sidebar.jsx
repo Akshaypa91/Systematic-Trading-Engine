@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Zap, Search, TrendingUp, Radio, ArrowLeftRight,
-  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, Rocket, ScrollText, Wallet, Activity,
+  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, Rocket, ScrollText, Wallet, Activity, Gauge,
 } from 'lucide-react';
 
 const GROUPS = [
@@ -33,6 +33,7 @@ const GROUPS = [
     label: 'Workspace',
     items: [
       { to: '/journal',  icon: BookOpen,      label: 'Journal',  kbd: 'G J' },
+      { to: '/execution', icon: Gauge,        label: 'Execution', kbd: 'G E' },
       { to: '/diagnostics', icon: Activity,   label: 'Diagnostics', kbd: 'G X' },
       { to: '/feedback', icon: MessageSquare, label: 'Feedback' },
     ],
