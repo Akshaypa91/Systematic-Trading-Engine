@@ -21,6 +21,7 @@ const broker    = require('../services/brokerAdapter');
 const lts       = require('../services/liveTradingService');
 const lifecycle = require('./orderLifecycle');
 const { evaluateExit } = require('./positionExit');
+const { computeQty }   = require('../risk/positionSizing');
 const positionTargets  = require('../risk/positionTargets');
 const upstoxAuth = require('../services/upstoxAuth');
 const logger    = require('../config/logger');
@@ -37,6 +38,12 @@ const AUTO_SL_PCT  = parseFloat(process.env.LIVE_AUTO_SL_PCT || '0.02');   // 2%
 const AUTO_TP_PCT  = parseFloat(process.env.LIVE_AUTO_TP_PCT || '0.04');   // 4%
 const MIN_CONF     = parseFloat(process.env.LIVE_AUTO_MIN_CONFIDENCE || '0.6');
 const MAX_NEW_PER_TICK = parseInt(process.env.LIVE_AUTO_MAX_NEW_PER_TICK || '1', 10);
+// Portfolio-level sizing + concurrency.
+const SIZING_METHOD    = (process.env.LIVE_SIZING_METHOD || 'fixed').toLowerCase(); // fixed|risk|voltarget
+const RISK_PER_TRADE   = parseFloat(process.env.LIVE_RISK_PER_TRADE || '0.01');     // 1% of capital
+const TARGET_VOL       = parseFloat(process.env.LIVE_TARGET_VOL || '0.02');
+const SIZING_CAPITAL_FB = parseFloat(process.env.LIVE_SIZING_CAPITAL || '0');       // fallback if funds unavailable
+const MAX_CONCURRENT   = parseInt(process.env.LIVE_MAX_CONCURRENT_POSITIONS || '5', 10);
 
 // Dead-man's switch: after this many consecutive failed ticks, halt (engage the
 // kill switch) so a degraded engine can't keep trading blind.
@@ -209,6 +216,18 @@ async function manageEntries(userId, { signals } = {}) {
     targeted = new Set(t.map(x => String(x.symbol).toUpperCase()));
   } catch (_) {}
 
+  // Portfolio concurrency cap — how many NEW positions we may still open.
+  const openCount = new Set([...held, ...targeted]).size;
+  let concurrencyBudget = Math.max(0, MAX_CONCURRENT - openCount);
+
+  // Deployable capital for sizing (available cash), with an env fallback.
+  let capital = SIZING_CAPITAL_FB;
+  if (SIZING_METHOD !== 'fixed') {
+    try { const f = await lts.getFundsNormalized(userId); capital = Number(f?.availableCash) || SIZING_CAPITAL_FB; } catch (_) {}
+  }
+  let maxPositionValue = 0;
+  try { const lim = await lts.getRiskLimits(); maxPositionValue = Number(lim?.maxPositionSize) || 0; } catch (_) {}
+
   let placed = 0, skipped = 0, errors = 0;
   for (const sig of sigs) {
     if (placed >= MAX_NEW_PER_TICK) break;
@@ -218,13 +237,21 @@ async function manageEntries(userId, { signals } = {}) {
     if (!(Number(sig.confidence) >= MIN_CONF))       { skipped++; continue; }
     if (!symbol || !(price > 0))                     { skipped++; continue; }
     if (held.has(symbol) || targeted.has(symbol))    { skipped++; continue; }
+    if (concurrencyBudget <= 0)                       { skipped++; continue; }   // portfolio full
+
+    const qty = computeQty({
+      method: SIZING_METHOD, price, capital,
+      fixedQty: AUTO_QTY, riskPerTrade: RISK_PER_TRADE, stopPct: AUTO_SL_PCT,
+      targetVol: TARGET_VOL, assetVol: Number(sig.assetVol || sig.vol) || undefined,
+      maxPositionValue,
+    });
+    if (!(qty > 0)) { skipped++; continue; }          // sizing says no room
 
     try {
       await lts.placeOrder(userId, {
-        symbol, side: 'BUY', qty: AUTO_QTY, orderType: 'MARKET',
+        symbol, side: 'BUY', qty, orderType: 'MARKET',
         product: 'CNC', validity: 'DAY', confirmed: true, currentPrice: price,
       });
-      // Bracket the new position with SL/TP from config.
       await positionTargets.upsertTarget(userId, symbol, {
         side: 'BUY',
         stopLoss:   +(price * (1 - AUTO_SL_PCT)).toFixed(2),
@@ -232,7 +259,8 @@ async function manageEntries(userId, { signals } = {}) {
       });
       placed++;
       held.add(symbol);
-      logger.info(`[LiveExec] AUTO-ENTRY BUY ${AUTO_QTY}×${symbol} @₹${price} (conf ${sig.confidence})`);
+      concurrencyBudget--;
+      logger.info(`[LiveExec] AUTO-ENTRY BUY ${qty}×${symbol} @₹${price} (conf ${sig.confidence}, ${SIZING_METHOD})`);
     } catch (e) {
       errors++;
       logger.warn(`[LiveExec] auto-entry ${symbol} rejected: ${e.message}`);
