@@ -11,6 +11,7 @@ const { detectRegimeWithRouting, resetSmoothing } = require('../engine/regimeDet
 const signalEngine = require('../engine/signalEngine');
 const simEngine    = require('../engine/simulationEngine');
 const marketData   = require('../services/marketDataService');
+const corpActions  = require('../data/corporateActions');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
 
@@ -42,6 +43,10 @@ async function getSignal(req, res) {
     let bars = [];
     let dataSource = 'DB';
     try { bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback); } catch (_) {}
+    // Back-adjust DB bars for splits/bonuses (Upstox-fallback bars come pre-adjusted).
+    if (bars && bars.length) {
+      try { bars = (await corpActions.adjustCandles(symbol.toUpperCase(), bars)).candles; } catch (_) {}
+    }
 
     // ── Upstox candle fallback: thin/empty DB → real daily candles (broker) ───
     if (!bars || bars.length < 60) {

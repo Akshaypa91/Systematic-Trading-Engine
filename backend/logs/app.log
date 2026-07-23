@@ -56332,3 +56332,4 @@
 {"level":"warn","message":"[MarketData] Finnhub ICICIBANK: Finnhub CB open","timestamp":"2026-07-11 16:18:28.942"}
 {"level":"debug","message":"[MarketData] Upstox snapshot WIPRO: symbolMap.toUpstox is not a function","timestamp":"2026-07-11 16:18:28.942"}
 {"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-11 16:18:28.942"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:08:01.571"}

@@ -5,6 +5,7 @@ const axios     = require('axios');
 const symbolMap = require('../config/symbolMap');
 const symbols   = require('../config/symbols');   // has toUpstox (instrument keys); symbolMap does not
 const logger    = require('../config/logger');
+const corpActions = require('../data/corporateActions');
 
 let _upstoxWS = null;
 function _getUpstoxWS() {
@@ -93,7 +94,18 @@ async function getCandles(symbol, { interval = 'day', days = 120 } = {}) {
     .map(c => ({ t: c[0], o: +c[1], h: +c[2], l: +c[3], c: +c[4], v: +c[5] }))
     .filter(c => isFinite(c.c))
     .sort((a, b) => new Date(a.t) - new Date(b.t));
-  return { symbol: base, interval, candles, source: candles.length ? 'UPSTOX' : 'NONE' };
+
+  // Back-adjust for splits/bonuses so the series is continuous across ex-dates
+  // (Upstox historical candles are unadjusted). No-op for symbols with no
+  // recorded corporate actions.
+  let adjusted = false;
+  let out = candles;
+  try {
+    const r = await corpActions.adjustCandles(base, candles);
+    out = r.candles; adjusted = r.adjusted;
+  } catch (e) { logger.debug(`[MarketData] corp-action adjust ${base}: ${e.message}`); }
+
+  return { symbol: base, interval, candles: out, adjusted, source: out.length ? 'UPSTOX' : 'NONE' };
 }
 
 const TWELVEDATA_KEY = process.env.TWELVEDATA_API_KEY || '';
