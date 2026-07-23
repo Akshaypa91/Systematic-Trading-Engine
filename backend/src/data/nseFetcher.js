@@ -268,10 +268,23 @@ async function getMarketStatus() {
 // Kick off initial session on module load
 refreshNseSession().catch(() => {});
 
+/**
+ * Fetch corporate actions (splits / bonuses / dividends) for a symbol.
+ * Returns NSE's raw array of { symbol, subject, exDate, ... }.
+ * @param {string} symbol
+ */
+async function getCorporateActions(symbol) {
+  return fetchWithRetry(`${C.NSE.API_BASE}/corporates-corporateActions`, {
+    index: 'equities',
+    symbol,
+  });
+}
+
 module.exports = {
   getQuote,
   getHistoricalData,
   getNifty50Quotes,
   getMarketStatus,
+  getCorporateActions,
   refreshNseSession,
 };

@@ -56333,3 +56333,17 @@
 {"level":"debug","message":"[MarketData] Upstox snapshot WIPRO: symbolMap.toUpstox is not a function","timestamp":"2026-07-11 16:18:28.942"}
 {"level":"warn","message":"[MarketData] NSE WIPRO: NSE CB open","timestamp":"2026-07-11 16:18:28.942"}
 {"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:08:01.571"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:16:48.733"}
+{"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 00:17:01.992"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-07-24 00:17:02.220"}
+{"level":"info","message":"[NSE] Session cookies refreshed","timestamp":"2026-07-24 00:17:02.238"}
+{"level":"info","message":"[CorpLoader] RELIANCE: 20 rows → 2 split/bonus → 2 saved","timestamp":"2026-07-24 00:17:02.439"}
+{"level":"info","message":"[CorpLoader] TCS: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:17:02.573"}
+{"level":"info","message":"[CorpLoader] INFY: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:17:02.741"}
+{"level":"info","message":"[CorpLoader] HDFCBANK: 20 rows → 3 split/bonus → 3 saved","timestamp":"2026-07-24 00:17:03.102"}
+{"level":"info","message":"[CorpLoader] ICICIBANK: 20 rows → 2 split/bonus → 2 saved","timestamp":"2026-07-24 00:17:03.375"}
+{"level":"info","message":"[CorpLoader] SBIN: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:17:03.490"}
+{"level":"info","message":"[CorpLoader] ITC: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:17:03.698"}
+{"level":"info","message":"[CorpLoader] LT: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:17:03.886"}
+{"level":"info","message":"[CorpLoader] AXISBANK: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:17:04.097"}
+{"level":"info","message":"[CorpLoader] TATASTEEL: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:17:04.167"}
