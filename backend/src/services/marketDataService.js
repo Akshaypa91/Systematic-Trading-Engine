@@ -255,6 +255,14 @@ async function _primeNSE() {
   }
 }
 
+// Provider failures that are EXPECTED and already handled (circuit-breaker open,
+// upstream rate-limit 429) are logged at debug so they don't flood the logs one
+// line per symbol; anything unexpected still surfaces at warn.
+function _providerLog(msg) {
+  if (/CB open|429|rate limit/i.test(msg)) logger.debug(msg);
+  else logger.warn(msg);
+}
+
 async function _fetchNSE(base) {
   if (_cbOpen('nse')) throw new Error('NSE CB open');
   await _primeNSE();
@@ -414,7 +422,7 @@ async function getLivePrice(symbol) {
     _cacheSet(base, p, 'LIVE_NSE');
     return { symbol: base, price: p, source: 'LIVE_NSE', timestamp: new Date().toISOString() };
   } catch (e) {
-    logger.warn(`[MarketData] NSE ${base}: ${e.message}`);
+    _providerLog(`[MarketData] NSE ${base}: ${e.message}`);
   }
 
   // 4. External APIs
@@ -423,14 +431,14 @@ async function getLivePrice(symbol) {
     _cacheSet(base, p, 'LIVE_TWELVE');
     return { symbol: base, price: p, source: 'LIVE_TWELVE', timestamp: new Date().toISOString() };
   } catch (e) {
-    logger.warn(`[MarketData] TwelveData ${base}: ${e.message}`);
+    _providerLog(`[MarketData] TwelveData ${base}: ${e.message}`);
   }
   try {
     const p = await _fetchFinnhub(base);
     _cacheSet(base, p, 'LIVE_FINNHUB');
     return { symbol: base, price: p, source: 'LIVE_FINNHUB', timestamp: new Date().toISOString() };
   } catch (e) {
-    logger.warn(`[MarketData] Finnhub ${base}: ${e.message}`);
+    _providerLog(`[MarketData] Finnhub ${base}: ${e.message}`);
   }
 
   // 5. Stale cache — if a broker session is live, prefer a last-known real price

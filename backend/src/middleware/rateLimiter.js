@@ -17,13 +17,21 @@ function onLimitReached(req, res, options) {
   logger.warn(`[RateLimit] ${options.message} | key=${key} path=${req.path}`);
 }
 
-// ── General API — 200 req / 15 min ───────────────────────────────────────────
+// ── General API — 600 req / 15 min (env: API_RATE_LIMIT) ─────────────────────
+// The SPA legitimately polls health/market-status and fans out market-data reads
+// on several pages, so the anonymous per-IP budget must be generous. Critically,
+// AUTH and the cheap status polls are EXEMPT here: auth has its own dedicated
+// brute-force limiter (authLimiter), and login must never be blocked just
+// because background polling exhausted the general bucket.
 const apiLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,
-  max:              200,
+  max:              parseInt(process.env.API_RATE_LIMIT || '600', 10),
   keyGenerator,
   standardHeaders:  true,
   legacyHeaders:    false,
+  skip: (req) => /^\/auth\b/.test(req.path)                       // /api/auth/* → authLimiter only
+    || /^\/(health|__debug)\b/.test(req.path)
+    || /\/(health|market-status)\b/.test(req.path),               // cheap status polls
   handler: (req, res) => {
     onLimitReached(req, res, { message: 'API rate limit reached' });
     res.status(429).json({
@@ -34,10 +42,10 @@ const apiLimiter = rateLimit({
   },
 });
 
-// ── Auth — 20 req / 15 min (brute force protection) ──────────────────────────
+// ── Auth — 40 req / 15 min (brute-force protection; env: AUTH_RATE_LIMIT) ─────
 const authLimiter = rateLimit({
   windowMs:        15 * 60 * 1000,
-  max:             20,
+  max:             parseInt(process.env.AUTH_RATE_LIMIT || '40', 10),
   keyGenerator,
   standardHeaders: true,
   legacyHeaders:   false,
