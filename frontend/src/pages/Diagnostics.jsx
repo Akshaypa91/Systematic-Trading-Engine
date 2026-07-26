@@ -6,11 +6,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import AppShell from '../components/AppShell';
 import { liveAPI } from '../services/api';
 import { useWS } from '../context/WSContext';
-import { Activity, Radio, Gauge, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Radio, Gauge, RefreshCw, Wifi, WifiOff, Info } from 'lucide-react';
 
 const PROVIDER_LABEL = {
-  UPSTOX_WS: 'Upstox WebSocket (live)',
-  'UPSTOX/FALLBACK': 'Upstox (fallback/REST)',
+  UPSTOX_WS: 'Upstox WebSocket (streaming)',
+  UPSTOX_REST: 'Upstox REST poller (live)',
+  'UPSTOX/FALLBACK': 'Upstox (on-demand REST)',
   SIM: 'Simulated (no broker)',
 };
 
@@ -40,10 +41,24 @@ export default function Diagnostics() {
   const ref = useRef();
   useEffect(() => { load(); ref.current = setInterval(load, 5000); return () => clearInterval(ref.current); }, [load]);
 
-  const ws = diag?.websocket || {};
+  const ws   = diag?.websocket || {};
+  const rest = diag?.restFeed  || {};
   const connected = !!ws.connected;
   const provider = diag?.provider || (diag?.brokerAuthenticated ? 'UPSTOX/FALLBACK' : 'SIM');
   const isFallback = provider === 'UPSTOX/FALLBACK';
+  // The WS ships disabled by default (UPSTOX_WS_ENABLED) — "DOWN" would imply a
+  // fault, so distinguish an intentional off state from an actual failure.
+  const wsDisabled = ws.enabled === false;
+  const wsLabel = wsDisabled ? 'DISABLED' : connected ? 'CONNECTED' : 'DOWN';
+  const wsColor = wsDisabled ? 'var(--text-muted)' : connected ? 'var(--green)' : 'var(--red)';
+  // Report metrics for whichever feed is ACTUALLY serving prices, so the page
+  // doesn't show all-zero WS counters while the REST poller is doing the work.
+  const restActive = !connected && (rest.running || provider === 'UPSTOX_REST');
+  const feed = restActive ? rest : ws;
+  const feedName = restActive ? 'REST poller' : 'WebSocket';
+  const subscribedList = restActive
+    ? (rest.subscribed || [])
+    : (diag?.feed?.watchedSymbols?.length ? diag.feed.watchedSymbols : (ws.subscribedKeys || []));
 
   return (
     <AppShell>
@@ -67,16 +82,29 @@ export default function Diagnostics() {
             {isFallback && <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>⚠ FALLBACK MARKET DATA</span>}
           </div>
 
+          {/* The WS ships off by default — explain rather than look broken. */}
+          {wsDisabled && (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 14px', borderRadius: 9, marginBottom: 16,
+              background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+              <Info size={13} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                The Upstox streaming WebSocket is <b>intentionally disabled</b> (<code style={{ fontFamily: 'var(--font-mono)' }}>UPSTOX_WS_ENABLED</code> is not
+                set), so prices come from the REST poller — this is the expected, working configuration.
+                Enable the flag only after verifying a live tick. See TRADING.md.
+              </span>
+            </div>
+          )}
+
           {/* Metrics grid */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-            <Metric label="WS (backend→Upstox)" value={connected ? 'CONNECTED' : 'DOWN'} color={connected ? 'var(--green)' : 'var(--red)'} />
+            <Metric label="WS (backend→Upstox)" value={wsLabel} color={wsColor} />
             <Metric label="WS (browser→backend)" value={wsClientStatus === 'connected' ? 'CONNECTED' : wsClientStatus.toUpperCase()} color={wsClientStatus === 'connected' ? 'var(--green)' : 'var(--amber)'} />
-            <Metric label="Tick Rate" value={`${ws.tickRate ?? 0}/s`} color="var(--cyan)" />
-            <Metric label="Total Ticks" value={(ws.tickCount ?? 0).toLocaleString('en-IN')} />
+            <Metric label={`Tick Rate (${feedName})`} value={`${feed.tickRate ?? 0}/s`} color="var(--cyan)" />
+            <Metric label="Total Ticks" value={(feed.tickCount ?? 0).toLocaleString('en-IN')} />
             <Metric label="Latency (API)" value={latency != null ? `${latency} ms` : '—'} />
             <Metric label="Reconnects" value={ws.reconnectCount ?? 0} color={ws.reconnectCount ? 'var(--amber)' : 'var(--text-primary)'} />
-            <Metric label="Subscribed" value={ws.subscribedCount ?? 0} />
-            <Metric label="Cached Prices" value={ws.cachedPrices ?? 0} />
+            <Metric label="Subscribed" value={restActive ? (rest.subscribed?.length ?? 0) : (ws.subscribedCount ?? 0)} />
+            <Metric label="Cached Prices" value={feed.cachedPrices ?? 0} />
           </div>
 
           {/* Detail */}
@@ -88,10 +116,12 @@ export default function Diagnostics() {
               </div>
               {[
                 ['Broker authenticated', diag?.brokerAuthenticated ? 'Yes' : 'No'],
+                ['Active feed', restActive ? `REST poller (${rest.pollMs ?? '—'}ms)` : (wsDisabled ? 'WebSocket disabled' : 'WebSocket')],
                 ['Connected at', ws.connectedAt ? new Date(ws.connectedAt).toLocaleTimeString('en-IN', { hour12: false }) : '—'],
-                ['Last tick', ws.lastTickTs ? new Date(ws.lastTickTs).toLocaleTimeString('en-IN', { hour12: false }) : '—'],
+                ['Last tick', feed.lastTickTs ? new Date(feed.lastTickTs).toLocaleTimeString('en-IN', { hour12: false }) : '—'],
                 ['Feed clients', diag?.feed?.connectedClients ?? '—'],
                 ['Active subscriptions', diag?.feed?.activeSubscriptions ?? '—'],
+                ['Last feed error', rest.lastError ? String(rest.lastError).slice(0, 40) : '—'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid color-mix(in srgb, var(--border) 60%, transparent)', fontSize: 11.5, fontFamily: 'var(--font-mono)' }}>
                   <span style={{ color: 'var(--text-muted)' }}>{k}</span>
@@ -106,13 +136,15 @@ export default function Diagnostics() {
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Subscribed Instruments</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {(diag?.feed?.watchedSymbols?.length ? diag.feed.watchedSymbols : (ws.subscribedKeys || [])).slice(0, 60).map((s, i) => (
+                {subscribedList.slice(0, 60).map((s, i) => (
                   <span key={i} style={{ fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                     {String(s).replace('NSE_EQ|', '')}
                   </span>
                 ))}
-                {!(diag?.feed?.watchedSymbols?.length) && !(ws.subscribedKeys?.length) && (
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>No active subscriptions</span>
+                {subscribedList.length === 0 && (
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    No active subscriptions{!diag?.brokerAuthenticated ? ' — connect Upstox' : ' — the poller subscribes on demand'}
+                  </span>
                 )}
               </div>
             </div>
