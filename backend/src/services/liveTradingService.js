@@ -486,19 +486,37 @@ async function reconcileFills(userId) {
 // Aggregate execution quality + a measured slippage estimate for backtests.
 async function getExecutionQuality(userId) {
   let rows = [];
+  // schemaReady distinguishes "migration not applied" from "no fills yet" —
+  // otherwise both render as a permanently empty page with no explanation.
+  let schemaReady = true;
   try {
     [rows] = await db.query(
       `SELECT symbol, side, qty, expected_price, avg_price
        FROM live_orders
        WHERE user_id = ? AND expected_price IS NOT NULL AND avg_price IS NOT NULL AND avg_price > 0
        ORDER BY created_at DESC LIMIT 500`, [userId]);
-  } catch (_) { rows = []; }   // columns missing → empty summary
+  } catch (err) {
+    rows = [];
+    if (/unknown column|no column|1054|doesn't exist/i.test(err.message)) schemaReady = false;
+  }
+  // How many live orders exist at all — lets the UI say "you have N orders but
+  // none filled" instead of implying you've never traded.
+  let totalOrders = 0;
+  try {
+    const [c] = await db.query('SELECT COUNT(*) AS c FROM live_orders WHERE user_id = ?', [userId]);
+    totalOrders = Number(c?.[0]?.c) || 0;
+  } catch (_) {}
+
   const orders = rows.map(r => ({
     symbol: r.symbol, side: r.side, qty: r.qty,
     expectedPrice: Number(r.expected_price), fillPrice: Number(r.avg_price),
   }));
   const summary = executionQuality.aggregate(orders);
-  return { ...summary, suggestedBacktestSlippagePct: executionQuality.estimateBacktestSlippagePct(summary) };
+  return {
+    ...summary,
+    schemaReady, totalOrders,
+    suggestedBacktestSlippagePct: executionQuality.estimateBacktestSlippagePct(summary),
+  };
 }
 
 async function getFunds(userId) {

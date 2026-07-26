@@ -75,12 +75,31 @@ export default function ExecutionQuality() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 40, justifyContent: 'center', color: 'var(--text-muted)' }}>
               <Loader2 size={18} className="animate-spin" /> <span style={{ fontSize: 12 }}>Loading execution quality…</span>
             </div>
+          ) : s.schemaReady === false ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '48px 24px' }}>
+              <Info size={24} style={{ color: 'var(--amber)', opacity: 0.8 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Migration not applied</span>
+              <span className="font-mono" style={{ fontSize: 11, textAlign: 'center', maxWidth: 440, lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                Slippage tracking needs the <code>expected_price</code> / <code>slippage_bps</code> columns. Run:
+                <br />
+                <code style={{ display: 'inline-block', marginTop: 8, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--amber)' }}>
+                  node scripts/run-sql.js scripts/migrate-exec-quality.sql
+                </code>
+              </span>
+            </div>
           ) : !hasData ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '48px 24px', color: 'var(--text-muted)' }}>
               <TrendingDown size={26} style={{ opacity: 0.3 }} />
-              <span style={{ fontSize: 13, fontWeight: 600 }}>No filled orders yet</span>
-              <span className="font-mono" style={{ fontSize: 11, textAlign: 'center', maxWidth: 380, lineHeight: 1.6 }}>
-                Once live orders fill, this page shows how far each fill drifted from the price you expected — your real trading cost.
+              <span style={{ fontSize: 13, fontWeight: 600 }}>
+                {s.totalOrders > 0 ? `${s.totalOrders} order${s.totalOrders === 1 ? '' : 's'} placed — none filled yet` : 'No filled orders yet'}
+              </span>
+              <span className="font-mono" style={{ fontSize: 11, textAlign: 'center', maxWidth: 400, lineHeight: 1.7 }}>
+                {s.totalOrders > 0
+                  ? 'Slippage is measured on fills. Orders that are still pending, cancelled or rejected have no fill price to compare against.'
+                  : 'Once live orders fill, this page shows how far each fill drifted from the price you expected — your real trading cost.'}
+              </span>
+              <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--text-dim)', marginTop: 2 }}>
+                Sandbox fills count too — you don't need real money to populate this.
               </span>
             </div>
           ) : (
