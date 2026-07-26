@@ -47,8 +47,11 @@ export function TradingModeProvider({ children }) {
     if (!isAuthenticated) { setLoading(false); return; }
     try {
       const res = await liveAPI.status();
-      setMode(res.data?.tradingMode || 'PAPER');
-      setBrokerLinked(!!res.data?.brokerLinked);
+      // Only adopt a mode the server actually reported. Defaulting a missing
+      // field to PAPER would silently demote a LIVE session on a partial response.
+      const serverMode = res.data?.tradingMode;
+      if (serverMode === 'LIVE' || serverMode === 'PAPER') setMode(serverMode);
+      if (res.data?.brokerLinked !== undefined) setBrokerLinked(!!res.data.brokerLinked);
     } catch { /* keep last known */ }
     finally { setLoading(false); }
   }, [isAuthenticated]);
@@ -64,9 +67,14 @@ export function TradingModeProvider({ children }) {
     liveAPI.setMode(next).catch(() => {});
   }, [brokerLinked, disarmRealMoney]);
 
-  // Broker connection reported by BrokerStatusCard. If it drops while LIVE,
-  // force PAPER and tell the server — and disarm, since the session is gone.
+  // Broker connection reported by BrokerStatusCard.
+  //   true  → linked
+  //   false → DEFINITELY not linked (server said so): if LIVE, force PAPER
+  //   null  → UNKNOWN (status fetch failed: cold start, 429, network blip).
+  //           Must be a no-op — treating "unknown" as "disconnected" silently
+  //           demoted LIVE→PAPER (and persisted it) on any transient error.
   const reportBroker = useCallback((connected) => {
+    if (connected == null) return;            // unknown — keep last known state
     setBrokerLinked(connected);
     if (!connected) {
       disarmRealMoney();

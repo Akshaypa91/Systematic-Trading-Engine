@@ -56,10 +56,14 @@ export default function BrokerStatusCard({ onStatusChange }) {
       const res = await liveAPI.brokerStatus();
       setData(res.data);
       setError(null);
+      // Definitive answer from the server — safe to act on.
       onStatusChange?.(!!res.data?.connected);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load broker status');
-      onStatusChange?.(false);
+      // We could NOT determine the broker state (cold start, 429, network blip).
+      // Reporting `false` here would force LIVE→PAPER and persist it, silently
+      // demoting the user on any transient error. Report "unknown" instead.
+      onStatusChange?.(null);
     } finally {
       setLoading(false);
     }
