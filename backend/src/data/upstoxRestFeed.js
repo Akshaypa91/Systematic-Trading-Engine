@@ -157,11 +157,17 @@ function getCachedPrice(baseSymbol) {
 }
 function tickRate() { return Math.round((_tickWindow.length / 5) * 10) / 10; }
 function getStatus() {
+  const subscribed = [...new Set([..._subs.keys(), ...DEFAULT_WATCH])];
+  // Per-symbol coverage: which subscribed symbols actually have a price. A
+  // symbol that never populates points at a bad instrument key or an upstream
+  // omission — without this you only see "8 of 10" and can't tell which two.
+  const missing = subscribed.filter(s => !_priceCache.has(s));
   return {
     running:        !!_timer,
     authenticated:  upstoxAuth.isAuthenticated(),
     pollMs:         POLL_MS,
-    subscribed:     [...new Set([..._subs.keys(), ...DEFAULT_WATCH])],
+    subscribed,
+    missingSymbols: missing,
     cachedPrices:   _priceCache.size,
     tickCount:      _tickCount,
     tickRate:       tickRate(),

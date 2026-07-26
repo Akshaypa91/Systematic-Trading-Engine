@@ -59,6 +59,7 @@ export default function Diagnostics() {
   const subscribedList = restActive
     ? (rest.subscribed || [])
     : (diag?.feed?.watchedSymbols?.length ? diag.feed.watchedSymbols : (ws.subscribedKeys || []));
+  const missingSymbols = restActive ? (rest.missingSymbols || []) : [];
 
   return (
     <AppShell>
@@ -136,11 +137,19 @@ export default function Diagnostics() {
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Subscribed Instruments</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {subscribedList.slice(0, 60).map((s, i) => (
-                  <span key={i} style={{ fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                    {String(s).replace('NSE_EQ|', '')}
-                  </span>
-                ))}
+                {subscribedList.slice(0, 60).map((s, i) => {
+                  // Amber = subscribed but no price cached (upstream omission or bad key).
+                  const noPrice = missingSymbols.includes(s);
+                  return (
+                    <span key={i} title={noPrice ? 'No price received for this instrument' : undefined}
+                      style={{ fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 6,
+                        background: noPrice ? 'color-mix(in srgb, var(--amber) 10%, transparent)' : 'var(--bg-elevated)',
+                        border: `1px solid ${noPrice ? 'color-mix(in srgb, var(--amber) 32%, transparent)' : 'var(--border)'}`,
+                        color: noPrice ? 'var(--amber)' : 'var(--text-secondary)' }}>
+                      {String(s).replace('NSE_EQ|', '')}{noPrice ? ' ⚠' : ''}
+                    </span>
+                  );
+                })}
                 {subscribedList.length === 0 && (
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     No active subscriptions{!diag?.brokerAuthenticated ? ' — connect Upstox' : ' — the poller subscribes on demand'}
