@@ -123,8 +123,20 @@ async function _pollOnce() {
     }
     _lastError = null;
   } catch (err) {
+    const status = err.response?.status;
     _lastError = err.response?.data?.message || err.message;
-    logger.debug(`[UpstoxRest] poll error: ${_lastError}`);
+    // A 401/403 means the Upstox token is dead (expired or revoked). Keeping it
+    // would (a) let the UI keep claiming "broker authenticated" and (b) hammer
+    // Upstox every poll with a bad token. Clear it so the status is honest and
+    // the app prompts a reconnect, and stop the loop until re-authenticated.
+    if (status === 401 || status === 403) {
+      _lastError = `Upstox token rejected (${status}) — reconnect required`;
+      logger.warn(`[UpstoxRest] ${_lastError} — clearing token and stopping feed`);
+      try { upstoxAuth.clearToken(); } catch (_) {}
+      stop();
+    } else {
+      logger.debug(`[UpstoxRest] poll error: ${_lastError}`);
+    }
   } finally {
     _polling = false;
   }

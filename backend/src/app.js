@@ -58,11 +58,22 @@ const ALLOWED = (process.env.ALLOWED_ORIGINS || '')
   .split(',').map(s => s.trim()).filter(Boolean)
   .concat(['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000']);
 
+// Our own Vercel deployments (production + preview URLs) are always allowed, so
+// a missing/typo'd ALLOWED_ORIGINS can't take the whole app down with opaque
+// browser CORS errors.
+const VERCEL_ORIGIN = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+function _originAllowed(origin) {
+  return ALLOWED.includes(origin) || VERCEL_ORIGIN.test(origin);
+}
+
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || ALLOWED.includes(origin)) return cb(null, true);
+    if (!origin || _originAllowed(origin)) return cb(null, true);
+    // Return false rather than throwing: throwing produces a 500 with NO CORS
+    // headers, which the browser reports as a confusing "no Access-Control-
+    // Allow-Origin" error instead of a clean rejection.
     logger.warn(`[CORS] Blocked: ${origin}`);
-    cb(new Error(`CORS: ${origin} not allowed`));
+    cb(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
