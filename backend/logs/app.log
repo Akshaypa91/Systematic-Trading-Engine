@@ -56364,3 +56364,5 @@
 {"level":"info","message":"[CorpLoader] AXISBANK: 20 rows → 1 split/bonus → 1 saved","timestamp":"2026-07-24 00:49:48.265"}
 {"level":"info","message":"[CorpLoader] TATASTEEL: 20 rows → 0 split/bonus → 0 saved","timestamp":"2026-07-24 00:49:48.359"}
 {"level":"info","message":"[DB] TiDB Cloud connected","timestamp":"2026-07-24 01:11:40.421"}
+{"level":"warn","message":"[DB] Could not read TIDB_SSL_CA at /etc/ssl/cert.pem: ENOENT: no such file or directory, open '/etc/ssl/cert.pem' — continuing without a pinned CA","timestamp":"2026-07-26 17:54:44.449"}
+{"level":"warn","message":"[UpstoxAuth] loadPersistedToken failed: getaddrinfo EAI_AGAIN gateway01.ap-southeast-1.prod.aws.tidbcloud.com","timestamp":"2026-07-26 17:54:44.455"}
