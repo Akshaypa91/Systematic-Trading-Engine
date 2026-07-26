@@ -29,9 +29,12 @@ function LiveClock() {
 function WSPill({ status, onReconnect }) {
   if (status === 'connected')
     return (
-      <div className="ws-pill connected" title="Live WebSocket feed">
+      // Labelled FEED, not LIVE — this pill reports the market-data socket, and
+      // "LIVE" here read as a third live-trading indicator next to the mode
+      // toggle and real-money badge.
+      <div className="ws-pill connected" title="Market-data feed connected">
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
-        <span className="wsp-label">LIVE</span>
+        <span className="wsp-label">FEED</span>
       </div>
     );
   if (status === 'connecting')

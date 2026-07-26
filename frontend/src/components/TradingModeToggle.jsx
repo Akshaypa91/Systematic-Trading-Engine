@@ -51,18 +51,17 @@ export default function TradingModeToggle({ mode, brokerLinked, onChange, disabl
           </div>
         </button>
 
-        {/* Active LIVE indicator — always visible when real money is enabled */}
+        {/* Real-money reminder — compact single-line, amber (caution, not
+            "all good" green), shown only while LIVE. The mode toggle already
+            says LIVE; this adds the one fact the toggle doesn't: money is real. */}
         {isLive && (
-          <span className="nb-md-up" title="Real money trading enabled" style={{
+          <span className="nb-md-up" title="LIVE account — orders use real money" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 99,
-            background: 'color-mix(in srgb, var(--green) 12%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--green) 40%, transparent)',
+            background: 'color-mix(in srgb, var(--amber) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--amber) 38%, transparent)',
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: 'var(--amber)',
           }}>
-            <span className="live-dot" style={{ width: 6, height: 6, background: 'var(--green)' }} />
-            <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-              <strong style={{ fontSize: 10, color: 'var(--green)', letterSpacing: '0.04em' }}>🟢 LIVE ACCOUNT</strong>
-              <span style={{ fontSize: 8.5, color: 'var(--text-muted)' }}>Real Money Trading Enabled</span>
-            </span>
+            ₹ REAL MONEY
           </span>
         )}
       </div>
