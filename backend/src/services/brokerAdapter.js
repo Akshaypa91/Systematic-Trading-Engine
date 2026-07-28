@@ -12,7 +12,11 @@ const logger     = require('../config/logger');
 // positions) to Upstox's sandbox host so orders can be tested with ZERO real
 // money. Market-data reads always use the live host. When sandbox is on and a
 // dedicated UPSTOX_SANDBOX_TOKEN is set, that token is used for order calls.
-const SANDBOX      = String(process.env.UPSTOX_SANDBOX || 'false').toLowerCase() === 'true';
+//
+// FAIL-SAFE DEFAULT: sandbox is ON unless explicitly disabled. A missing or
+// misspelled env var must never silently mean "send real orders" — the unsafe
+// state has to be a deliberate choice (UPSTOX_SANDBOX=false), not an accident.
+const SANDBOX      = String(process.env.UPSTOX_SANDBOX ?? 'true').toLowerCase() !== 'false';
 const LIVE_BASE    = 'https://api.upstox.com/v2';
 const SANDBOX_BASE = process.env.UPSTOX_SANDBOX_BASE || 'https://api-sandbox.upstox.com/v2';
 const BASE         = 'https://api.upstox.com/v2';   // market-data / read host (unchanged)
