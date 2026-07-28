@@ -4,16 +4,22 @@
 // key held (so it never fights browser/OS shortcuts).
 import { useEffect, useRef } from 'react';
 
+// Must stay in sync with the `kbd` hints in components/Sidebar.jsx — a hint with
+// no entry here is a dead shortcut the UI still advertises.
 export const SHORTCUT_ROUTES = [
-  { keys: 'g d', path: '/',          label: 'Dashboard' },
-  { keys: 'g l', path: '/live',      label: 'Live Trading' },
-  { keys: 'g s', path: '/signals',   label: 'Signals' },
-  { keys: 'g c', path: '/screener',  label: 'Screener' },
-  { keys: 'g b', path: '/backtest',  label: 'Backtest' },
-  { keys: 'g t', path: '/trade',     label: 'Trade' },
-  { keys: 'g j', path: '/journal',   label: 'Journal' },
-  { keys: 'g a', path: '/analytics', label: 'Analytics' },
-  { keys: 'g w', path: '/swing',     label: 'Swing Setup' },
+  { keys: 'g d', path: '/',            label: 'Dashboard' },
+  { keys: 'g t', path: '/trade',       label: 'Trade' },
+  { keys: 'g l', path: '/live',        label: 'Live Trading' },
+  { keys: 'g o', path: '/orders',      label: 'Live Orders' },
+  { keys: 'g p', path: '/positions',   label: 'Portfolio' },
+  { keys: 'g s', path: '/signals',     label: 'Signals' },
+  { keys: 'g c', path: '/screener',    label: 'Screener' },
+  { keys: 'g b', path: '/backtest',    label: 'Backtest' },
+  { keys: 'g a', path: '/analytics',   label: 'Analytics' },
+  { keys: 'g w', path: '/swing',       label: 'Swing Setup' },
+  { keys: 'g j', path: '/journal',     label: 'Journal' },
+  { keys: 'g e', path: '/execution',   label: 'Execution Quality' },
+  { keys: 'g x', path: '/diagnostics', label: 'Diagnostics' },
 ];
 
 const ROUTE_MAP = SHORTCUT_ROUTES.reduce((m, r) => {
