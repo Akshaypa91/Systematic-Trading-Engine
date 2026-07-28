@@ -19,8 +19,21 @@ const symbols    = require('../config/symbols');
 const logger     = require('../config/logger');
 
 const POLL_MS   = parseInt(process.env.UPSTOX_REST_POLL_MS || '1500', 10);
+// Outside market hours prices don't change — polling every 1.5s just re-fetches
+// the same last-traded price and burns API quota all night. Fall back to a slow
+// heartbeat so the UI still shows last-known prices without the waste.
+const IDLE_POLL_MS = parseInt(process.env.UPSTOX_REST_IDLE_POLL_MS || '60000', 10);
 const BATCH_MAX = 480;                                   // Upstox LTP cap ~500/keys
 const QUOTE_URL = 'https://api.upstox.com/v2/market-quote/quotes';   // full quote (ltp+ohlc+depth)
+
+// NSE cash market: 09:15–15:30 IST, Mon–Fri. Kept local (no cross-module import)
+// so the feed has no coupling to the trading engine.
+function _isMarketOpen(now = Date.now()) {
+  const ist  = new Date(now + 5.5 * 60 * 60 * 1000);
+  const day  = ist.getUTCDay();
+  const hhmm = ist.getUTCHours() * 100 + ist.getUTCMinutes();
+  return day >= 1 && day <= 5 && hhmm >= 915 && hhmm <= 1530;
+}
 
 const _subs        = new Map();   // base symbol → subscriber count
 const _priceCache  = new Map();   // base symbol → { price, ts, rawTs, change, changePct, volume }
@@ -29,6 +42,7 @@ let _tickCount     = 0;
 let _lastTickTs    = null;
 let _lastError     = null;
 let _polling       = false;
+let _lastPollAt    = 0;      // for the closed-market idle throttle
 const _tickWindow  = [];
 
 let _feed = null;                 // lazy liveDataFeed (avoid require cycle)
@@ -70,16 +84,21 @@ function ensureRunning() {
   if (_timer) return;
   if (!upstoxAuth.isAuthenticated()) return;
   _timer = setInterval(() => { _pollOnce().catch(() => {}); }, POLL_MS);
-  logger.info(`[UpstoxRest] price feed started (${POLL_MS}ms)`);
-  _pollOnce().catch(() => {});
+  logger.info(`[UpstoxRest] price feed started (${POLL_MS}ms live / ${IDLE_POLL_MS}ms when closed)`);
+  _pollOnce(true).catch(() => {});   // force once so prices populate immediately
 }
 
 function stop() {
   if (_timer) { clearInterval(_timer); _timer = null; logger.info('[UpstoxRest] price feed stopped'); }
 }
 
-async function _pollOnce() {
+async function _pollOnce(force = false) {
   if (_polling) return;
+  // Throttle to a slow heartbeat when the market is closed (prices are static).
+  if (!force && !_isMarketOpen()) {
+    const since = Date.now() - (_lastPollAt || 0);
+    if (since < IDLE_POLL_MS) return;
+  }
   const token = upstoxAuth.getAccessToken();
   if (!token) return;
   const bases = [...new Set([..._subs.keys(), ...DEFAULT_WATCH])];
@@ -90,6 +109,7 @@ async function _pollOnce() {
   if (!pairs.length) return;
 
   _polling = true;
+  _lastPollAt = Date.now();
   try {
     // Batch in chunks to stay under the per-request key cap.
     for (let i = 0; i < pairs.length; i += BATCH_MAX) {
@@ -165,7 +185,10 @@ function getStatus() {
   return {
     running:        !!_timer,
     authenticated:  upstoxAuth.isAuthenticated(),
-    pollMs:         POLL_MS,
+    marketOpen:     _isMarketOpen(),
+    pollMs:         _isMarketOpen() ? POLL_MS : IDLE_POLL_MS,   // effective cadence
+    livePollMs:     POLL_MS,
+    idlePollMs:     IDLE_POLL_MS,
     subscribed,
     missingSymbols: missing,
     cachedPrices:   _priceCache.size,

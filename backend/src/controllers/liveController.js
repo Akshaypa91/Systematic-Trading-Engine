@@ -206,10 +206,19 @@ async function getDiagnostics(req, res) {
     if (ws.connected && ws.tickRate > 0)       provider = 'UPSTOX_WS';
     else if (rest.running && rest.tickRate > 0) provider = 'UPSTOX_REST';
     else if (upstoxAuth.isAuthenticated())      provider = 'UPSTOX/FALLBACK';
+    // Process uptime makes host restarts visible. On a sleeping free-tier
+    // instance this resets constantly — which also resets in-memory tick
+    // counters and stops the OMS loop, so it must be obvious, not inferred.
+    const uptimeSec = Math.round(process.uptime());
     return res.json({
       success:   true,
       brokerAuthenticated: upstoxAuth.isAuthenticated(),
       provider,
+      process: {
+        uptimeSec,
+        startedAt: new Date(Date.now() - uptimeSec * 1000).toISOString(),
+        recentlyRestarted: uptimeSec < 300,
+      },
       websocket: ws,
       restFeed:  rest,
       instruments,

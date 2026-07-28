@@ -15,6 +15,14 @@ const PROVIDER_LABEL = {
   SIM: 'Simulated (no broker)',
 };
 
+function fmtUptime(s) {
+  if (s == null) return '—';
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+  if (d) return `${d}d ${h}h`;
+  if (h) return `${h}h ${m}m`;
+  return `${m}m ${s % 60}s`;
+}
+
 function Metric({ label, value, color, mono = true }) {
   return (
     <div className="card" style={{ padding: 14, flex: 1, minWidth: 150 }}>
@@ -83,6 +91,19 @@ export default function Diagnostics() {
             {isFallback && <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>⚠ FALLBACK MARKET DATA</span>}
           </div>
 
+          {/* Host restarts silently reset in-memory state and stop the OMS loop —
+              surface it, since on a sleeping instance it's easy to miss. */}
+          {diag?.process?.recentlyRestarted && (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 14px', borderRadius: 9, marginBottom: 16,
+              background: 'color-mix(in srgb, var(--amber) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 30%, transparent)' }}>
+              <Info size={13} style={{ color: 'var(--amber)', flexShrink: 0, marginTop: 2 }} />
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                Backend restarted <b>{fmtUptime(diag.process.uptimeSec)}</b> ago. Frequent restarts (free-tier
+                sleep) reset tick counters and <b>halt the live execution loop</b> — not safe for autonomous trading.
+              </span>
+            </div>
+          )}
+
           {/* The WS ships off by default — explain rather than look broken. */}
           {wsDisabled && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 14px', borderRadius: 9, marginBottom: 16,
@@ -117,7 +138,10 @@ export default function Diagnostics() {
               </div>
               {[
                 ['Broker authenticated', diag?.brokerAuthenticated ? 'Yes' : 'No'],
-                ['Active feed', restActive ? `REST poller (${rest.pollMs ?? '—'}ms)` : (wsDisabled ? 'WebSocket disabled' : 'WebSocket')],
+                ['Server uptime', diag?.process ? fmtUptime(diag.process.uptimeSec) : '—'],
+                ['Active feed', restActive
+                  ? `REST poller (${rest.pollMs ?? '—'}ms${rest.marketOpen === false ? ', idle' : ''})`
+                  : (wsDisabled ? 'WebSocket disabled' : 'WebSocket')],
                 ['Connected at', ws.connectedAt ? new Date(ws.connectedAt).toLocaleTimeString('en-IN', { hour12: false }) : '—'],
                 ['Last tick', feed.lastTickTs ? new Date(feed.lastTickTs).toLocaleTimeString('en-IN', { hour12: false }) : '—'],
                 ['Feed clients', diag?.feed?.connectedClients ?? '—'],
