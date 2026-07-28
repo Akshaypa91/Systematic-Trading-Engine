@@ -47,6 +47,7 @@ const SUITES = [
   'scripts/test-execution-algos.js',
   'scripts/test-order-slicing.js',
   'scripts/test-portfolio-backtest.js',
+  'scripts/test-auth-security.js',
 ];
 for (const s of SUITES) {
   const p = path.join(ROOT, s);

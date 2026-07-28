@@ -170,10 +170,24 @@ async function forgotPassword(req, res) {
       emailed = false;
     }
 
-    // If no email went out (provider unconfigured or send failed), surface the
-    // reset token to the client outside production so the user can still reset.
-    if (!emailed && process.env.NODE_ENV !== 'production') {
+    // SECURITY: never return the reset token in the HTTP response unless a
+    // developer explicitly opts in on a local machine.
+    //
+    // This used to be gated on `NODE_ENV !== 'production'`. A deployed instance
+    // whose NODE_ENV was simply unset (Render defaults to "development") would
+    // therefore hand a VALID password-reset token to any anonymous caller who
+    // POSTed a known email address — a full account-takeover path, made worse
+    // because those accounts hold a linked broker + real-money trading rights.
+    // Security must never depend on an env var being remembered; require an
+    // explicit opt-in that no deployment would ever set.
+    if (!emailed && process.env.ALLOW_DEV_RESET_TOKEN === 'true') {
+      logger.warn('[Auth] Returning reset token in response — ALLOW_DEV_RESET_TOKEN is on. NEVER enable this on a deployed server.');
       return res.json({ ...SUCCESS_MSG, _devToken: token });
+    }
+    if (!emailed) {
+      // Delivery failed and we won't leak the token — log it server-side so a
+      // local developer can still complete a reset from the logs.
+      logger.warn(`[Auth] Reset email NOT delivered for ${email}. Token (server-log only): ${token}`);
     }
 
     return res.json(SUCCESS_MSG);

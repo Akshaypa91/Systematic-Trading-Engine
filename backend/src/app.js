@@ -120,26 +120,33 @@ app.get('/health', async (req, res) => {
   const mem      = process.memoryUsage();
   const isOk     = dbStatus === 'connected';
 
-  res.status(isOk ? 200 : 503).json({
+  // /health is PUBLIC (uptime monitors hit it), so it must stay minimal:
+  // runtime versions, host platform, memory, DB region and the live watchlist
+  // are reconnaissance material, not health. The detailed view is available to
+  // authenticated users at /api/live/diagnostics.
+  const body = {
     status:    isOk ? 'healthy' : 'degraded',
     service:   'systematic-trading-engine',
-    version:   process.env.npm_package_version || '2.0.0',
-    env:       C.NODE_ENV,
     timestamp: new Date().toISOString(),
     uptime:    `${Math.floor(uptime / 60)}m ${uptime % 60}s`,
     db:        dbStatus,
-    dbRegion:  _dbRegion(),
-    wsFeed:    liveDataFeed.getStats?.() || {},
-    system: {
-      platform:    os.platform(),
-      nodeVersion: process.version,
+  };
+  // Verbose form only when explicitly enabled (local debugging).
+  if (process.env.HEALTH_VERBOSE === 'true') {
+    body.version   = process.env.npm_package_version || '2.0.0';
+    body.env       = C.NODE_ENV;
+    body.dbRegion  = _dbRegion();
+    body.wsFeed    = liveDataFeed.getStats?.() || {};
+    body.system    = {
+      platform: os.platform(), nodeVersion: process.version,
       memory: {
         heapUsed:  `${Math.round(mem.heapUsed  / 1024 / 1024)}MB`,
         heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)}MB`,
         rss:       `${Math.round(mem.rss       / 1024 / 1024)}MB`,
       },
-    },
-  });
+    };
+  }
+  res.status(isOk ? 200 : 503).json(body);
 });
 
 app.get('/__debug/auth-ping', (req, res) =>

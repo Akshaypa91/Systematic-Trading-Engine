@@ -232,7 +232,6 @@ async function getMarketStatus(req, res) {
     else if (isWeekday && timeVal >= 900 && timeVal < 915) status = 'Pre-Open';
 
     const apiHealth  = await marketDataService.healthCheck();
-    const cacheStats = marketDataService.getCacheStats();
 
     res.json({
       success: true,
@@ -242,7 +241,10 @@ async function getMarketStatus(req, res) {
         isPreOpen:    status === 'Pre-Open',
         istTime:      ist.toISOString(),
         note:         'Status computed from IST time. Real NSE status API removed.',
-        dataSource:   { apiAvailable: apiHealth.ok, apiMessage: apiHealth.message, cacheStats },
+        // Only a boolean — the full cacheStats payload exposed circuit-breaker
+        // state, WS internals and the live watchlist on a PUBLIC endpoint.
+        // Authenticated users get the detail at /api/live/diagnostics.
+        dataSource:   { apiAvailable: apiHealth.ok },
       },
     });
   } catch (err) {
