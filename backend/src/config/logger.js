@@ -15,7 +15,11 @@ const { createLogger, format, transports, addColors } = require('winston');
 const path = require('path');
 const fs   = require('fs');
 
-const LOG_LEVEL = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+// Default to 'info' regardless of NODE_ENV. Deriving this from NODE_ENV meant a
+// deployed instance with NODE_ENV unset (Render defaults to "development") ran
+// at debug level, flooding production logs with per-symbol provider chatter.
+// Verbose logging is now an explicit opt-in: LOG_LEVEL=debug.
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 const LOG_DIR   = process.env.LOG_DIR   || path.join(process.cwd(), 'logs');
 
 // Ensure log directory exists at module load (sync is fine — this runs once)

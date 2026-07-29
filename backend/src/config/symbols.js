@@ -99,10 +99,17 @@ function _getMaster() { if (!_master) { try { _master = require('../data/instrum
 function toUpstox(symbol) {
   if (!symbol) return null;
   const s = symbol.toString().trim().toUpperCase();
-  // 1. curated static map (fast, always present)
-  if (INSTRUMENT_MAP[s]?.upstox) return INSTRUMENT_MAP[s].upstox;
-  // 2. full Upstox instrument master (covers every NSE equity, e.g. HBLENGINE)
-  return _getMaster()?.resolve?.(s) ?? null;
+  // 1. LIVE Upstox instrument master first — it is the source of truth and is
+  //    refreshed from Upstox. An ISIN is NOT permanent: it changes after a
+  //    face-value split, so a hardcoded key silently goes stale and Upstox then
+  //    returns an empty quote forever (observed: KOTAKBANK, BAJFINANCE priced
+  //    nothing for days while the other 8 worked). Live data must win over a
+  //    constant that can rot.
+  const fromMaster = _getMaster()?.resolve?.(s);
+  if (fromMaster) return fromMaster;
+  // 2. curated static map — fallback while the master is still loading, and for
+  //    instruments the equity master doesn't cover (e.g. indices).
+  return INSTRUMENT_MAP[s]?.upstox ?? null;
 }
 
 /**
