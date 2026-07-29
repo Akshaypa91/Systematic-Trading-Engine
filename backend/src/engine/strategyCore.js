@@ -17,9 +17,10 @@ const meanReversion = require('../strategies/meanReversion');
 const maCrossover   = require('../strategies/maCrossover');
 const rsiStrategy   = require('../strategies/rsiStrategy');
 const bollinger     = require('../strategies/bollingerBands');
+const trendFollowing = require('../strategies/trendFollowing');
 const aggregator    = require('../strategies/aggregator');
 
-const VALID = ['MEAN_REVERSION', 'MA_CROSSOVER', 'RSI', 'BOLLINGER', 'AGGREGATED'];
+const VALID = ['MEAN_REVERSION', 'MA_CROSSOVER', 'RSI', 'BOLLINGER', 'TREND_FOLLOWING', 'AGGREGATED'];
 
 function isValid(key) { return VALID.includes(String(key || '').toUpperCase()); }
 
@@ -67,6 +68,7 @@ function evaluate(strategyKey, closes, opts = {}) {
     case 'MA_CROSSOVER':   return _norm(maCrossover.generateSignal(closes), key);
     case 'RSI':            return _norm(rsiStrategy.generateSignal(closes), key);
     case 'BOLLINGER':      return _norm(bollinger.generateSignal(closes, { mode: opts.bbMode || 'mean_reversion' }), key);
+    case 'TREND_FOLLOWING': return _norm(trendFollowing.generateSignal(closes), key);
     case 'AGGREGATED':
     default: {
       // Forward only the options aggregator understands. aggregator itself picks

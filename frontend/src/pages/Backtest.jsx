@@ -17,7 +17,7 @@ import {
 import { Play, TrendingUp, Activity, BarChart2, Shield, Clock, CalendarDays } from 'lucide-react';
 import { inr, pct } from '../utils/format';
 
-const STRATEGIES = ['AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
+const STRATEGIES = ['TREND_FOLLOWING', 'AGGREGATED', 'RSI', 'MA_CROSSOVER', 'MEAN_REVERSION'];
 
 function StatRow({ label, value, color }) {
   return (
