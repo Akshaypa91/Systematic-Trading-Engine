@@ -54,6 +54,9 @@ function runPortfolioBacktest({ series = {}, config = {} } = {}) {
     maxPositionValue = 0,
     slippagePct    = 0.0005,
     warmup         = 60,
+    // takeProfitPct = 0 → NO profit target (let winners run).
+    // exitOnSignal  = true → close when the strategy says SELL.
+    exitOnSignal   = false,
   } = config;
 
   const symbols = Object.keys(series).filter(s => Array.isArray(series[s]) && series[s].length);
@@ -78,13 +81,23 @@ function runPortfolioBacktest({ series = {}, config = {} } = {}) {
   const barAt = (s, date) => { const i = idxOf[s].get(date); return i == null ? null : series[s][i]; };
 
   for (const date of allDates) {
-    // 1. Exits (intrabar SL/TP).
+    // 1. Exits — intrabar SL/TP, then the strategy's own SELL signal.
     for (const s of Object.keys(positions)) {
       const bar = barAt(s, date); if (!bar) continue;
       const p = positions[s];
       let exitPrice = null, reason = null;
       if (_n(bar.low) > 0 && _n(bar.low) <= p.sl)  { exitPrice = p.sl; reason = 'STOP_LOSS'; }
-      else if (_n(bar.high) >= p.tp)               { exitPrice = p.tp; reason = 'TAKE_PROFIT'; }
+      else if (p.tp > 0 && _n(bar.high) >= p.tp)   { exitPrice = p.tp; reason = 'TAKE_PROFIT'; }
+      else if (exitOnSignal) {
+        // Signal-based exit. Without this a trend-following strategy can never
+        // express its edge — "ride the trend, exit when it breaks" IS the
+        // strategy; forcing it to exit at a fixed % truncates every winner.
+        const i = idxOf[s].get(date);
+        if (i != null && i >= warmup) {
+          const sig = strategyCore.evaluate(strategy, closesArr[s].slice(0, i + 1), { method: 'weighted' });
+          if (sig.signal === 'SELL') { exitPrice = _n(bar.close); reason = 'SIGNAL_EXIT'; }
+        }
+      }
       if (exitPrice != null) {
         const fill = exitPrice * (1 - slippagePct);
         cash += p.qty * fill;
@@ -112,7 +125,9 @@ function runPortfolioBacktest({ series = {}, config = {} } = {}) {
       const cost = qty * fill;
       if (cost > cash) continue;
       cash -= cost;
-      positions[s] = { qty, entry: fill, sl: fill * (1 - stopPct), tp: fill * (1 + takeProfitPct), entryDate: date };
+      // tp = 0 means "no target" — the position exits on stop or signal only.
+      positions[s] = { qty, entry: fill, sl: fill * (1 - stopPct),
+        tp: takeProfitPct > 0 ? fill * (1 + takeProfitPct) : 0, entryDate: date };
     }
 
     // 3. Mark to market.

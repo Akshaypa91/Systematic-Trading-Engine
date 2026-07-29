@@ -74,40 +74,57 @@ const num = (v, d = 2) => (v == null || !Number.isFinite(v) ? '—' : v.toFixed(
     label = 'SYNTHETIC data (uptrend → correction → recovery)';
   }
 
+  // Two exit regimes. The point is to separate "which ENTRY signal is good"
+  // from "are my EXIT rules mathematically viable at all".
+  const PROFILES = {
+    'A · current rules (SL 2% / TP 4%)': {
+      stopPct: 0.02, takeProfitPct: 0.04, exitOnSignal: false,
+    },
+    'B · trend rules (SL 8%, no TP, signal exit)': {
+      stopPct: 0.08, takeProfitPct: 0, exitOnSignal: true,
+    },
+  };
+
   console.log(`\n══ Strategy comparison — ${label} ══`);
-  console.log('   shared capital ₹10,00,000 · max 3 positions · 5bps slippage · same sizing/exits\n');
-  console.log(pad('STRATEGY', 17) + pad('RETURN%', 10) + pad('SHARPE', 9) + pad('MAXDD%', 9) + pad('TRADES', 8) + pad('WIN%', 7));
-  console.log('─'.repeat(60));
+  console.log('   shared capital ₹10,00,000 · max 3 positions · 5bps slippage · risk-based sizing');
 
-  const rows = [];
-  for (const strategy of STRATEGIES) {
-    try {
-      const { summary } = runPortfolioBacktest({
-        series,
-        config: {
-          initialCapital: 1_000_000, strategy, minConfidence: 0.3,
-          maxConcurrent: 3, sizingMethod: 'risk', riskPerTrade: 0.01,
-          stopPct: 0.02, takeProfitPct: 0.04, slippagePct: 0.0005, warmup: 210,
-        },
-      });
-      rows.push({ strategy, ...summary });
-      console.log(
-        pad(strategy, 17) +
-        pad(num(summary.totalReturnPct), 10) +
-        pad(num(summary.sharpeRatio, 3), 9) +
-        pad(num(summary.maxDrawdownPct), 9) +
-        pad(summary.totalTrades, 8) +
-        pad(num(summary.winRatePct, 1), 7)
-      );
-    } catch (e) {
-      console.log(pad(strategy, 17) + `error: ${e.message}`);
+  const all = {};
+  for (const [profName, prof] of Object.entries(PROFILES)) {
+    console.log(`\n── PROFILE ${profName} ──`);
+    console.log(pad('STRATEGY', 17) + pad('RETURN%', 10) + pad('SHARPE', 9) + pad('MAXDD%', 9) + pad('TRADES', 8) + pad('WIN%', 7) + 'AVG WIN/LOSS');
+    console.log('─'.repeat(74));
+    const rows = [];
+    for (const strategy of STRATEGIES) {
+      try {
+        const { summary, trades } = runPortfolioBacktest({
+          series,
+          config: {
+            initialCapital: 1_000_000, strategy, minConfidence: 0.3,
+            maxConcurrent: 3, sizingMethod: 'risk', riskPerTrade: 0.01,
+            slippagePct: 0.0005, warmup: 210, ...prof,
+          },
+        });
+        const wins = trades.filter(t => t.pnl > 0), losses = trades.filter(t => t.pnl <= 0);
+        const avgW = wins.length ? wins.reduce((a, t) => a + t.pnl, 0) / wins.length : 0;
+        const avgL = losses.length ? Math.abs(losses.reduce((a, t) => a + t.pnl, 0) / losses.length) : 0;
+        rows.push({ strategy, ...summary });
+        console.log(
+          pad(strategy, 17) + pad(num(summary.totalReturnPct), 10) +
+          pad(num(summary.sharpeRatio, 3), 9) + pad(num(summary.maxDrawdownPct), 9) +
+          pad(summary.totalTrades, 8) + pad(num(summary.winRatePct, 1), 7) +
+          `₹${Math.round(avgW)} / ₹${Math.round(avgL)}`
+        );
+      } catch (e) { console.log(pad(strategy, 17) + `error: ${e.message}`); }
     }
+    all[profName] = rows;
+    const ranked = rows.filter(r => Number.isFinite(r.totalReturnPct)).sort((a, b) => b.totalReturnPct - a.totalReturnPct);
+    if (ranked.length) console.log('best: ' + ranked.slice(0, 2).map(r => `${r.strategy} ${num(r.totalReturnPct)}%`).join('  >  '));
   }
 
-  const ranked = rows.filter(r => Number.isFinite(r.totalReturnPct)).sort((a, b) => b.totalReturnPct - a.totalReturnPct);
-  if (ranked.length) {
-    console.log('\nRanked by return: ' + ranked.map(r => `${r.strategy} (${num(r.totalReturnPct)}%)`).join('  >  '));
-  }
+  console.log('\n── Expectancy check (why exits matter more than entries) ──');
+  console.log('   With SL 2% / TP 4%, breakeven needs a >33% win rate.');
+  console.log('   EV per trade = win% × avgWin − loss% × avgLoss. If that is negative,');
+  console.log('   NO entry signal can rescue it — the exit rules are the problem.');
   console.log('\n⚠  Past performance — on synthetic OR historical data — does not predict');
   console.log('   future results. Validate on out-of-sample data before risking money.\n');
 })().catch(e => { console.error(e.stack); process.exit(1); });
