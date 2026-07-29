@@ -2,73 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X, Loader2 } from 'lucide-react';
-import axios from 'axios';
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-// Local fallback list — shows instantly before API responds
-const LOCAL_STOCKS = [
-  {symbol:'RELIANCE',   name:'Reliance Industries Ltd'},
-  {symbol:'TCS',        name:'Tata Consultancy Services Ltd'},
-  {symbol:'HDFCBANK',   name:'HDFC Bank Ltd'},
-  {symbol:'INFY',       name:'Infosys Ltd'},
-  {symbol:'ICICIBANK',  name:'ICICI Bank Ltd'},
-  {symbol:'WIPRO',      name:'Wipro Ltd'},
-  {symbol:'SBIN',       name:'State Bank of India'},
-  {symbol:'AXISBANK',   name:'Axis Bank Ltd'},
-  {symbol:'BAJFINANCE', name:'Bajaj Finance Ltd'},
-  {symbol:'KOTAKBANK',  name:'Kotak Mahindra Bank Ltd'},
-  {symbol:'HBLENGINE',  name:'HBL Power Systems Ltd'},
-  {symbol:'HINDUNILVR', name:'Hindustan Unilever Ltd'},
-  {symbol:'BHARTIARTL', name:'Bharti Airtel Ltd'},
-  {symbol:'HCLTECH',    name:'HCL Technologies Ltd'},
-  {symbol:'TATAMOTORS', name:'Tata Motors Ltd'},
-  {symbol:'MARUTI',     name:'Maruti Suzuki India Ltd'},
-  {symbol:'TITAN',      name:'Titan Company Ltd'},
-  {symbol:'SUNPHARMA',  name:'Sun Pharmaceutical Industries Ltd'},
-  {symbol:'TECHM',      name:'Tech Mahindra Ltd'},
-  {symbol:'LT',         name:'Larsen & Toubro Ltd'},
-  {symbol:'ADANIENT',   name:'Adani Enterprises Ltd'},
-  {symbol:'ZOMATO',     name:'Zomato Ltd'},
-  {symbol:'NYKAA',      name:'FSN E-Commerce Ventures Ltd'},
-  {symbol:'PAYTM',      name:'One97 Communications Ltd'},
-  {symbol:'IRCTC',      name:'Indian Railway Catering & Tourism Corp Ltd'},
-  {symbol:'DLF',        name:'DLF Ltd'},
-  {symbol:'INDIGO',     name:'InterGlobe Aviation Ltd'},
-  {symbol:'DMART',      name:'Avenue Supermarts Ltd'},
-  {symbol:'BANKBARODA', name:'Bank of Baroda'},
-  {symbol:'PNB',        name:'Punjab National Bank'},
-  {symbol:'YESBANK',    name:'Yes Bank Ltd'},
-  {symbol:'IDFCFIRSTB', name:'IDFC First Bank Ltd'},
-  {symbol:'BANDHANBNK', name:'Bandhan Bank Ltd'},
-  {symbol:'FEDERALBNK', name:'Federal Bank Ltd'},
-  {symbol:'INDUSINDBK', name:'IndusInd Bank Ltd'},
-  {symbol:'MRF',        name:'MRF Ltd'},
-  {symbol:'PAGEIND',    name:'Page Industries Ltd'},
-  {symbol:'NESTLEIND',  name:'Nestle India Ltd'},
-  {symbol:'BRITANNIA',  name:'Britannia Industries Ltd'},
-  {symbol:'COALINDIA',  name:'Coal India Ltd'},
-  {symbol:'ONGC',       name:'Oil & Natural Gas Corporation Ltd'},
-  {symbol:'HAL',        name:'Hindustan Aeronautics Ltd'},
-  {symbol:'BEL',        name:'Bharat Electronics Ltd'},
-  {symbol:'TATAPOWER',  name:'Tata Power Company Ltd'},
-  {symbol:'SUZLON',     name:'Suzlon Energy Ltd'},
-  {symbol:'LICI',       name:'Life Insurance Corporation of India'},
-];
-
-function localSearch(q) {
-  if (!q) return LOCAL_STOCKS.slice(0, 8);
-  const up  = q.toUpperCase();
-  const lo  = q.toLowerCase();
-  const res = [];
-  for (const s of LOCAL_STOCKS) {
-    if (s.symbol === up)                    res.push({...s, _r:0});
-    else if (s.symbol.startsWith(up))       res.push({...s, _r:1});
-    else if (s.symbol.includes(up))         res.push({...s, _r:2});
-    else if (s.name.toLowerCase().includes(lo)) res.push({...s, _r:3});
-  }
-  return res.sort((a,b)=>a._r-b._r).slice(0,10).map(({symbol,name})=>({symbol,name}));
-}
+import { localSearch, searchSymbolsApi } from '../utils/stockSearch';
 
 // ── Highlight matched text ────────────────────────────────────────────────────
 function Highlight({ text, query }) {
@@ -121,24 +55,16 @@ export default function SearchBar({ onSearch, loading }) {
 
     if (!q || q.length < 1) return;
 
-    // Then fetch from API after 250ms debounce
+    // Then fetch from API after 250ms debounce (shared helper — same source of
+    // truth as the form-field SymbolInput).
     debounceRef.current = setTimeout(async () => {
       setFetching(true);
-      try {
-        const res = await axios.get(`${BASE_URL}/data/search`, {
-          params: { q, limit: 10 },
-          timeout: 4000,
-        });
-        const apiResults = res.data?.data;
-        if (Array.isArray(apiResults) && apiResults.length > 0) {
-          setSuggestions(apiResults);
-          setShowDrop(true);
-        }
-      } catch (_) {
-        // keep local results on API failure
-      } finally {
-        setFetching(false);
+      const apiResults = await searchSymbolsApi(q, 10);
+      if (apiResults.length > 0) {
+        setSuggestions(apiResults);
+        setShowDrop(true);
       }
+      setFetching(false);
     }, 250);
   }, []);
 

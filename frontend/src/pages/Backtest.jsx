@@ -8,6 +8,7 @@ import { backtestAPI } from '../services/api';
 import EquityChart from '../components/EquityChart';
 import TradesTable from '../components/TradesTable';
 import MonthlyReturns from '../components/MonthlyReturns';
+import SymbolInput from '../components/SymbolInput';
 import Toast from '../components/Toast';
 import {
   Button, Card, CardHeader, Field, Input, Select, Metric, Badge,
@@ -99,7 +100,12 @@ export default function Backtest() {
               <form onSubmit={run} className="ui-vstack" style={{ gap: 12 }}>
                 {FIELDS.map(([label, key, type, opts]) => (
                   <Field key={key} label={label}>
-                    {type === 'select' ? (
+                    {key === 'symbol' ? (
+                      <SymbolInput
+                        value={form.symbol}
+                        onChange={(sym) => setForm(p => ({ ...p, symbol: sym }))}
+                      />
+                    ) : type === 'select' ? (
                       <Select value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}>
                         {opts.map(o => <option key={o}>{o}</option>)}
                       </Select>
