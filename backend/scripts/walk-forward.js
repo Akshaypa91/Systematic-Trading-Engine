@@ -98,7 +98,14 @@ function makeSeries(n, seed) {
 
   let series, label;
   if (ri !== -1) {
-    const syms = args.slice(ri + 1).filter(a => !a.startsWith('--') && isNaN(parseFloat(a)));
+    let syms = args.slice(ri + 1).filter(a => !a.startsWith('--') && isNaN(parseFloat(a)));
+    // --real --universe → run the whole NIFTY-50 list. Five correlated large
+    // caps give far too few independent observations to detect a small edge;
+    // widening the cross-section is the cheapest way to get real statistics.
+    if (args.includes('--universe') || syms[0] === 'UNIVERSE') {
+      syms = (require('../src/config/constants').NIFTY50_SYMBOLS || []).slice(0, 50);
+      console.log(`\nUniverse mode: ${syms.length} symbols (this takes a few minutes)`);
+    }
     const md = require('../src/services/marketDataService');
     series = {};
     console.log(`\nFetching daily candles: ${syms.join(', ')}`);
