@@ -115,6 +115,62 @@ function makeSeries(n, seed) {
     label = 'SYNTHETIC';
   }
 
+  // ── Rolling (anchored) walk-forward: repeat the train→test exercise across
+  // several successive windows. One 70/30 split can be a lucky window; a
+  // strategy that wins in MOST folds is far better evidence than one that wins
+  // in a single arbitrary split.
+  const fi = args.indexOf('--folds');
+  const folds = fi !== -1 ? Math.max(2, parseInt(args[fi + 1], 10) || 3) : 0;
+  if (folds) {
+    const symsAll = Object.keys(series);
+    const len = Math.min(...symsAll.map(s => series[s].length));
+    const testLen = Math.floor(len * (1 - ratio) / folds);
+    if (testLen < 100) { console.error(`\nNot enough history for ${folds} folds (need ~${100 * folds} test bars).`); process.exit(1); }
+    console.log(`\n══ ROLLING WALK-FORWARD (${label}) — ${symsAll.join(', ')} ══`);
+    console.log(`   ${folds} folds · each: train on everything before the window, test on the next ≈${testLen} bars\n`);
+
+    const tally = {};   // strategy → { wins, oosSum, picked }
+    for (const s of STRATEGIES) tally[s] = { oosSum: 0, wins: 0, picked: 0, pickedOosSum: 0 };
+
+    for (let f = 0; f < folds; f++) {
+      const trainEnd = Math.floor(len * ratio) + f * testLen;
+      const testEnd  = Math.min(trainEnd + testLen, len);
+      if (testEnd - trainEnd < 60) break;
+      const TR = {}, TE = {};
+      for (const s of symsAll) {
+        TR[s] = series[s].slice(0, trainEnd);
+        TE[s] = series[s].slice(Math.max(0, trainEnd - 210), testEnd);
+      }
+      const trRes = runAll(TR), teRes = runAll(TE);
+      const trValid = Object.entries(trRes).filter(([, r]) => Number.isFinite(r.totalReturnPct));
+      if (!trValid.length) continue;
+      const pick = trValid.sort((a, b) => b[1].totalReturnPct - a[1].totalReturnPct)[0][0];
+      const oosRank = Object.entries(teRes).filter(([, r]) => Number.isFinite(r.totalReturnPct))
+        .sort((a, b) => b[1].totalReturnPct - a[1].totalReturnPct);
+      const pickOos = teRes[pick]?.totalReturnPct;
+      console.log(`  Fold ${f + 1}: pick=${pad(pick, 16)} OOS ${num(pickOos)}%   (best OOS was ${oosRank[0]?.[0]} ${num(oosRank[0]?.[1]?.totalReturnPct)}%)`);
+      for (const [s, r] of Object.entries(teRes)) {
+        if (!Number.isFinite(r.totalReturnPct)) continue;
+        tally[s].oosSum += r.totalReturnPct;
+        if (r.totalReturnPct > 0) tally[s].wins++;
+      }
+      tally[pick].picked++;
+      if (Number.isFinite(pickOos)) tally[pick].pickedOosSum += pickOos;
+    }
+
+    console.log(`\n── Across all folds (out-of-sample only) ──`);
+    console.log(pad('STRATEGY', 17) + pad('AVG OOS%', 11) + pad('POSITIVE FOLDS', 16) + 'TIMES PICKED');
+    console.log('─'.repeat(60));
+    const ranked = Object.entries(tally).sort((a, b) => b[1].oosSum - a[1].oosSum);
+    for (const [s, t] of ranked) {
+      console.log(pad(s, 17) + pad(num(t.oosSum / folds), 11) + pad(`${t.wins}/${folds}`, 16) + t.picked);
+    }
+    console.log(`\n   Consistency across folds matters more than any single number.`);
+    console.log(`   A strategy positive in ${folds}/${folds} folds is meaningfully better evidence`);
+    console.log(`   than one that won a single split.\n`);
+    process.exit(0);
+  }
+
   const { IS, OOS } = splitSeries(series, ratio);
   const syms = Object.keys(IS);
   if (!syms.length) { console.error('\nNot enough history for a walk-forward split (need ~400+ bars/symbol).'); process.exit(1); }
