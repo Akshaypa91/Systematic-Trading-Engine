@@ -80,3 +80,23 @@ export function isValidSymbol(s) {
   const up = String(s || '').trim().toUpperCase();
   return !!up && up.length <= 20 && /^[A-Z0-9&-]+$/.test(up);
 }
+
+// The instrument master returns company names in ALL CAPS ("RELIANCE
+// COMMUNICATIONS LTD"), which shouts in a dropdown and reads inconsistently
+// next to the curated list ("Reliance Industries Ltd"). Title-case them while
+// preserving common all-caps tokens.
+// True acronyms only — suffixes like LTD/PLC read better title-cased ("Ltd"),
+// matching the curated list's style.
+const KEEP_UPPER = new Set(['NBFC', 'IT', 'BSE', 'NSE', 'PSU', 'SBI', 'HDFC', 'ICICI', 'IDFC', 'L&T', 'TVS', 'MRF', 'ITC', 'ONGC', 'NTPC', 'BPCL', 'HPCL', 'IOC', 'GAIL', 'HCL', 'TCS', 'LIC', 'IRCTC', 'DLF', 'JSW', 'M&M', 'RBL', 'IDBI', 'IIFL', 'PNB', 'GMR', 'NHPC', 'REC', 'IRFC', 'BEL', 'HAL', 'BHEL', 'SAIL', 'NMDC', 'MTNL', 'BSNL']);
+export function prettifyName(name) {
+  const s = String(name || '').trim();
+  if (!s) return '';
+  // Leave mixed-case names (curated list) untouched.
+  if (s !== s.toUpperCase()) return s;
+  return s.split(/\s+/).map(w => {
+    const bare = w.replace(/[^A-Z&]/g, '');
+    if (KEEP_UPPER.has(bare)) return w;
+    if (w.length <= 2 && /^[A-Z]+$/.test(w)) return w;      // initials
+    return w.charAt(0) + w.slice(1).toLowerCase();
+  }).join(' ');
+}

@@ -5,17 +5,42 @@
 // (full NSE instrument master) refines. Keyboard: ↑/↓ navigate, Enter select,
 // Esc close.
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, Loader2 } from 'lucide-react';
-import { localSearch, searchSymbolsApi } from '../utils/stockSearch';
+import { Search, Loader2, CornerDownLeft } from 'lucide-react';
+import { localSearch, searchSymbolsApi, prettifyName } from '../utils/stockSearch';
+
+// Highlight the matched substring so it's obvious WHY a row matched.
+function Mark({ text, q }) {
+  const s = String(text ?? '');
+  if (!q) return <>{s}</>;
+  const i = s.toLowerCase().indexOf(q.toLowerCase());
+  if (i === -1) return <>{s}</>;
+  return (
+    <>
+      {s.slice(0, i)}
+      <mark style={{ background: 'color-mix(in srgb, var(--cyan) 24%, transparent)', color: 'var(--cyan)', borderRadius: 2, padding: '0 1px' }}>
+        {s.slice(i, i + q.length)}
+      </mark>
+      {s.slice(i + q.length)}
+    </>
+  );
+}
 
 export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIANCE', disabled }) {
   const [open,      setOpen]      = useState(false);
   const [items,     setItems]     = useState([]);
   const [activeIdx, setActive]    = useState(-1);
   const [fetching,  setFetching]  = useState(false);
+  const [query,     setQuery]     = useState('');   // what the list was matched on
   const wrapRef  = useRef(null);
+  const listRef  = useRef(null);
   const debRef   = useRef(null);
   const reqRef   = useRef(0);
+
+  // Keep the keyboard-highlighted row visible while arrowing through a long list.
+  useEffect(() => {
+    if (activeIdx < 0 || !listRef.current) return;
+    listRef.current.children[activeIdx]?.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx]);
 
   useEffect(() => {
     const h = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); setActive(-1); } };
@@ -26,9 +51,10 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
 
   const search = useCallback((q) => {
     clearTimeout(debRef.current);
+    setQuery(q);
     const local = localSearch(q);
     setItems(local);
-    setOpen(local.length > 0);
+    setOpen(true);          // open even when empty so the "no match" hint shows
     setActive(-1);
     if (!q) return;
     const myReq = ++reqRef.current;
@@ -74,22 +100,53 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
         {fetching && <Loader2 size={12} className="animate-spin" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />}
       </div>
 
-      {open && items.length > 0 && (
-        <ul role="listbox"
-          style={{ position: 'absolute', zIndex: 60, top: 'calc(100% + 4px)', left: 0, right: 0, margin: 0, padding: 4,
-            listStyle: 'none', maxHeight: 240, overflowY: 'auto', borderRadius: 9,
-            background: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: '0 10px 30px rgba(0,0,0,0.45)' }}>
-          {items.map((it, i) => (
-            <li key={`${it.symbol}-${i}`} role="option" aria-selected={i === activeIdx}
-              onMouseEnter={() => setActive(i)}
-              onMouseDown={(e) => { e.preventDefault(); pick(it.symbol); }}
-              style={{ padding: '6px 9px', borderRadius: 6, cursor: 'pointer',
-                background: i === activeIdx ? 'var(--bg-elevated)' : 'transparent' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{it.symbol}</div>
-              {it.name && <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>}
-            </li>
-          ))}
-        </ul>
+      {open && (
+        <div style={{ position: 'absolute', zIndex: 60, top: 'calc(100% + 4px)', left: 0, right: 0, borderRadius: 9,
+          background: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: '0 10px 30px rgba(0,0,0,0.45)', overflow: 'hidden' }}>
+          {items.length > 0 ? (
+            <>
+              <ul ref={listRef} role="listbox"
+                style={{ margin: 0, padding: 4, listStyle: 'none', maxHeight: 240, overflowY: 'auto' }}>
+                {items.map((it, i) => {
+                  const exact = query && it.symbol.toUpperCase() === query.toUpperCase();
+                  return (
+                    <li key={`${it.symbol}-${i}`} role="option" aria-selected={i === activeIdx}
+                      onMouseEnter={() => setActive(i)}
+                      onMouseDown={(e) => { e.preventDefault(); pick(it.symbol); }}
+                      style={{ padding: '6px 9px', borderRadius: 6, cursor: 'pointer',
+                        background: i === activeIdx ? 'var(--bg-elevated)' : 'transparent' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+                          <Mark text={it.symbol} q={query} />
+                        </span>
+                        {exact && (
+                          <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.05em', padding: '1px 5px', borderRadius: 99,
+                            background: 'color-mix(in srgb, var(--green) 14%, transparent)', color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>EXACT</span>
+                        )}
+                      </div>
+                      {it.name && (
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <Mark text={prettifyName(it.name)} q={query} />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderTop: '1px solid var(--border)',
+                fontSize: 9.5, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                <CornerDownLeft size={9} /> select · ↑↓ navigate · esc close
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: '10px 12px', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              No match for <b style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{query}</b>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2 }}>
+                It will still be used as typed — backtest will fail if the symbol isn't on NSE.
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
