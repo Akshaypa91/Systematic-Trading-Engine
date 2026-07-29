@@ -149,15 +149,33 @@ function makeSeries(n, seed) {
         TE[s] = series[s].slice(Math.max(0, trainEnd - 210), testEnd);
       }
       const trRes = runAll(TR), teRes = runAll(TE);
+      // THE benchmark. Any strategy must beat simply holding the same basket —
+      // otherwise all the signals, costs and risk are destroying value versus
+      // doing nothing. Equal-weight, buy at the first testable bar, hold.
+      const bhRet = (() => {
+        const rs = [];
+        for (const s of Object.keys(TE)) {
+          const bars = TE[s].slice(210);            // skip warmup region
+          if (bars.length < 2) continue;
+          const a = Number(bars[0].close), b = Number(bars[bars.length - 1].close);
+          if (a > 0 && b > 0) rs.push(((b - a) / a) * 100);
+        }
+        return rs.length ? rs.reduce((x, y) => x + y, 0) / rs.length : NaN;
+      })();
+      teRes.__BUY_HOLD__ = { totalReturnPct: bhRet, sharpeRatio: NaN, maxDrawdownPct: NaN, totalTrades: 0, winRatePct: NaN };
       const trValid = Object.entries(trRes).filter(([, r]) => Number.isFinite(r.totalReturnPct));
       if (!trValid.length) continue;
       const pick = trValid.sort((a, b) => b[1].totalReturnPct - a[1].totalReturnPct)[0][0];
       const oosRank = Object.entries(teRes).filter(([, r]) => Number.isFinite(r.totalReturnPct))
         .sort((a, b) => b[1].totalReturnPct - a[1].totalReturnPct);
       const pickOos = teRes[pick]?.totalReturnPct;
-      console.log(`  Fold ${f + 1}: pick=${pad(pick, 16)} OOS ${num(pickOos)}%   (best OOS was ${oosRank[0]?.[0]} ${num(oosRank[0]?.[1]?.totalReturnPct)}%)`);
+      const bh = teRes.__BUY_HOLD__.totalReturnPct;
+      const verdict = Number.isFinite(pickOos) && Number.isFinite(bh)
+        ? (pickOos > bh ? 'BEAT buy&hold' : 'LOST to buy&hold') : '';
+      console.log(`  Fold ${f + 1}: pick=${pad(pick, 16)} OOS ${pad(num(pickOos) + '%', 9)} buy&hold ${pad(num(bh) + '%', 9)} ${verdict}`);
       for (const [s, r] of Object.entries(teRes)) {
         if (!Number.isFinite(r.totalReturnPct)) continue;
+        if (!tally[s]) tally[s] = { oosSum: 0, wins: 0, picked: 0, pickedOosSum: 0 };
         tally[s].oosSum += r.totalReturnPct;
         if (r.totalReturnPct > 0) tally[s].wins++;
       }
@@ -170,7 +188,17 @@ function makeSeries(n, seed) {
     console.log('─'.repeat(60));
     const ranked = Object.entries(tally).sort((a, b) => b[1].oosSum - a[1].oosSum);
     for (const [s, t] of ranked) {
-      console.log(pad(s, 17) + pad(num(t.oosSum / folds), 11) + pad(`${t.wins}/${folds}`, 16) + t.picked);
+      const nm = s === '__BUY_HOLD__' ? '» BUY & HOLD' : s;
+      console.log(pad(nm, 17) + pad(num(t.oosSum / folds), 11) + pad(`${t.wins}/${folds}`, 16) + (s === '__BUY_HOLD__' ? '—' : t.picked));
+    }
+    const bhAvg = tally.__BUY_HOLD__ ? tally.__BUY_HOLD__.oosSum / folds : NaN;
+    if (Number.isFinite(bhAvg)) {
+      const beaters = ranked.filter(([s, t]) => s !== '__BUY_HOLD__' && t.oosSum / folds > bhAvg).map(([s]) => s);
+      console.log(`\n   Buy & hold averaged ${num(bhAvg)}% per fold.`);
+      console.log(beaters.length
+        ? `   Beat it out-of-sample: ${beaters.join(', ')}`
+        : `   NOTHING beat buy & hold out-of-sample. All the signals, trades and`);
+      if (!beaters.length) console.log(`   costs destroyed value versus simply holding the basket.`);
     }
     console.log(`\n   Consistency across folds matters more than any single number.`);
     console.log(`   A strategy positive in ${folds}/${folds} folds is meaningfully better evidence`);
