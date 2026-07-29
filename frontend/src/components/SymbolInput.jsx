@@ -5,7 +5,7 @@
 // (full NSE instrument master) refines. Keyboard: ↑/↓ navigate, Enter select,
 // Esc close.
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, Loader2, CornerDownLeft } from 'lucide-react';
+import { Search, Loader2, CornerDownLeft, X } from 'lucide-react';
 import { localSearch, searchSymbolsApi, prettifyName } from '../utils/stockSearch';
 
 // Highlight the matched substring so it's obvious WHY a row matched.
@@ -33,6 +33,7 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
   const [query,     setQuery]     = useState('');   // what the list was matched on
   const wrapRef  = useRef(null);
   const listRef  = useRef(null);
+  const inputRef = useRef(null);
   const debRef   = useRef(null);
   const reqRef   = useRef(0);
 
@@ -86,17 +87,32 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
       <div style={{ position: 'relative' }}>
         <Search size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
         <input
+          ref={inputRef}
           className="input"
           value={value}
           disabled={disabled}
           placeholder={placeholder}
           onChange={(e) => { const v = e.target.value.toUpperCase(); onChange(v); search(v.trim()); }}
-          onFocus={() => search(String(value || '').trim())}
+          onFocus={(e) => {
+            // Select the existing value so typing REPLACES it — a pre-filled
+            // field shouldn't force you to clear it before searching. Show the
+            // popular list rather than matches for the value you're replacing.
+            e.target.select();
+            search('');
+          }}
           onKeyDown={onKeyDown}
           autoComplete="off" spellCheck={false}
           role="combobox" aria-expanded={open} aria-autocomplete="list"
-          style={{ width: '100%', paddingLeft: 28, paddingRight: 26, textTransform: 'uppercase' }}
+          style={{ width: '100%', paddingLeft: 28, paddingRight: value ? 46 : 26, textTransform: 'uppercase' }}
         />
+        {value && !disabled && (
+          <button type="button" aria-label="Clear symbol"
+            onMouseDown={(e) => { e.preventDefault(); onChange(''); search(''); inputRef.current?.focus(); }}
+            style={{ position: 'absolute', right: fetching ? 26 : 8, top: '50%', transform: 'translateY(-50%)',
+              display: 'flex', padding: 2, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+            <X size={12} />
+          </button>
+        )}
         {fetching && <Loader2 size={12} className="animate-spin" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />}
       </div>
 
