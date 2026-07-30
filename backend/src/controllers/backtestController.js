@@ -242,4 +242,37 @@ async function runPortfolio(req, res) {
   }
 }
 
-module.exports = { runBacktest, runPortfolio, getBacktestRuns, getBacktestTrades };
+// ── POST /api/backtest/intraday ───────────────────────────────────────────────
+// 1-minute VWAP scalper backtest. Returns gross → costs → net separately,
+// because for a high-turnover strategy the frictions are the headline number.
+async function runIntraday(req, res) {
+  const { symbols, costBps } = req.body || {};
+  const syms = Array.isArray(symbols) && symbols.length
+    ? symbols.map(s => String(s).toUpperCase()).slice(0, 10)
+    : ['RELIANCE', 'TCS', 'HDFCBANK'];
+  try {
+    const md = getMarketData();
+    const engine = require('../engine/intradayBacktester');
+    const series = {};
+    const skipped = [];
+    for (const sym of syms) {
+      try {
+        const cd = await md.getCandles(sym, { interval: '1minute', days: 30 });
+        const bars = (cd?.candles || [])
+          .map(k => ({ date: String(k.t), open: k.o, high: k.h, low: k.l, close: k.c, volume: k.v }))
+          .filter(b => Number.isFinite(b.close));
+        if (bars.length >= 200) series[sym] = bars; else skipped.push(sym);
+      } catch (e) { skipped.push(sym); logger.debug(`[IntradayBT] ${sym}: ${e.message}`); }
+    }
+    if (!Object.keys(series).length) {
+      return res.status(422).json({ success: false, error: 'No symbol had ≥200 one-minute bars (a broker session is required).', skipped });
+    }
+    const result = engine.run(series, { costBps: Number(costBps) || 18 });
+    return res.json({ success: true, ...result, skipped });
+  } catch (err) {
+    logger.error(`[IntradayBT] ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { runBacktest, runPortfolio, runIntraday, getBacktestRuns, getBacktestTrades };

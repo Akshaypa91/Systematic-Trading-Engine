@@ -54,6 +54,7 @@ export const authAPI = {
 };
 
 export const backtestAPI = {
+  intraday:  (body) => api.post('/backtest/intraday', body),
   run:      (params)             => api.post('/backtest', params),
   getRuns:  (symbol, limit = 10) => {
     const params = { limit };

@@ -18,6 +18,7 @@ export const SHORTCUT_ROUTES = [
   { keys: 'g a', path: '/analytics',   label: 'Analytics' },
   { keys: 'g w', path: '/swing',       label: 'Swing Setup' },
   { keys: 'g r', path: '/spread',      label: 'NSE-BSE Spread' },
+  { keys: 'g i', path: '/intraday',    label: 'Intraday Scalper' },
   { keys: 'g j', path: '/journal',     label: 'Journal' },
   { keys: 'g e', path: '/execution',   label: 'Execution Quality' },
   { keys: 'g x', path: '/diagnostics', label: 'Diagnostics' },

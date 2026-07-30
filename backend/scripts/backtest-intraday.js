@@ -66,79 +66,11 @@ async function realSessions(symbols) {
   return out;
 }
 
-/** Split a flat bar array into per-session groups by calendar date. */
-function bySession(bars) {
-  const map = new Map();
-  for (const b of bars) {
-    const day = String(b.date).slice(0, 10);
-    if (!map.has(day)) map.set(day, []);
-    map.get(day).push(b);
-  }
-  return [...map.values()];
-}
-
-/**
- * Run the scalper over one symbol's bars.
- * Costs are charged per ROUND TRIP in bps of notional.
- */
-function runSymbol(bars, { costBps = 18, warmup = 30, capitalPerTrade = 100000 } = {}) {
-  const trades = [];
-  for (const session of bySession(bars)) {
-    if (session.length < warmup + 5) continue;
-    let pos = null;   // { entry, qty, entryIdx }
-
-    for (let i = warmup; i < session.length; i++) {
-      const window = session.slice(0, i + 1);
-      const bar = session[i];
-      const price = Number(bar.close);
-      if (!(price > 0)) continue;
-
-      const sig = scalper.generateSignal(window, { roundTripBps: costBps });
-
-      if (!pos && sig.signal === 'BUY') {
-        const qty = Math.max(1, Math.floor(capitalPerTrade / price));
-        pos = { entry: price, qty, entryIdx: i, stop: sig.stop, target: sig.target };
-        continue;
-      }
-
-      if (pos) {
-        let exit = null, reason = null;
-        if (Number(bar.low) <= pos.stop)        { exit = pos.stop;   reason = 'STOP'; }
-        else if (Number(bar.high) >= pos.target){ exit = pos.target; reason = 'TARGET'; }
-        else if (sig.signal === 'SELL')         { exit = price;      reason = sig.reason?.includes('Square-off') ? 'SQUARE_OFF' : 'SIGNAL'; }
-        else if (i === session.length - 1)      { exit = price;      reason = 'EOD'; }
-
-        if (exit != null) {
-          const notional = pos.qty * pos.entry;
-          const gross = (exit - pos.entry) * pos.qty;
-          const cost  = notional * (costBps / 10000);
-          trades.push({
-            entry: pos.entry, exit: +exit.toFixed(2), qty: pos.qty, reason,
-            grossPnl: +gross.toFixed(2), cost: +cost.toFixed(2), netPnl: +(gross - cost).toFixed(2),
-            heldBars: i - pos.entryIdx, notional: +notional.toFixed(2),
-          });
-          pos = null;
-        }
-      }
-    }
-  }
-  return trades;
-}
-
-/** Intraday buy & hold: buy first bar of each session, sell last. */
-function buyHoldIntraday(bars, costBps, capitalPerTrade = 100000) {
-  let gross = 0, cost = 0, n = 0;
-  for (const session of bySession(bars)) {
-    if (session.length < 2) continue;
-    const a = Number(session[0].close), b = Number(session[session.length - 1].close);
-    if (!(a > 0) || !(b > 0)) continue;
-    const qty = Math.max(1, Math.floor(capitalPerTrade / a));
-    gross += (b - a) * qty;
-    cost  += qty * a * (costBps / 10000);
-    n++;
-  }
-  return { sessions: n, grossPnl: gross, cost, netPnl: gross - cost };
-}
+// Session grouping, the run loop and the buy & hold benchmark live in
+// src/engine/intradayBacktester.js so this CLI and POST /api/backtest/intraday
+// execute the SAME code — the strategyCore lesson: one path, no drift.
+const engine = require('../src/engine/intradayBacktester');
+const { runSymbol, buyHoldIntraday } = engine;
 
 (async () => {
   const args = process.argv.slice(2);
@@ -164,41 +96,27 @@ function buyHoldIntraday(bars, costBps, capitalPerTrade = 100000) {
   console.log(pad('SYMBOL', 12) + pad('TRADES', 8) + pad('WIN%', 7) + pad('GROSS ₹', 12) + pad('COSTS ₹', 12) + pad('NET ₹', 12) + 'AVG HELD');
   console.log('─'.repeat(75));
 
-  let tG = 0, tC = 0, tN = 0, tT = 0;
-  for (const [sym, bars] of Object.entries(data)) {
-    const trades = runSymbol(bars, { costBps });
-    const wins = trades.filter(t => t.netPnl > 0).length;
-    const g = trades.reduce((a, t) => a + t.grossPnl, 0);
-    const c = trades.reduce((a, t) => a + t.cost, 0);
-    const n = g - c;
-    const held = trades.length ? trades.reduce((a, t) => a + t.heldBars, 0) / trades.length : 0;
-    tG += g; tC += c; tN += n; tT += trades.length;
-    console.log(pad(sym, 12) + pad(trades.length, 8) + pad(trades.length ? num((wins / trades.length) * 100, 1) : '—', 7) +
-      pad(num(g), 12) + pad(num(c), 12) + pad(num(n), 12) + `${num(held, 0)} bars`);
+  // One call into the shared engine — identical to what the HTTP endpoint runs.
+  const result = engine.run(data, { costBps });
+  for (const r of result.perSymbol) {
+    console.log(pad(r.symbol, 12) + pad(r.trades, 8) + pad(r.trades ? num(r.winRatePct, 1) : '—', 7) +
+      pad(num(r.gross), 12) + pad(num(r.cost), 12) + pad(num(r.net), 12) + `${num(r.avgHeldBars, 0)} bars`);
   }
-
+  const T = result.totals;
   console.log('─'.repeat(75));
-  console.log(pad('TOTAL', 12) + pad(tT, 8) + pad('', 7) + pad(num(tG), 12) + pad(num(tC), 12) + pad(num(tN), 12));
+  console.log(pad('TOTAL', 12) + pad(T.trades, 8) + pad(T.trades ? num(T.winRatePct, 1) : '', 7) +
+    pad(num(T.gross), 12) + pad(num(T.cost), 12) + pad(num(T.net), 12));
 
   console.log('\n── Cost reality ──');
-  if (tT === 0) {
-    console.log('   No trades taken. The cost gate rejected every setup — the signal never');
-    console.log(`   found a move worth ≥ ${(costBps * scalper.PARAMS.MIN_EDGE_MULT).toFixed(0)} bps. That is a valid result.`);
-  } else {
-    const drag = tG !== 0 ? (tC / Math.abs(tG)) * 100 : 0;
-    console.log(`   Gross ₹${num(tG)} → costs ₹${num(tC)} (${num(drag, 1)}% of gross) → NET ₹${num(tN)}`);
-    console.log(tN > 0
-      ? '   Net POSITIVE before tax. Note: 20% STCG applies to intraday gains in India,'
-      : '   Net NEGATIVE — the signal may work but frictions consume it. This is the');
-    console.log(tN > 0
-      ? `   which would leave ≈ ₹${num(tN * 0.8)}.`
-      : '   normal outcome for retail scalping and why turnover is the enemy.');
+  console.log(`   ${result.verdict}`);
+  if (T.trades > 0) {
+    console.log(`   Gross ₹${num(T.gross)} → costs ₹${num(T.cost)}${T.costDragPct != null ? ` (${num(T.costDragPct, 1)}% of gross)` : ''} → NET ₹${num(T.net)}`);
+    if (T.net > 0) console.log(`   After 20% STCG ≈ ₹${num(T.netAfterTax)}.`);
   }
 
   console.log('\n── Benchmark: intraday buy & hold (open→close each session) ──');
-  for (const [sym, bars] of Object.entries(data)) {
-    const bh = buyHoldIntraday(bars, costBps);
-    console.log(`   ${pad(sym, 12)} ${bh.sessions} sessions · net ₹${num(bh.netPnl)}`);
+  for (const r of result.perSymbol) {
+    console.log(`   ${pad(r.symbol, 12)} ${r.sessions} sessions · net ₹${num(r.buyHoldNet)}`);
   }
 
   console.log('\n⚠  Synthetic data is deliberately mean-reverting, so it FLATTERS this');
