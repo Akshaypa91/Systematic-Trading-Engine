@@ -52,6 +52,7 @@ const SUITES = [
   'scripts/test-cross-exchange-spread.js',
   'scripts/test-latency-monitor.js',
   'scripts/test-datastore-adjust.js',
+  'scripts/test-intraday-scalper.js',
 ];
 for (const s of SUITES) {
   const p = path.join(ROOT, s);
