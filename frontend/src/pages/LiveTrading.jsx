@@ -140,6 +140,17 @@ function PositionRow({ sym, pos }) {
 }
 
 // ── Paper trade row ───────────────────────────────────────────────────────────
+const hhmm = (ts) => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '—';
+function holdLabel(ms) {
+  if (!ms || ms < 0) return '—';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? `${h}h ${m % 60}m` : `${Math.floor(h / 24)}d ${h % 24}h`;
+}
+
 function PaperTradeRow({ t, isNew }) {
   if (!t) return null;
   const pnl      = n(t.pnl);
@@ -160,8 +171,15 @@ function PaperTradeRow({ t, isNew }) {
       <td style={{ padding: '9px 12px', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
         ₹{n(t.price) > 0 ? n(t.price).toLocaleString('en-IN') : '—'}
       </td>
+      <td style={{ padding: '9px 12px', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+        {hhmm(t.entryTime)} → {hhmm(t.ts)}
+      </td>
+      <td style={{ padding: '9px 12px', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+        {holdLabel(t.holdMs)}
+      </td>
       <td style={{ padding: '9px 12px', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600, color: green ? 'var(--green)' : 'var(--red)' }}>
         {t.pnl != null ? `${green ? '+' : ''}₹${Math.abs(pnl).toFixed(0)}` : '—'}
+        {t.pnlPct != null && <span style={{ fontSize: 9.5, opacity: 0.7 }}> ({t.pnlPct > 0 ? '+' : ''}{t.pnlPct}%)</span>}
       </td>
       <td style={{ padding: '9px 12px' }}>
         <span className="font-mono" style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, background: reasonBg, color: 'var(--text-secondary)' }}>
@@ -498,7 +516,7 @@ export default function LiveTrading() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['Symbol', 'Side', 'Qty', 'Entry', 'Exit', 'P&L', 'Reason'].map(h => (
+                      {['Symbol', 'Side', 'Qty', 'Entry', 'Exit', 'Open → Close', 'Held', 'P&L', 'Reason'].map(h => (
                         <th key={h} style={{ padding: '6px 12px', textAlign: 'left', fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>{h}</th>
                       ))}
                     </tr>

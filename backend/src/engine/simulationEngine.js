@@ -134,10 +134,16 @@ function _placeSell(userId, symbol, price, reason = 'SIGNAL') {
   p.totalPnl = parseFloat((p.totalPnl + pnl).toFixed(2));
   delete p.openPositions[symbol];
 
+  // Carry the OPEN time onto the closed trade so the history can show when the
+  // position was opened, when it closed, and how long it was held — a trade log
+  // without entry time can't answer "how long do my winners run?".
+  const exitTs = new Date().toISOString();
+  const holdMs = pos.entryTime ? (new Date(exitTs) - new Date(pos.entryTime)) : null;
   const trade = { id:++p.tradeCount, symbol, side:'SELL', qty:pos.qty,
     price:parseFloat(price.toFixed(2)), entryPrice:parseFloat(pos.entryPrice.toFixed(2)),
     total:parseFloat(net.toFixed(2)), commission:parseFloat(commission.toFixed(2)),
-    pnl, reason, ts:new Date().toISOString(), userId };
+    pnl, pnlPct: pos.entryPrice > 0 ? parseFloat((((price - pos.entryPrice) / pos.entryPrice) * 100).toFixed(2)) : null,
+    reason, entryTime: pos.entryTime || null, ts: exitTs, holdMs, userId };
 
   p.closedTrades.unshift(trade);
   if (p.closedTrades.length > 200) p.closedTrades.pop();
