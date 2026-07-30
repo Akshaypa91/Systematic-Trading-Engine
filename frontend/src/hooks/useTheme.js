@@ -30,9 +30,11 @@ function getInitialTheme() {
   } catch (_err) {
     // localStorage can be unavailable in restricted browser contexts.
   }
-  // Respect OS preference on first visit, then default to light
-  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
-  return 'light';  // default
+  // Light-first, like every Indian broker app (Groww/Upstox/Tickertape open
+  // light regardless of OS preference). A user who wants dark toggles once and
+  // the choice persists; OS-dark users landing on a dark trading terminal on
+  // first visit read it as "developer tool", not "product".
+  return 'light';
 }
 
 function applyTheme(theme) {

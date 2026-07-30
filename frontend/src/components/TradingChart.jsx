@@ -107,7 +107,9 @@ function TradingChart({ symbol, height, priceSource }) {
 
   const wrapStyle = fullscreen ? {
     position: 'fixed', inset: 0, zIndex: 9999,
-    background: '#060a12', display: 'flex', flexDirection: 'column',
+    // Was hardcoded #060a12 — a dark fullscreen chart inside the light theme.
+    background: isDark ? '#060a12' : '#ffffff',
+    display: 'flex', flexDirection: 'column',
   } : {
     borderRadius: 12, overflow: 'hidden',
     border: '1px solid var(--border)',

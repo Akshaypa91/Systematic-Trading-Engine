@@ -139,7 +139,10 @@ function ResetModal({ initialCapital, onConfirm, onCancel, busy }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(6,10,18,0.85)',
+      // Neutral black scrim works over both themes; the old navy rgba(6,10,18)
+      // read as a glitch on the light background.
+      background: 'rgba(15,23,42,0.55)',
+      backdropFilter: 'blur(2px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div className="card" style={{ padding: 28, maxWidth: 360, width: '90%' }}>

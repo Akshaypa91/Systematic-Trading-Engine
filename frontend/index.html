@@ -5,8 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#0C1322" />
+    <meta name="theme-color" content="#F0F4FA" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Apply the theme BEFORE first paint. The stylesheet's :root defaults are
+         dark, and React only sets data-theme after mount — without this, every
+         light-theme visit opened with a dark flash. Must stay inline and in
+         <head>; moving it into the bundle re-introduces the flash. -->
+    <script>
+      (function () {
+        var t = 'light';
+        try {
+          var s = localStorage.getItem('systra-theme');
+          if (s === 'dark' || s === 'light') t = s;
+        } catch (e) { /* restricted context — keep light */ }
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.setAttribute('data-color-scheme', t);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', t === 'dark' ? '#060a12' : '#F0F4FA');
+      })();
+    </script>
     <meta name="description" content="SYSTRA — systematic trading engine for NSE/BSE. Paper & live trading, signals, screener, backtesting." />
     <title>SYSTRA — Systematic Trading</title>
   </head>
