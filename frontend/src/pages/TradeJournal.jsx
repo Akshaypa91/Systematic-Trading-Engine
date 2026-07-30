@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell';
-import { tradeJournalAPI } from '../services/api';
-import { BookOpen, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { tradeJournalAPI, simAPI } from '../services/api';
+import { BookOpen, RefreshCw, Save, Trash2, PenLine, X } from 'lucide-react';
 
 const emptyForm = {
   symbol: '',
   side: 'BUY',
+  tradeId: null,
   entryReason: '',
   exitReason: '',
   notes: '',
@@ -30,6 +31,7 @@ function Stat({ label, value, sub }) {
 export default function TradeJournal() {
   const [entries, setEntries] = useState([]);
   const [analytics, setAnalytics] = useState(null);
+  const [trades, setTrades] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,12 +41,17 @@ export default function TradeJournal() {
     setLoading(true);
     setError('');
     try {
-      const [listRes, analyticsRes] = await Promise.all([
+      // The user's real executed trades come along for the ride: a journal you
+      // have to retype your trades into never gets filled in. Portfolio failing
+      // (not initialised yet) must not break the journal itself.
+      const [listRes, analyticsRes, portRes] = await Promise.all([
         tradeJournalAPI.list({ limit: 100 }),
         tradeJournalAPI.analytics(),
+        simAPI.getPortfolio().catch(() => null),
       ]);
       setEntries(listRes.data?.data || []);
       setAnalytics(analyticsRes.data?.data || null);
+      setTrades(portRes?.data?.data?.trades || []);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     } finally {
@@ -56,8 +63,26 @@ export default function TradeJournal() {
 
   const topTags = useMemo(() => analytics?.topTags || [], [analytics]);
 
+  // Trades that have no journal entry yet — the actual to-do list of this page.
+  const unjournaled = useMemo(() => {
+    const done = new Set(entries.map(e => String(e.tradeId)).filter(id => id !== 'null'));
+    return trades.filter(t => t.id != null && !done.has(String(t.id))).slice(0, 8);
+  }, [trades, entries]);
+
   function updateField(field, value) {
     setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  // Prefill from a real trade so the user only writes the part a machine can't:
+  // why they took it and what they learned.
+  function journalTrade(t) {
+    setForm({
+      ...emptyForm,
+      symbol: t.symbol,
+      side: t.side === 'SELL' ? 'SELL' : 'BUY',
+      tradeId: t.id,
+    });
+    document.getElementById('journal-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   async function submit(e) {
@@ -109,16 +134,31 @@ export default function TradeJournal() {
 
         {error && <div className="journal-error">{error}</div>}
 
-        <section className="journal-stats">
-          <Stat label="Entries" value={fmt(analytics?.totalEntries)} />
-          <Stat label="Avg Confidence" value={analytics?.avgConfidence == null ? '-' : `${fmt(analytics.avgConfidence)}%`} />
-          <Stat label="Buy Notes" value={fmt(analytics?.buyNotes)} />
-          <Stat label="Sell Notes" value={fmt(analytics?.sellNotes)} />
-        </section>
+        {/* Stats appear once there's something to summarise. Four tiles reading
+            "0 / – / 0 / 0" made the page look broken on every first visit. */}
+        {entries.length > 0 && (
+          <section className="journal-stats">
+            <Stat label="Entries" value={fmt(analytics?.totalEntries)} />
+            <Stat label="Avg Confidence" value={analytics?.avgConfidence == null ? '-' : `${fmt(analytics.avgConfidence)}%`} />
+            <Stat label="Trades Journaled" value={`${entries.filter(e => e.tradeId != null).length}/${trades.length || 0}`} sub="Linked to a real fill" />
+            <Stat label="Buy / Sell" value={`${fmt(analytics?.buyNotes)} / ${fmt(analytics?.sellNotes)}`} />
+          </section>
+        )}
 
         <div className="journal-layout">
-          <form className="card journal-form" onSubmit={submit}>
-            <h2>New Journal Entry</h2>
+          <form id="journal-form" className="card journal-form" onSubmit={submit}>
+            <h2>{form.tradeId ? `Journal ${form.symbol} ${form.side}` : 'New Journal Entry'}</h2>
+
+            {/* Linked-trade chip: makes it obvious this note is attached to a
+                real fill (trade_journal.trade_id), not a free-floating note. */}
+            {form.tradeId && (
+              <div className="journal-linked">
+                <span>Linked to trade #{form.tradeId}</span>
+                <button type="button" onClick={() => setForm(emptyForm)} title="Unlink and clear">
+                  <X size={12} />
+                </button>
+              </div>
+            )}
             <div className="journal-form-grid">
               <label>
                 Symbol
@@ -176,10 +216,43 @@ export default function TradeJournal() {
               </div>
             )}
 
+            {/* Un-journaled real trades — one click prefills the form. This is
+                what turns the journal from a blank page into a worklist. */}
+            {unjournaled.length > 0 && (
+              <div className="card journal-todo">
+                <span className="section-label">Trades awaiting a note</span>
+                <div className="journal-todo-list">
+                  {unjournaled.map(t => (
+                    <button key={t.id} type="button" onClick={() => journalTrade(t)} className="journal-todo-row">
+                      <span className="jt-sym">{t.symbol}</span>
+                      <span className={`badge ${t.side === 'SELL' ? 'badge-sell' : 'badge-buy'}`}>{t.side}</span>
+                      <span className="jt-price font-mono">₹{fmt(t.price)}</span>
+                      {t.pnl != null && (
+                        <span className="jt-pnl font-mono" style={{ color: t.pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {t.pnl >= 0 ? '+' : ''}₹{fmt(t.pnl)}
+                        </span>
+                      )}
+                      <PenLine size={12} className="jt-icon" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="card journal-empty">Loading journal...</div>
             ) : entries.length === 0 ? (
-              <div className="card journal-empty">No journal entries yet.</div>
+              <div className="card journal-empty">
+                <BookOpen size={24} style={{ color: 'var(--text-dim)', marginBottom: 10 }} />
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                  No entries yet
+                </p>
+                <p style={{ fontSize: 11.5, lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
+                  {unjournaled.length > 0
+                    ? 'Pick a trade above to write up why you took it — reviewing your own reasoning is the fastest way to find repeated mistakes.'
+                    : 'Once you place paper trades they appear here to annotate. You can also write a standalone note using the form.'}
+                </p>
+              </div>
             ) : entries.map(entry => (
               <article key={entry.id} className="card journal-entry">
                 <div className="journal-entry-head">
@@ -194,6 +267,7 @@ export default function TradeJournal() {
                 <div className="journal-entry-meta font-mono">
                   {new Date(entry.createdAt).toLocaleString('en-IN')}
                   {entry.confidenceScore != null && ` · ${entry.confidenceScore}% confidence`}
+                  {entry.tradeId != null && ` · trade #${entry.tradeId}`}
                 </div>
                 {entry.entryReason && <p><b>Entry:</b> {entry.entryReason}</p>}
                 {entry.exitReason && <p><b>Exit:</b> {entry.exitReason}</p>}
