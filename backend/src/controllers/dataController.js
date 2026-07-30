@@ -216,6 +216,66 @@ async function getNifty50(req, res) {
 }
 
 /**
+ * GET /api/data/indices
+ * NIFTY 50 / SENSEX / BANK NIFTY snapshot for the dashboard strip — every
+ * broker app opens with market context, so we do too. Real Upstox index quotes
+ * only: without a broker session this returns an empty list and the UI hides
+ * the strip. No placeholder index values, same rule as everywhere else.
+ */
+const INDICES = [
+  { key: 'NSE_INDEX|Nifty 50',   name: 'NIFTY 50' },
+  { key: 'BSE_INDEX|SENSEX',     name: 'SENSEX' },
+  { key: 'NSE_INDEX|Nifty Bank', name: 'BANK NIFTY' },
+];
+let _idxCache = { at: 0, data: [] };
+const IDX_TTL_MS = 15000;
+
+async function getIndices(req, res) {
+  try {
+    if (Date.now() - _idxCache.at < IDX_TTL_MS) {
+      return res.json({ success: true, cached: true, data: _idxCache.data });
+    }
+    const upstoxAuth = require('../services/upstoxAuth');
+    const token = upstoxAuth.getAccessToken?.();
+    if (!token) return res.json({ success: true, data: [], reason: 'NO_BROKER_SESSION' });
+
+    const axios = require('axios');
+    const url = 'https://api.upstox.com/v2/market-quote/quotes?instrument_key='
+      + encodeURIComponent(INDICES.map(i => i.key).join(','));
+    const r = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' },
+      timeout: 8000,
+    });
+    const raw = r.data?.data || {};
+    // Response keys come back as 'SEG:Name' — normalise to our 'SEG|Name'.
+    const byKey = {};
+    for (const [k, v] of Object.entries(raw)) byKey[k.replace(':', '|')] = v;
+
+    const data = INDICES.map(({ key, name }) => {
+      const q = byKey[key];
+      if (!q) return null;
+      const ltp = Number(q.last_price);
+      const change = Number(q.net_change ?? 0);
+      const prev = ltp - change;
+      if (!isFinite(ltp) || ltp <= 0) return null;
+      return {
+        name,
+        ltp:       +ltp.toFixed(2),
+        change:    +change.toFixed(2),
+        changePct: prev > 0 ? +((change / prev) * 100).toFixed(2) : null,
+      };
+    }).filter(Boolean);
+
+    _idxCache = { at: Date.now(), data };
+    res.json({ success: true, data });
+  } catch (err) {
+    logger.debug(`[DataCtrl] getIndices: ${err.message}`);
+    // Serve the last good snapshot if we have one; otherwise an empty list.
+    res.json({ success: true, stale: _idxCache.data.length > 0, data: _idxCache.data });
+  }
+}
+
+/**
  * GET /api/data/spread?symbols=RELIANCE,TCS&qty=100
  * NSE vs BSE price difference for the same security, with the round-trip cost
  * required to capture it. Read-only measurement — places no orders.
@@ -437,5 +497,5 @@ function searchStocks(req, res) {
 }
 
 module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
-  searchStocks, getCandles, getSpreads
+  searchStocks, getCandles, getSpreads, getIndices
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWS } from '../context/WSContext';
 import { signalAPI } from '../services/api';
 import SignalCard from './SignalCard';
@@ -19,6 +19,33 @@ export default function SignalsPanel({ signals: propSignals }) {
   // Merge WS signals into local signals (WS takes priority)
   const merged = signals.length > 0 ? signals
     : localSigs;
+
+  // Auto-populate on mount. A broker app never opens onto an empty panel and
+  // asks the user to click things — if the WS stream hasn't delivered signals
+  // within a couple of seconds, fetch the default watchlist ourselves.
+  // Sequential with a small gap so a cold backend isn't hit by 6 at once;
+  // failures (e.g. 503 NO_MARKET_DATA) are silently skipped, not shown as
+  // errors — an unprompted background fill shouldn't produce error banners.
+  const autoloaded = useRef(false);
+  useEffect(() => {
+    if (autoloaded.current) return;
+    const t = setTimeout(async () => {
+      if (autoloaded.current || signals.length > 0 || localSigs.length > 0) return;
+      autoloaded.current = true;
+      for (const sym of QUICK.slice(0, 5)) {
+        try {
+          const res = await signalAPI.get(sym);
+          const d = res.data;
+          setLocalSigs(prev => {
+            const next = prev.filter(x => x.symbol !== d.symbol);
+            return [...next, { ...d, timestamp: new Date().toISOString() }];
+          });
+        } catch { /* no data for this symbol — skip quietly */ }
+        await new Promise(r => setTimeout(r, 350));
+      }
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [signals.length, localSigs.length]);
 
   const filtered = filter === 'ALL' ? merged : merged.filter(s => s.signal === filter);
 

@@ -10,6 +10,7 @@ import OpenPositions from '../components/OpenPositions';
 import MarketWatch from '../components/MarketWatch';
 import AllocationCard from '../components/AllocationCard';
 import BrokerConnectBanner from '../components/BrokerConnectBanner';
+import IndicesStrip from '../components/IndicesStrip';
 import Toast from '../components/Toast';
 import {
   Button, Card, CardHeader, Field, Input, Select, Metric, Chip,
@@ -91,6 +92,10 @@ export default function Dashboard() {
         {/* Broker connect prompt (only when Upstox isn't linked) */}
         <BrokerConnectBanner />
 
+        {/* Market context first — NIFTY/SENSEX/BANKNIFTY, like any broker app.
+            Renders nothing without real index quotes. */}
+        <IndicesStrip />
+
         {/* Backtest form (collapsible) */}
         {showForm && (
           <Card className="fade-in dash-section">
@@ -163,26 +168,30 @@ export default function Dashboard() {
         {/* Portfolio summary strip */}
         <PortfolioHero portfolio={displayPort} spark={btResult?.equityCurve || []} />
 
-        {/* KPI metrics row — auto-fit: 4-up desktop, 2×2 phones, 1-col tiny */}
-        <div className="dash-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <Metric label="Total Return" icon={TrendingUp}
-            value={s ? pct(s.totalReturnPct) : '—'}
-            sub={s ? `Final ₹${Number(s.finalCapital).toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : 'Run a backtest'}
-            color={s ? (s.totalReturnPct >= 0 ? 'green' : 'red') : 'cyan'}
-            trend={s?.totalReturnPct} />
-          <Metric label="Win Rate" icon={Activity}
-            value={s ? `${s.winRatePct?.toFixed(1)}%` : '—'}
-            sub={s ? `${s.winningTrades}W / ${s.losingTrades}L of ${s.totalTrades}` : 'Winning trades ratio'}
-            color="cyan" />
-          <Metric label="Sharpe Ratio" icon={BarChart2}
-            value={s ? s.sharpeRatio?.toFixed(3) : '—'}
-            sub="Risk-adjusted return"
-            color={s ? (s.sharpeRatio >= 1 ? 'green' : 'amber') : 'amber'} />
-          <Metric label="Max Drawdown" icon={Shield}
-            value={s ? `${s.maxDrawdownPct?.toFixed(2)}%` : '—'}
-            sub={s ? `Profit factor: ${s.profitFactor?.toFixed(2)}` : 'Peak-to-trough'}
-            color="red" />
-        </div>
+        {/* Backtest KPI row — rendered only once a backtest has run. Four big
+            tiles of em-dashes front-and-centre made the whole page look
+            unfinished; Groww/Tickertape never show placeholder metrics. */}
+        {s && (
+          <div className="dash-section" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+            <Metric label="Total Return" icon={TrendingUp}
+              value={pct(s.totalReturnPct)}
+              sub={`Final ₹${Number(s.finalCapital).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+              color={s.totalReturnPct >= 0 ? 'green' : 'red'}
+              trend={s.totalReturnPct} />
+            <Metric label="Win Rate" icon={Activity}
+              value={`${s.winRatePct?.toFixed(1)}%`}
+              sub={`${s.winningTrades}W / ${s.losingTrades}L of ${s.totalTrades}`}
+              color="cyan" />
+            <Metric label="Sharpe Ratio" icon={BarChart2}
+              value={s.sharpeRatio?.toFixed(3)}
+              sub="Risk-adjusted return"
+              color={s.sharpeRatio >= 1 ? 'green' : 'amber'} />
+            <Metric label="Max Drawdown" icon={Shield}
+              value={`${s.maxDrawdownPct?.toFixed(2)}%`}
+              sub={`Profit factor: ${s.profitFactor?.toFixed(2)}`}
+              color="red" />
+          </div>
+        )}
 
         {/* Equity curve + Live signals */}
         <div className="dash-grid-2 dash-section">

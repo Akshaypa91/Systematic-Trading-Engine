@@ -117,6 +117,7 @@ export const marketAPI = {
   getCandles: (symbol, params) => api.get(`/data/candles/${symbol}`, { params }),
   getHealth: ()       => api.get('/data/health'),
   getMarketStatus: () => api.get('/data/market-status'),
+  getIndices: ()      => api.get('/data/indices'),
   spreads:   (params) => api.get('/data/spread', { params }),
 };
 
