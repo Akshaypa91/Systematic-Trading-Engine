@@ -50,6 +50,7 @@ const SUITES = [
   'scripts/test-auth-security.js',
   'scripts/test-symbol-resolution.js',
   'scripts/test-cross-exchange-spread.js',
+  'scripts/test-latency-monitor.js',
 ];
 for (const s of SUITES) {
   const p = path.join(ROOT, s);

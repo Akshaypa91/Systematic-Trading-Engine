@@ -61,6 +61,16 @@ function _norm(res, strategyKey) {
  * @returns {{signal, confidence, score, strategy, components, regime, ...indicators}}
  */
 function evaluate(strategyKey, closes, opts = {}) {
+  const t0 = process.hrtime.bigint();
+  try { return _evaluate(strategyKey, closes, opts); }
+  finally {
+    // Instrumented so the signal-computation stage appears in the latency
+    // report rather than being assumed "instant".
+    try { require('../utils/latencyMonitor').record('signal_calc', Number(process.hrtime.bigint() - t0) / 1e6); } catch (_) {}
+  }
+}
+
+function _evaluate(strategyKey, closes, opts = {}) {
   const key = String(strategyKey || 'AGGREGATED').toUpperCase();
 
   switch (key) {

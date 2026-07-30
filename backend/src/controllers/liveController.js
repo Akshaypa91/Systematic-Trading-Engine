@@ -219,6 +219,8 @@ async function getDiagnostics(req, res) {
         startedAt: new Date(Date.now() - uptimeSec * 1000).toISOString(),
         recentlyRestarted: uptimeSec < 300,
       },
+      // Measured reaction budget (feed staleness + signal compute + order RTT).
+      latency:   (() => { try { return require('../utils/latencyMonitor').report(); } catch { return null; } })(),
       websocket: ws,
       restFeed:  rest,
       instruments,

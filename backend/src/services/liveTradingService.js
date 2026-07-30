@@ -247,7 +247,14 @@ async function placeOrder(userId, params) {
   let brokerResponse, brokerOrderId, status, errorMessage;
   try {
     logger.info(`[LiveTrading] Placing LIVE ${side} ${qty}×${sym} type=${ot} product=${product} sandbox=${sandbox} user=${userId}`);
-    brokerResponse  = await broker.placeOrder(userId, { symbol: sym, side, qty, orderType: ot, product, validity, price, triggerPrice, disclosedQty, isAmo });
+    // Timed: order placement is the third term of the reaction budget.
+    const _lat = (() => { try { return require('../utils/latencyMonitor'); } catch { return null; } })();
+    const _t0 = process.hrtime.bigint();
+    try {
+      brokerResponse = await broker.placeOrder(userId, { symbol: sym, side, qty, orderType: ot, product, validity, price, triggerPrice, disclosedQty, isAmo });
+    } finally {
+      _lat?.record('order_place', Number(process.hrtime.bigint() - _t0) / 1e6);
+    }
     brokerOrderId   = brokerResponse?.data?.order_id || brokerResponse?.order_id || null;
     status          = 'PLACED';
     logger.info(`[LiveTrading] ✅ Order placed broker_id=${brokerOrderId}`);

@@ -384,17 +384,30 @@ async function getBestPrice(symbol) {
 
 // ── getLivePrice (full chain with cache) ──────────────────────────────────────
 
+// How stale a quote already is when a caller reads it. This is the FIRST term of
+// the reaction budget and is usually the dominant one (the REST poller refreshes
+// every ~1500 ms), so it must be measured rather than assumed.
+function _recordFeedAge(timestamp) {
+  try {
+    if (!timestamp) return;
+    const age = Date.now() - new Date(timestamp).getTime();
+    if (Number.isFinite(age) && age >= 0 && age < 600000) {
+      require('../utils/latencyMonitor').record('feed_age', age);
+    }
+  } catch (_) {}
+}
+
 async function getLivePrice(symbol) {
   const base   = symbolMap.toBase(symbol);
   const cached = _cacheGet(base);
-  if (cached) return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp };
+  if (cached) { _recordFeedAge(cached.timestamp); return { symbol: base, price: cached.price, source: cached.source, timestamp: cached.timestamp }; }
 
   // 1. Upstox WebSocket cache (PRIMARY, when it works)
   try {
     const ws = _getUpstoxWS();
     if (ws) {
       const c = ws.getCachedPrice(base);
-      if (c) { _cacheSet(base, c.price, 'LIVE_UPSTOX'); return { symbol: base, price: c.price, source: 'LIVE_UPSTOX', timestamp: c.timestamp }; }
+      if (c) { _cacheSet(base, c.price, 'LIVE_UPSTOX'); _recordFeedAge(c.timestamp); return { symbol: base, price: c.price, source: 'LIVE_UPSTOX', timestamp: c.timestamp }; }
     }
   } catch (_) {}
 
@@ -403,7 +416,7 @@ async function getLivePrice(symbol) {
     const rf = _getRestFeed();
     if (rf) {
       const c = rf.getCachedPrice(base);
-      if (c) { _cacheSet(base, c.price, 'LIVE_UPSTOX'); return { symbol: base, price: c.price, source: 'LIVE_UPSTOX', timestamp: c.timestamp }; }
+      if (c) { _cacheSet(base, c.price, 'LIVE_UPSTOX'); _recordFeedAge(c.timestamp); return { symbol: base, price: c.price, source: 'LIVE_UPSTOX', timestamp: c.timestamp }; }
     }
   } catch (_) {}
 

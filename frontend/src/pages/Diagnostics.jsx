@@ -129,6 +129,45 @@ export default function Diagnostics() {
             <Metric label="Cached Prices" value={feed.cachedPrices ?? 0} />
           </div>
 
+          {/* Measured reaction budget — the honest answer to "how fast are we?" */}
+          {diag?.latency?.reaction && (
+            <div className="card" style={{ padding: 14, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Gauge size={13} style={{ color: 'var(--cyan)' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Reaction Latency</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                  median, {diag.latency.sampleWindow}-sample window
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+                {[
+                  ['Feed staleness', diag.latency.reaction.breakdown.feed_age],
+                  ['Signal compute', diag.latency.reaction.breakdown.signal_calc],
+                  ['Order round-trip', diag.latency.reaction.breakdown.order_place],
+                  ['TOTAL REACTION', diag.latency.reaction.totalMs],
+                ].map(([label, ms], i) => (
+                  <div key={label} style={{ flex: 1, minWidth: 130 }}>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: i === 3 ? 19 : 15, fontWeight: 700, fontFamily: 'var(--font-mono)',
+                      color: i === 3 ? 'var(--amber)' : 'var(--text-primary)' }}>
+                      {ms == null ? '—' : `${ms} ms`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: '9px 12px', borderRadius: 8, background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  {diag.latency.reaction.note}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 5, fontFamily: 'var(--font-mono)' }}>
+                  {diag.latency.reaction.classification} · HFT reference: {diag.latency.reaction.hftReferenceMicroseconds} µs
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Detail */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
             <div className="card" style={{ padding: 14 }}>
