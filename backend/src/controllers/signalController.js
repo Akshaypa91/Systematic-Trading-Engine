@@ -38,11 +38,10 @@ async function getSignal(req, res) {
 
     let bars = [];
     let dataSource = 'DB';
+    // dataStore now applies corporate-action adjustment itself, so bars arrive
+    // pre-adjusted. Do NOT adjust again here — a second pass would halve prices
+    // twice (₹2,606 → ₹1,303 → ₹651).
     try { bars = await dataStore.getRecentPrices(symbol.toUpperCase(), lookback); } catch (_) {}
-    // Back-adjust DB bars for splits/bonuses (Upstox-fallback bars come pre-adjusted).
-    if (bars && bars.length) {
-      try { bars = (await corpActions.adjustCandles(symbol.toUpperCase(), bars)).candles; } catch (_) {}
-    }
 
     // ── Upstox candle fallback: thin/empty DB → real daily candles (broker) ───
     if (!bars || bars.length < 60) {

@@ -6,6 +6,33 @@
 const db     = require('../config/database');
 const logger = require('../config/logger');
 
+// ── Corporate-action adjustment happens HERE, at the single source of price
+// history, not at each caller. There are 20+ consumers of these read APIs
+// (signals, screener, alerts, scheduler jobs, backtests, auto-paper); patching
+// them individually guarantees some get missed — which is exactly what happened:
+// getCandles was adjusted but stored DB bars were not, so RELIANCE's 20/50-day
+// windows straddled its 1:1 bonus and produced nonsense indicators
+// (price ₹1,292 with SMA50 ₹2,316 and Bollinger bands ₹395–₹3,063).
+// Adjusting once, at the bottom, fixes every consumer at the same time.
+let _corp = null;
+function _getCorp() {
+  if (_corp === null) { try { _corp = require('./corporateActions'); } catch { _corp = false; } }
+  return _corp || null;
+}
+
+async function _adjust(symbol, rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return rows;
+  const corp = _getCorp();
+  if (!corp) return rows;
+  try {
+    const r = await corp.adjustCandles(symbol, rows);
+    return r.candles;
+  } catch (e) {
+    logger.debug(`[DataStore] corp-adjust ${symbol}: ${e.message}`);
+    return rows;
+  }
+}
+
 // ─── Write ────────────────────────────────────────────────────────────────────
 
 /**
@@ -97,7 +124,7 @@ async function getDailyPrices(symbol, { limit = 0, startDate = null, endDate = n
   }
 
   const [rows] = await db.query(sql, params);
-  return rows.map(normaliseRow);
+  return _adjust(symbol, rows.map(normaliseRow));
 }
 
 /**
@@ -114,7 +141,12 @@ async function getClosePrices(symbol, limit = 0) {
   const params = [symbol];
   if (limit > 0) { sql += ' LIMIT ?'; params.push(limit); }
   const [rows] = await db.query(sql, params);
-  return rows.map(r => ({ date: r.date, close: parseFloat(r.close) }));
+  // Adjust on the shared shape, then project back to { date, close }.
+  const adj = await _adjust(symbol, rows.map(r => ({
+    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date),
+    close: parseFloat(r.close),
+  })));
+  return adj.map(r => ({ date: r.date, close: r.close }));
 }
 
 /**
@@ -133,7 +165,7 @@ async function getRecentPrices(symbol, n = 200) {
   `;
   const [rows] = await db.query(sql, [symbol, n]);
   // Return ascending so strategies can process chronologically
-  return rows.map(normaliseRow).reverse();
+  return _adjust(symbol, rows.map(normaliseRow).reverse());
 }
 
 /**
