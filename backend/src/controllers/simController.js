@@ -23,7 +23,10 @@ async function runAutoTrade(req, res) {
     const symbols = Array.isArray(req.body?.symbols) && req.body.symbols.length
       ? req.body.symbols
       : (C.NIFTY50_SYMBOLS || []).slice(0, 20);
-    const result = await autoPaper.runOnce(userId, symbols);
+    // ?force=1 lets you test outside market hours; it will still refuse to act
+    // on SIM prices, so after-hours runs mostly report skips.
+    const force = req.query?.force === '1' || req.body?.force === true;
+    const result = await autoPaper.runOnce(userId, symbols, { force });
     return res.json({ success: true, ...result, config: autoPaper.getConfig() });
   } catch (err) {
     logger.error(`[SimCtrl] runAutoTrade: ${err.message}`);

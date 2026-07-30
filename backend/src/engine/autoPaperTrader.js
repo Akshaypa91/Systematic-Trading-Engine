@@ -37,8 +37,13 @@ const ALLOC_PCT     = parseFloat(process.env.AUTO_PAPER_ALLOC_PCT || '0.10'); //
 
 // Remember the entry-time stop/target per user+symbol (positions table has no
 // SL/TP columns; keeping it here avoids a migration for a paper-only feature).
-const _brackets = new Map();     // `${userId}:${symbol}` → { stop, target }
+const _brackets = new Map();     // `${userId}:${symbol}` → { stop, target, openedAt }
 const bkey = (u, s) => `${u ?? 'anon'}:${s}`;
+
+// Minimum holding period. Without it a single bad tick round-trips a position in
+// seconds (observed: four trades opened and closed within 13–17s), which burns
+// costs and makes the trade log meaningless.
+const MIN_HOLD_MS = parseInt(process.env.AUTO_PAPER_MIN_HOLD_MS || '900000', 10);   // 15 min
 
 async function _closes(symbol, lookback = 260) {
   // Prefer stored history; fall back to (corp-action adjusted) broker candles.
@@ -52,20 +57,55 @@ async function _closes(symbol, lookback = 260) {
   } catch (_) { return []; }
 }
 
+// Only REAL prices may drive paper trades. Mixing a simulated entry price with a
+// real exit price produced instant phantom stop-outs: e.g. TCS entered at a
+// SIM ₹4,191 then "stopped out" at the real ₹2,431 seconds later (−41%), and
+// KOTAKBANK entered ₹1,948 → exited ₹389 (−80%). Positions held 13–17 seconds.
+// A trade log built from two different price universes is worthless, so refuse
+// to act unless the quote came from a live provider.
+const REAL_SOURCE = /^LIVE_|^UPSTOX/i;
+
 async function _price(symbol) {
   try {
-    const r = await marketData.getBestPrice?.(symbol) ?? await marketData.getLivePrice(symbol);
-    const p = Number(r?.price ?? r);
-    return Number.isFinite(p) && p > 0 ? p : null;
+    const r = await marketData.getLivePrice(symbol);
+    const p = Number(r?.price);
+    if (!(Number.isFinite(p) && p > 0)) return null;
+    const src = String(r?.source || '');
+    if (!REAL_SOURCE.test(src)) return null;      // SIM / UNAVAILABLE → don't trade
+    return p;
   } catch (_) { return null; }
+}
+
+// NSE cash hours (IST). The scheduler job is already gated, but the manual
+// /api/sim/auto-trade endpoint is not — and after hours the price chain is far
+// more likely to serve stale or simulated values.
+function _isMarketOpen(now = Date.now()) {
+  const ist  = new Date(now + 5.5 * 60 * 60 * 1000);
+  const day  = ist.getUTCDay();
+  const hhmm = ist.getUTCHours() * 100 + ist.getUTCMinutes();
+  return day >= 1 && day <= 5 && hhmm >= 915 && hhmm <= 1530;
+}
+
+// A quote that moved impossibly far from our entry is bad data, not a loss.
+// Never exit on it — flag and skip so a feed glitch can't wipe the book.
+const MAX_SANE_MOVE = parseFloat(process.env.AUTO_PAPER_MAX_MOVE || '0.35');   // 35%
+function _isSanePrice(price, entry) {
+  if (!(entry > 0) || !(price > 0)) return false;
+  return Math.abs(price - entry) / entry <= MAX_SANE_MOVE;
 }
 
 /**
  * One pass for one user's paper portfolio.
  * @returns {{entries, exits, skipped, errors}}
  */
-async function runOnce(userId, symbols) {
+async function runOnce(userId, symbols, opts = {}) {
   if (!ENABLED) return { enabled: false, entries: 0, exits: 0, skipped: 0, errors: 0 };
+  // Refuse to trade outside market hours unless explicitly forced. After 15:30
+  // the price chain can serve stale/simulated values, which is exactly how the
+  // 13-second phantom stop-outs happened.
+  if (!_isMarketOpen() && !opts.force) {
+    return { entries: 0, exits: 0, skipped: 0, errors: 0, reason: 'market-closed' };
+  }
   const watch = (symbols || []).map(s => String(s).toUpperCase());
   if (!watch.length) return { entries: 0, exits: 0, skipped: 0, errors: 0 };
 
@@ -84,7 +124,18 @@ async function runOnce(userId, symbols) {
     const br = _brackets.get(bkey(userId, symbol)) || {
       stop:   STOP_PCT   > 0 ? entry * (1 - STOP_PCT)   : 0,
       target: TARGET_PCT > 0 ? entry * (1 + TARGET_PCT) : 0,
+      openedAt: null,
     };
+    // Respect the minimum holding period (skips SL/TP thrash on one bad tick).
+    if (br.openedAt && (Date.now() - br.openedAt) < MIN_HOLD_MS) { skipped++; continue; }
+
+    // Bad-data guard: an impossible jump from entry is a feed problem, not a
+    // real loss. Skip instead of liquidating the position on garbage.
+    if (!_isSanePrice(price, entry)) {
+      skipped++;
+      logger.warn(`[AutoPaper] ${symbol}: price ₹${price} vs entry ₹${entry} exceeds ${(MAX_SANE_MOVE * 100).toFixed(0)}% — treating as bad data, no exit`);
+      continue;
+    }
 
     let reason = null;
     if (br.stop   > 0 && price <= br.stop)   reason = 'STOP_LOSS';
@@ -131,6 +182,7 @@ async function runOnce(userId, symbols) {
       _brackets.set(bkey(userId, symbol), {
         stop:   STOP_PCT   > 0 ? price * (1 - STOP_PCT)   : 0,
         target: TARGET_PCT > 0 ? price * (1 + TARGET_PCT) : 0,
+        openedAt: Date.now(),
       });
       capital -= qty * price;
       openCount++; entries++;
@@ -142,6 +194,9 @@ async function runOnce(userId, symbols) {
 }
 
 function getBracket(userId, symbol) { return _brackets.get(bkey(userId, symbol)) || null; }
-function getConfig() { return { ENABLED, STRATEGY, MIN_CONF, STOP_PCT, TARGET_PCT, MAX_POSITIONS, ALLOC_PCT }; }
+function getConfig() {
+  return { ENABLED, STRATEGY, MIN_CONF, STOP_PCT, TARGET_PCT, MAX_POSITIONS, ALLOC_PCT,
+    MIN_HOLD_MS, MAX_SANE_MOVE, marketOpen: _isMarketOpen(), realPricesOnly: true };
+}
 
 module.exports = { runOnce, getBracket, getConfig, ENABLED };
