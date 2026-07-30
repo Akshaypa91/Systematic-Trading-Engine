@@ -216,6 +216,35 @@ async function getNifty50(req, res) {
 }
 
 /**
+ * GET /api/data/spread?symbols=RELIANCE,TCS&qty=100
+ * NSE vs BSE price difference for the same security, with the round-trip cost
+ * required to capture it. Read-only measurement — places no orders.
+ */
+async function getSpreads(req, res) {
+  try {
+    const spread = require('../services/crossExchangeSpread');
+    const C = require('../config/constants');
+    const list = String(req.query.symbols || '').split(',').map(s => s.trim()).filter(Boolean);
+    const syms = list.length ? list.slice(0, 25) : (C.NIFTY50_SYMBOLS || []).slice(0, 10);
+    const qty  = Math.max(1, parseInt(req.query.qty || '100', 10));
+    const out  = await spread.fetchSpreads(syms, qty);
+    const capturable = out.results.filter(r => r.capturable).length;
+    return res.json({
+      success: true, ...out,
+      summary: {
+        pairs: out.results.length,
+        capturableAfterCosts: capturable,
+        note: capturable === 0
+          ? 'No spread exceeds transaction costs — the standard retail outcome.'
+          : 'Some spreads exceed costs on paper, but a ~1–2s retail round trip will usually miss them.',
+      },
+    });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ success: false, error: err.message });
+  }
+}
+
+/**
  * GET /api/data/market-status
  * Returns synthetic market status based on IST time. No scraping needed.
  */
@@ -408,5 +437,5 @@ function searchStocks(req, res) {
 }
 
 module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
-  searchStocks, getCandles
+  searchStocks, getCandles, getSpreads
 };
