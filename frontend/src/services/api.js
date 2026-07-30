@@ -118,6 +118,7 @@ export const marketAPI = {
   getHealth: ()       => api.get('/data/health'),
   getMarketStatus: () => api.get('/data/market-status'),
   getIndices: ()      => api.get('/data/indices'),
+  getLastCloses: (symbols) => api.get('/data/last-closes', { params: { symbols: symbols.join(',') } }),
   spreads:   (params) => api.get('/data/spread', { params }),
 };
 

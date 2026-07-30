@@ -284,7 +284,7 @@ export default function Dashboard() {
             <Card className="fade-up stagger-2">
               <CardHeader
                 title="Market Watch"
-                sub="Live NSE quotes"
+                sub="Live when connected · last close otherwise"
                 action={<span className="ui-hstack" style={{ gap: 6 }}><span className="live-dot" /><Radio size={13} style={{ color: 'var(--text-muted)' }} /></span>}
               />
               <MarketWatch symbols={WATCHLIST} />

@@ -276,6 +276,58 @@ async function getIndices(req, res) {
 }
 
 /**
+ * GET /api/data/last-closes?symbols=RELIANCE,TCS
+ * Watchlist quotes from STORED history: last close, day change vs the previous
+ * close, and a short close series for sparklines. This is what lets the
+ * dashboard watchlist look like a broker app after hours or without a broker
+ * session — real delayed data, clearly dated, instead of '···' placeholders.
+ * Corp-action adjustment is already applied inside dataStore.
+ */
+const _lcCache = new Map();   // symbolsKey → { at, data }
+const LC_TTL_MS = 60000;
+
+async function getLastCloses(req, res) {
+  try {
+    const symbols = String(req.query.symbols || '')
+      .split(',').map(s => s.trim().toUpperCase()).filter(Boolean).slice(0, 20);
+    if (!symbols.length) return res.status(400).json({ success: false, error: 'symbols required' });
+
+    const key = symbols.join(',');
+    const hit = _lcCache.get(key);
+    if (hit && Date.now() - hit.at < LC_TTL_MS) {
+      return res.json({ success: true, cached: true, data: hit.data });
+    }
+
+    const data = [];
+    for (const sym of symbols) {
+      try {
+        const bars = await dataStore.getRecentPrices(sym, 20);
+        if (!bars || bars.length < 2) continue;   // no real history → omit, don't invent
+        const last = bars[bars.length - 1];
+        const prev = bars[bars.length - 2];
+        const close = Number(last.close), prevClose = Number(prev.close);
+        if (!isFinite(close) || !isFinite(prevClose) || prevClose <= 0) continue;
+        data.push({
+          symbol:    sym,
+          close:     +close.toFixed(2),
+          prevClose: +prevClose.toFixed(2),
+          change:    +(close - prevClose).toFixed(2),
+          changePct: +(((close - prevClose) / prevClose) * 100).toFixed(2),
+          asOf:      String(last.date).slice(0, 10),
+          spark:     bars.map(b => Number(b.close)).filter(Number.isFinite),
+        });
+      } catch (_) { /* symbol without history is simply absent from the response */ }
+    }
+
+    _lcCache.set(key, { at: Date.now(), data });
+    res.json({ success: true, data });
+  } catch (err) {
+    logger.error(`[DataCtrl] getLastCloses: ${err.message}`);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
  * GET /api/data/spread?symbols=RELIANCE,TCS&qty=100
  * NSE vs BSE price difference for the same security, with the round-trip cost
  * required to capture it. Read-only measurement — places no orders.
@@ -497,5 +549,5 @@ function searchStocks(req, res) {
 }
 
 module.exports = { getQuote, getStock, getHistorical, fetchAndStore, getPrices, getNifty50, getMarketStatus, getDataHealth,
-  searchStocks, getCandles, getSpreads, getIndices
+  searchStocks, getCandles, getSpreads, getIndices, getLastCloses
 };

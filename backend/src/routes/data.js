@@ -18,6 +18,7 @@ router.get('/historical/:symbol',       ctrl.getHistorical);
 router.get('/prices/:symbol',           ctrl.getPrices);
 router.get('/nifty50',                  ctrl.getNifty50);
 router.get('/indices',                  ctrl.getIndices);     // NIFTY/SENSEX/BANKNIFTY strip
+router.get('/last-closes',              ctrl.getLastCloses);  // watchlist from stored closes
 router.get('/market-status',            ctrl.getMarketStatus);
 
 // FIX Bug 16: fetch-and-store is a write operation (hits NSE + writes to DB)
