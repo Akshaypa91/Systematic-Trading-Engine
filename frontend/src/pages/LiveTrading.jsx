@@ -343,9 +343,13 @@ export default function LiveTrading() {
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between ui-wrap" style={{ marginBottom: 24, gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Live Trading</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+              Paper Trading Engine
+            </h1>
             <div className="flex items-center gap-3">
-              <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>Simulation mode · paper trading</span>
+              <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Simulated portfolio · <b style={{ color: 'var(--text-secondary)' }}>no real money</b>
+              </span>
               <SourceBadge source={dataSource} />
               {lastTick && (
                 <span className="flex items-center gap-1 font-mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
@@ -361,7 +365,9 @@ export default function LiveTrading() {
               border: `1px solid ${running ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--red) 25%, transparent)'}` }}>
               <span className={`live-dot ${running ? '' : 'stopped'}`} style={{ width: 6, height: 6 }} />
               <span className="font-mono" style={{ fontSize: 11, fontWeight: 600, color: running ? 'var(--green)' : 'var(--red)' }}>
-                {running ? 'LIVE' : 'STOPPED'}
+                {/* "RUNNING", not "LIVE" — this says the simulation loop is
+                    ticking, and must not be mistaken for real-money LIVE mode. */}
+                {running ? 'RUNNING' : 'STOPPED'}
               </span>
             </div>
 

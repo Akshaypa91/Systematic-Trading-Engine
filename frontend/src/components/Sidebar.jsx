@@ -14,7 +14,9 @@ const GROUPS = [
     items: [
       { to: '/',       icon: LayoutDashboard, label: 'Dashboard',    kbd: 'G D', end: true },
       { to: '/trade',  icon: ArrowLeftRight,  label: 'Trade',        kbd: 'G T' },
-      { to: '/live',   icon: Zap,             label: 'Live Trading', kbd: 'G L' },
+      // NOT real money — this is the simulated auto-trading engine. Calling it
+      // "Live Trading" next to a real-money LIVE mode was genuinely dangerous.
+      { to: '/live',   icon: Zap,             label: 'Paper Engine', kbd: 'G L' },
       { to: '/orders', icon: ScrollText,      label: 'Live Orders',  kbd: 'G O' },
       { to: '/positions', icon: Wallet,       label: 'Portfolio',    kbd: 'G P' },
       { to: '/signals', icon: Radio,          label: 'Signals',      kbd: 'G S' },

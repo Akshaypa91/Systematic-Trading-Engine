@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
 export const SHORTCUT_ROUTES = [
   { keys: 'g d', path: '/',            label: 'Dashboard' },
   { keys: 'g t', path: '/trade',       label: 'Trade' },
-  { keys: 'g l', path: '/live',        label: 'Live Trading' },
+  { keys: 'g l', path: '/live',        label: 'Paper Engine' },
   { keys: 'g o', path: '/orders',      label: 'Live Orders' },
   { keys: 'g p', path: '/positions',   label: 'Portfolio' },
   { keys: 'g s', path: '/signals',     label: 'Signals' },
