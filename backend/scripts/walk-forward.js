@@ -52,6 +52,18 @@ function splitSeries(series, ratio) {
 
 function runAll(series) {
   const out = {};
+  // Cross-sectional momentum is portfolio-level (ranks symbols against each
+  // other), so it has its own engine rather than a per-symbol signal.
+  try {
+    const { runCrossSectional } = require('../src/engine/crossSectionalMomentum');
+    const { summary } = runCrossSectional({
+      series,
+      config: { initialCapital: 1_000_000, lookback: 120, topN: 5, rebalanceDays: 21,
+        warmup: 210, slippagePct: 0.0005, regimeFilter: true },
+    });
+    out.XS_MOMENTUM = summary;
+  } catch (e) { out.XS_MOMENTUM = { error: e.message }; }
+
   for (const strategy of STRATEGIES) {
     try {
       const { summary } = runPortfolioBacktest({
@@ -137,7 +149,7 @@ function makeSeries(n, seed) {
     console.log(`   ${folds} folds · each: train on everything before the window, test on the next ≈${testLen} bars\n`);
 
     const tally = {};   // strategy → { wins, oosSum, picked }
-    for (const s of STRATEGIES) tally[s] = { oosSum: 0, wins: 0, picked: 0, pickedOosSum: 0 };
+    for (const s of [...STRATEGIES, 'XS_MOMENTUM']) tally[s] = { oosSum: 0, wins: 0, picked: 0, pickedOosSum: 0 };
 
     for (let f = 0; f < folds; f++) {
       const trainEnd = Math.floor(len * ratio) + f * testLen;
