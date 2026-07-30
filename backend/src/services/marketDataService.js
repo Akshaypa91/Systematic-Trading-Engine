@@ -187,13 +187,22 @@ function _cacheSet(base, price, source) {
 }
 
 // ── Simulation ────────────────────────────────────────────────────────────────
+//
+// OFF BY DEFAULT. This used to be the last link in the price chain, so any
+// symbol the real providers could not serve came back as a plausible-looking
+// number derived from a 2024 seed and a random walk. On screen it was
+// indistinguishable from a quote: RELIANCE showed ₹2,845 while the stock traded
+// near ₹1,293.
+//
+// A trading system must be able to say "I don't know". Set ALLOW_SIM_PRICES=true
+// only for offline UI work; in every other environment an unavailable price is
+// reported as UNAVAILABLE and the UI renders an empty state.
+const ALLOW_SIM = String(process.env.ALLOW_SIM_PRICES || 'false').toLowerCase() === 'true';
 
 function _simPrice(base) {
   const seed = SEED_PRICES[base] || 1000;
   if (!_simState.has(base)) _simState.set(base, seed);
   const prev   = _simState.get(base);
-  // ±0.8% random step per tick (was ±0.3%) so movement is clearly visible.
-  // Mean-revert gently toward the seed so prices don't drift away over time.
   const revert = (seed - prev) * 0.02;
   const delta  = prev * (0.008 * (Math.random() * 2 - 1) + 0.00005) + revert;
   const next   = parseFloat((prev + delta).toFixed(2));
@@ -371,15 +380,20 @@ async function getBestPrice(symbol) {
     logger.debug(`[MarketData] NSE skip ${base}: ${e.message}`);
   }
 
-  // 4. SIM — only when no broker session (never fabricate over live data)
-  if (_brokerLive()) {
-    const stale = _cache.get(base);
-    if (stale) return { price: stale.price, source: stale.source, stale: true };
-    return { price: null, source: 'UNAVAILABLE' };
+  // 4. Last known real price, however stale — a real price with a stale flag is
+  // always more useful than an invented one, whether or not a broker is live.
+  const stale = _cache.get(base);
+  if (stale) return { price: stale.price, source: stale.source, stale: true };
+
+  if (ALLOW_SIM) {
+    const price = _simPrice(base);
+    logger.debug(`[MarketData] SIM ${base} = ₹${price}`);
+    return { price, source: 'SIM' };
   }
-  const price = _simPrice(base);
-  logger.debug(`[MarketData] SIM ${base} = ₹${price}`);
-  return { price, source: 'SIM' };
+
+  // 5. Nothing real to report. Say so.
+  logger.debug(`[MarketData] UNAVAILABLE ${base} — no provider returned a price`);
+  return { price: null, source: 'UNAVAILABLE' };
 }
 
 // ── getLivePrice (full chain with cache) ──────────────────────────────────────
@@ -454,17 +468,19 @@ async function getLivePrice(symbol) {
     _providerLog(`[MarketData] Finnhub ${base}: ${e.message}`);
   }
 
-  // 5. Stale cache — if a broker session is live, prefer a last-known real price
-  // over a fabricated one. Never surface SIM while Upstox is authenticated.
+  // 5. Stale cache — a last-known real price beats a fabricated one.
   const stale = _cache.get(base);
   if (stale) return { symbol: base, price: stale.price, source: stale.source, timestamp: stale.timestamp, stale: true };
-  if (_brokerLive()) {
-    return { symbol: base, price: null, source: 'UNAVAILABLE', timestamp: new Date().toISOString() };
+
+  if (ALLOW_SIM) {
+    const p = _simPrice(base);
+    return { symbol: base, price: p, source: 'SIM', timestamp: new Date().toISOString() };
   }
 
-  // 6. SIM — only when NO broker session exists (paper / logged-out demo mode).
-  const p = _simPrice(base);
-  return { symbol: base, price: p, source: 'SIM', timestamp: new Date().toISOString() };
+  // 6. No real price exists. Report the absence rather than filling the gap —
+  // callers (signals, portfolio marking, the scalper) all handle a null price,
+  // and every one of them would have been silently poisoned by a fake one.
+  return { symbol: base, price: null, source: 'UNAVAILABLE', timestamp: new Date().toISOString() };
 }
 
 // ── Batch ─────────────────────────────────────────────────────────────────────

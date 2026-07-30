@@ -5,15 +5,21 @@ const dataStore  = require('../data/dataStore');
 const strategyCore = require('../engine/strategyCore');
 const { detectRegimeWithRouting, resetSmoothing } = require('../engine/regimeDetector');
 const signalEngine = require('../engine/signalEngine');
-const simEngine    = require('../engine/simulationEngine');
 const marketData   = require('../services/marketDataService');
 const corpActions  = require('../data/corporateActions');
 const db         = require('../config/database');
 const logger     = require('../config/logger');
 
+// Fewest bars we will compute a signal over. The slowest indicator here is the
+// 50-period SMA, and a 50-SMA with 51 bars carries no information — 60 gives the
+// regime filter and Bollinger bands something to work with too. Below this the
+// endpoint returns 503 rather than a number.
+const MIN_BARS_FOR_SIGNAL = 60;
+
 // Real-market fallback: when the local DB has too few bars, pull daily candles
 // straight from Upstox (only works when a broker session is live) so signals
-// are computed on real prices instead of falling through to the sim engine.
+// are computed on real prices. There is no fallback beyond this one — if Upstox
+// has nothing either, the request fails.
 // Returns bar objects shaped like dataStore.getRecentPrices ({ close, ... }).
 async function _upstoxBars(symbol, minBars) {
   try {
@@ -53,40 +59,24 @@ async function getSignal(req, res) {
       }
     }
 
-    // ── Sim fallback: DB empty and no broker candles → simulation engine ──────
-    if (!bars || bars.length < 20) {
-      logger.info(`[SignalCtrl] No real data for ${symbol} (${bars?.length ?? 0} bars) — falling back to sim engine`);
-
-      // Ensure sim engine has generated history for this symbol
-      simEngine.addSymbol(symbol.toUpperCase());
-      const simPrices = simEngine.getPriceHistory(symbol.toUpperCase());
-
-      if (!simPrices || simPrices.length < 51) {
-        return res.status(422).json({
-          success: false,
-          error:   `Insufficient data for ${symbol}: ${bars?.length ?? 0} bars in DB, sim engine not ready yet — retry in a few seconds`,
-        });
-      }
-
-      // Use signalEngine directly on simulated prices
-      const sig = signalEngine.computeSignal(symbol.toUpperCase(), simPrices);
-      return res.json({
-        success:      true,
-        symbol:       symbol.toUpperCase(),
-        strategy:     'SIM_FALLBACK',
-        signal:       sig.signal,
-        confidence:   sig.confidence,
-        currentPrice: sig.currentPrice,
-        rsiValue:     sig.rsi,
-        maFast:       sig.sma20,
-        maSlow:       sig.sma50,
-        bbUpper:      sig.bbUpper,
-        bbLower:      sig.bbLower,
-        zScore:       null,
-        components:   sig.components,
-        score:        sig.score,
-        simMode:      true,
-        timestamp:    sig.timestamp,
+    // ── No real data → say so ─────────────────────────────────────────────────
+    // This branch used to fall back to the simulation engine and return a full
+    // signal — RSI, SMAs, Bollinger bands, a confidence score — computed over a
+    // random walk, flagged only by a small `simMode: true` field the UI barely
+    // surfaced. An interviewer opening the dashboard saw RELIANCE at ₹2,845 with
+    // bands of ₹516–₹2,379 and no reason to doubt any of it.
+    //
+    // A signal endpoint with no data must return an error, not a number.
+    if (!bars || bars.length < MIN_BARS_FOR_SIGNAL) {
+      logger.warn(`[SignalCtrl] ${symbol}: only ${bars?.length ?? 0} real bars — refusing to compute a signal`);
+      return res.status(503).json({
+        success:  false,
+        error:    'NO_MARKET_DATA',
+        symbol:   symbol.toUpperCase(),
+        bars:     bars?.length ?? 0,
+        required: MIN_BARS_FOR_SIGNAL,
+        message:  `No usable price history for ${symbol.toUpperCase()} (${bars?.length ?? 0} of ${MIN_BARS_FOR_SIGNAL} bars). `
+                + 'Connect Upstox or run the daily data sync — this engine does not generate placeholder prices.',
       });
     }
 

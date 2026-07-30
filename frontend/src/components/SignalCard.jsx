@@ -44,7 +44,20 @@ export default function SignalCard({ signal: s, flash = false, onTrade }) {
   if (!s) return null;
 
   const sig = s.signal || 'HOLD';
-  const live = (s.source || 'SIM') === 'LIVE';
+
+  // How fresh is the price this card is built on? The old code had two states,
+  // LIVE and SIM, and SIM meant "invented". There is no invented state any more;
+  // the question now is only how delayed the real price is, which the trader
+  // needs to see because it changes what the signal is worth.
+  const SOURCE_BADGE = {
+    LIVE:       { text: 'LIVE',       color: 'var(--green)', title: 'Real-time broker quote' },
+    STALE:      { text: 'STALE',      color: 'var(--amber)', title: 'Last real quote — the feed has not updated recently' },
+    LAST_CLOSE: { text: 'LAST CLOSE', color: 'var(--amber)', title: 'Previous session close — no live feed connected' },
+  };
+  const badge = SOURCE_BADGE[String(s.source || '').toUpperCase()]
+    || { text: 'NO DATA', color: 'var(--text-muted)', title: 'No usable price for this symbol' };
+  const live = badge.text === 'LIVE';
+
   const rsi = s.rsi != null ? Number(s.rsi) : null;
   const sma20 = s.sma20 != null ? Number(s.sma20) : null;
   const sma50 = s.sma50 != null ? Number(s.sma50) : null;
@@ -98,14 +111,15 @@ export default function SignalCard({ signal: s, flash = false, onTrade }) {
               <span className="sym" style={{ fontSize: 14.5 }}>{s.symbol}</span>
               <span
                 className="ws-pill"
+                title={badge.title}
                 style={{
-                  fontSize: 8.5, padding: '2px 7px',
-                  background: `color-mix(in srgb, ${live ? 'var(--green)' : 'var(--amber)'} 10%, transparent)`,
-                  borderColor: `color-mix(in srgb, ${live ? 'var(--green)' : 'var(--amber)'} 30%, transparent)`,
-                  color: live ? 'var(--green)' : 'var(--amber)',
+                  fontSize: 8.5, padding: '2px 7px', whiteSpace: 'nowrap',
+                  background: `color-mix(in srgb, ${badge.color} 10%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${badge.color} 30%, transparent)`,
+                  color: badge.color,
                 }}
               >
-                {live ? 'LIVE' : 'SIM'}
+                {badge.text}
               </span>
             </div>
             <div className="mono" style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
@@ -176,7 +190,10 @@ export default function SignalCard({ signal: s, flash = false, onTrade }) {
                 data-side={side}
                 data-hot={sig === side}
                 onClick={() => handleTrade(side)}
-                disabled={!!trading}
+                // No price, no order. Placing a trade against a missing quote
+                // used to be possible because a fabricated one was always there.
+                disabled={!!trading || s.currentPrice == null}
+                title={s.currentPrice == null ? 'No price available for this symbol' : undefined}
                 aria-label={`${side} 10 shares of ${s.symbol}`}
               >
                 {trading === side ? <Activity size={11} className="animate-spin" /> : <SideIcon size={11} />}

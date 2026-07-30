@@ -448,20 +448,30 @@ async function generateLiveSignal(symbol, priceHistory, maxLen = 500) {
   const svc = _getMarketSvc();
 
   let livePrice = null;
-  let source    = 'SIM';
+  // Default is LAST_CLOSE, not SIM: priceHistory now holds real stored closes,
+  // so with no live tick the newest value is a genuine (if delayed) close. The
+  // label has to say which of the two it is, because "delayed by a day" and
+  // "delayed by a second" lead to very different decisions.
+  let source    = 'LAST_CLOSE';
 
   if (svc) {
     try {
       const result = await svc.getLivePrice(symbol);
-      livePrice = result.price;
-      // Only label LIVE when we actually received a real, usable price this tick.
-      // A null/UNAVAILABLE result (broker token dead, feed down) must NOT show as
-      // LIVE — otherwise the card claims "LIVE" over a frozen synthetic value.
-      const gotLive = livePrice != null && isFinite(livePrice) && livePrice > 0
-        && result.source && result.source !== 'SIM' && result.source !== 'UNAVAILABLE';
-      source = gotLive ? 'LIVE' : 'SIM';
+      const src    = result.source || '';
+      const usable = result.price != null && isFinite(result.price) && result.price > 0;
+      // Only label LIVE for a real, fresh, non-simulated quote. A stale cache
+      // hit or an UNAVAILABLE result must not claim LIVE.
+      if (usable && src !== 'SIM' && src !== 'UNAVAILABLE' && !result.stale) {
+        livePrice = result.price;
+        source    = 'LIVE';
+      } else if (usable && src !== 'SIM' && result.stale) {
+        livePrice = result.price;
+        source    = 'STALE';
+      }
+      // SIM / UNAVAILABLE → livePrice stays null; we fall back to the real
+      // close series already in priceHistory.
     } catch (_) {
-      // Fallback: use last known price from history
+      // Fallback: use last known real close from history
     }
   }
 
@@ -469,6 +479,12 @@ async function generateLiveSignal(symbol, priceHistory, maxLen = 500) {
   if (livePrice !== null && isFinite(livePrice) && livePrice > 0) {
     priceHistory.push(livePrice);
     if (priceHistory.length > maxLen) priceHistory.shift();
+  }
+
+  // No real series and no live price → nothing honest to compute.
+  if (!Array.isArray(priceHistory) || priceHistory.length === 0) {
+    return { symbol: symbol.toUpperCase(), signal: null, confidence: null,
+             currentPrice: null, source: 'UNAVAILABLE' };
   }
 
   // Check signal cache — skip recompute if price unchanged

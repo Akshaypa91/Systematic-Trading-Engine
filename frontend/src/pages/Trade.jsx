@@ -148,7 +148,19 @@ export default function Trade() {
         fetchedAt: live.ts ?? data.fetchedAt,
       }
     : data;
-  const isSimSource = displayData?.source === 'SIMULATION' || displayData?.source === 'SIM';
+  // Anything that is not a real-time quote gets a banner. The old check only
+  // caught SIM, so a delayed or missing price looked exactly like a live one.
+  const priceSrc = String(displayData?.source ?? '').toUpperCase();
+  const priceNotice =
+    ['SIM', 'SIMULATION'].includes(priceSrc)
+      ? 'This is a SIMULATED price, not a market quote. Do not trade on it.'
+    : priceSrc === 'UNAVAILABLE' || displayData?.price == null
+      ? 'No price available for this symbol — connect Upstox or wait for the data sync.'
+    : priceSrc === 'LAST_CLOSE'
+      ? 'Showing the last stored closing price, not a live quote.'
+    : priceSrc === 'STALE'
+      ? 'This quote is stale — the feed has not updated recently.'
+    : null;
 
   const ToastEl = toast && (
     <div style={{ position: 'fixed', bottom: 24, right: 16, zIndex: 9999, maxWidth: 'calc(100vw - 32px)' }}>
@@ -240,11 +252,11 @@ export default function Trade() {
 
               {data?.symbol && <PriceChart symbol={data.symbol} />}
 
-              {isSimSource && (
+              {priceNotice && (
                 <div style={{ padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10, background: 'color-mix(in srgb, var(--amber) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 20%, transparent)' }}>
                   <Info size={13} style={{ color: 'var(--amber)', flexShrink: 0, marginTop: 1 }} />
                   <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                    Showing simulated price — market may be closed or API rate limit reached.
+                    {priceNotice}
                   </p>
                 </div>
               )}

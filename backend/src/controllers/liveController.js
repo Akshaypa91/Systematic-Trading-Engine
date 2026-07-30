@@ -201,8 +201,10 @@ async function getDiagnostics(req, res) {
     try { rest = require('../data/upstoxRestFeed').getStatus(); } catch (_) {}
     let instruments = {};
     try { instruments = require('../data/instrumentMaster').getStats(); } catch (_) {}
-    // Active provider: WS ticks > REST poller ticks > SIM.
-    let provider = 'SIM';
+    // Active provider: WS ticks > REST poller ticks > nothing. There is no SIM
+    // provider any more — with no broker session the honest answer is NONE, and
+    // the UI renders delayed-close or empty states accordingly.
+    let provider = 'NONE';
     if (ws.connected && ws.tickRate > 0)       provider = 'UPSTOX_WS';
     else if (rest.running && rest.tickRate > 0) provider = 'UPSTOX_REST';
     else if (upstoxAuth.isAuthenticated())      provider = 'UPSTOX/FALLBACK';
@@ -226,6 +228,9 @@ async function getDiagnostics(req, res) {
       instruments,
       feed:      liveFeed.getStats?.() || {},
       cache:     marketData.getCacheStats?.() || {},
+      // Watchlist symbols with no usable stored history, and why. Previously
+      // these were invisible because the engine invented a series for them.
+      dataGaps:  (() => { try { return require('../engine/simulationEngine').getUnavailable(); } catch { return []; } })(),
       ts:        new Date().toISOString(),
     });
   } catch (err) {

@@ -6,19 +6,19 @@
 const EventEmitter = require('events');
 const signalEngine = require('./signalEngine');
 
-// ── Seed prices ───────────────────────────────────────────────────────────────
-const SEED_PRICES = {
-  RELIANCE:2850, INFY:1620, TCS:4200, HDFCBANK:1720, ICICIBANK:1180,
-  WIPRO:560, SBIN:810, AXISBANK:1190, BAJFINANCE:6800, MARUTI:12500,
-  TATAMOTORS:960, SUNPHARMA:1650, TECHM:1740, TITAN:3450, ULTRACEMCO:10200,
-  LT:3700, HINDUNILVR:2480, KOTAKBANK:1940, ASIANPAINT:2850, ONGC:290,
-};
-
-const DEFAULT_SYMBOLS  = Object.keys(SEED_PRICES).slice(0, 10);
+// ── Watchlist ─────────────────────────────────────────────────────────────────
+// There are deliberately no seed prices here any more. This engine used to boot
+// each symbol with a hardcoded 2024 price and walk it randomly, which is how the
+// dashboard came to show RELIANCE at ₹2,845 with a Bollinger band of
+// ₹516–₹2,379 while the real stock traded near ₹1,293. Those numbers looked like
+// market data and were not. Price history is now loaded from real stored closes;
+// a symbol with no real history is reported as unavailable, never invented.
+const DEFAULT_SYMBOLS = [
+  'RELIANCE', 'INFY', 'TCS', 'HDFCBANK', 'ICICIBANK',
+  'WIPRO', 'SBIN', 'AXISBANK', 'BAJFINANCE', 'KOTAKBANK',
+];
 const DEFAULT_INTERVAL = parseInt(process.env.SIM_INTERVAL_MS || '3000', 10);
 const DEFAULT_CAPITAL  = parseFloat(process.env.DEFAULT_CAPITAL || '1000000');
-const VOLATILITY       = 0.012;
-const DRIFT            = 0.0003;
 const COMMISSION_RATE  = 0.0005;
 const STOP_LOSS_PCT    = 0.025;
 const TAKE_PROFIT_PCT  = 0.05;
@@ -56,37 +56,58 @@ function _getPort(userId) {
   return _portfolios.get(key);
 }
 
-// ── PRNG helpers ──────────────────────────────────────────────────────────────
-function mulberry32(seed) {
-  return function() {
-    let t = seed += 0x6D2B79F5;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-function symbolSeed(symbol) {
-  return symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) * 1337;
-}
+// ── Real price history ────────────────────────────────────────────────────────
+// Indicators are only meaningful over a real series. MIN_BARS is 60 because the
+// slowest indicator in play is the 50-period SMA — fewer bars and SMA50 is
+// either null or computed over a window that does not exist.
+const MIN_BARS      = 60;
+const HISTORY_BARS  = 250;
+const RELOAD_TICKS  = 20;          // retry an unavailable symbol every ~60s
 
-// ── Price simulation ──────────────────────────────────────────────────────────
-function _generateHistory(symbol) {
-  const rng = mulberry32(symbolSeed(symbol));
-  const start = SEED_PRICES[symbol] || 1000;
-  const prices = [start];
-  for (let i = 1; i < 250; i++) {
-    const u1 = rng(), u2 = rng();
-    const z  = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    prices.push(Math.max(prices[i-1] * (1 + DRIFT + VOLATILITY * z), 1));
+const _unavailable  = new Map();   // symbol → { reason, bars, since }
+const _loading      = new Set();
+
+/**
+ * Load a symbol's real daily closes from storage.
+ *
+ * Returns the close array, or null when there genuinely is not enough real
+ * data. Returning null is the point: the caller must then report the symbol as
+ * unavailable rather than substituting numbers of its own.
+ */
+async function _loadHistory(symbol) {
+  const sym = symbol.toUpperCase();
+  if (_loading.has(sym)) return null;
+  _loading.add(sym);
+  try {
+    // dataStore applies corporate-action adjustment, so these closes are already
+    // back-adjusted and directly comparable with today's live price.
+    const dataStore = require('../data/dataStore');
+    const bars = await dataStore.getRecentPrices(sym, HISTORY_BARS);
+    const closes = (bars || [])
+      .map(b => Number(b.close))
+      .filter(c => Number.isFinite(c) && c > 0);
+
+    if (closes.length < MIN_BARS) {
+      _unavailable.set(sym, {
+        reason: 'INSUFFICIENT_HISTORY',
+        bars:   closes.length,
+        since:  Date.now(),
+      });
+      return null;
+    }
+    _unavailable.delete(sym);
+    return closes;
+  } catch (e) {
+    _unavailable.set(sym, { reason: 'HISTORY_LOAD_FAILED', detail: e.message, since: Date.now() });
+    return null;
+  } finally {
+    _loading.delete(sym);
   }
-  return prices;
 }
 
-function _nextPrice(prev, regime) {
-  const vol = regime === 'TRENDING' ? VOLATILITY*1.4 : regime === 'VOLATILE' ? VOLATILITY*2 : VOLATILITY;
-  const u1 = Math.random(), u2 = Math.random();
-  const z  = Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
-  return Math.max(prev * (1 + DRIFT + vol * z), 1);
+/** Symbols currently excluded from ticks, with the reason why. */
+function getUnavailable() {
+  return Array.from(_unavailable.entries()).map(([symbol, v]) => ({ symbol, ...v }));
 }
 
 function _generateSignal(symbol, prices) {
@@ -203,8 +224,21 @@ async function _tick() {
   const signals = [];
 
   for (const symbol of _watchlist) {
-    if (!_priceHistory.has(symbol)) _priceHistory.set(symbol, _generateHistory(symbol));
+    // Load real history on first use, and retry periodically for symbols that
+    // were unavailable (the daily sync may have filled them in since).
+    if (!_priceHistory.has(symbol)) {
+      const u = _unavailable.get(symbol);
+      const shouldRetry = !u || _tickCount % RELOAD_TICKS === 0;
+      if (shouldRetry) {
+        const closes = await _loadHistory(symbol);
+        if (closes) _priceHistory.set(symbol, closes);
+      }
+    }
+
     const history = _priceHistory.get(symbol);
+    // No real series → emit nothing for this symbol. A missing card is honest;
+    // a card full of invented indicators is not.
+    if (!history) continue;
 
     try {
       const sig = await signalEngine.generateLiveSignal(symbol, history);
@@ -229,14 +263,10 @@ async function _tick() {
         }
       }
     } catch (err) {
+      // Previously this invented the next price and pushed a signal labelled
+      // SIM. A failed tick is not a market event — drop it and keep the last
+      // good signal in the cache rather than manufacturing a new one.
       console.error(`[SimEngine] tick error ${symbol}: ${err.message}`);
-      const last = history[history.length - 1];
-      history.push(_nextPrice(last, 'UNKNOWN'));
-      if (history.length > 500) history.shift();
-      const sig = _generateSignal(symbol, history);
-      sig.source = 'SIM';
-      _signalCache.set(symbol, sig);
-      signals.push(sig);
     }
   }
 
@@ -266,9 +296,9 @@ function start(opts = {}) {
   const interval = opts.intervalMs || DEFAULT_INTERVAL;
   _running = true;
 
-  for (const sym of _watchlist) {
-    if (!_priceHistory.has(sym)) _priceHistory.set(sym, _generateHistory(sym));
-  }
+  // History is loaded lazily inside _tick() — it needs the DB, which may not be
+  // connected yet at boot, and a symbol that is empty now may be filled by the
+  // daily sync later.
 
   try {
     const ldf = require('../data/liveDataFeed');
@@ -350,14 +380,17 @@ function getLatestSignals(symbols = null) {
 
 function getStatus() {
   return { running: _running, tickCount: _tickCount, watchlist: _watchlist,
-    signalCache: _signalCache.size, activeUsers: _portfolios.size, mode: 'SIMULATION' };
+    signalCache: _signalCache.size, activeUsers: _portfolios.size,
+    priced: _priceHistory.size, unavailable: getUnavailable(),
+    mode: 'REAL_HISTORY' };
 }
 
 function addSymbol(symbol) {
   const sym = symbol.toUpperCase();
   if (!_watchlist.includes(sym)) {
     _watchlist.push(sym);
-    if (!SEED_PRICES[sym]) SEED_PRICES[sym] = 500 + Math.floor(Math.random() * 2000);
+    // No seed price is assigned. If the symbol has no stored history it simply
+    // reports as unavailable until the data sync provides one.
     return true;
   }
   return false;
@@ -374,6 +407,15 @@ function getPriceHistory(symbol) {
   return _priceHistory.get(symbol.toUpperCase()) || [];
 }
 
+/** Load a symbol's real history on demand (used by the signal API). */
+async function ensureHistory(symbol) {
+  const sym = symbol.toUpperCase();
+  if (_priceHistory.has(sym)) return _priceHistory.get(sym);
+  const closes = await _loadHistory(sym);
+  if (closes) _priceHistory.set(sym, closes);
+  return closes;
+}
+
 const on  = (event, cb) => _emitter.on(event, cb);
 const off = (event, cb) => _emitter.off(event, cb);
 
@@ -382,6 +424,6 @@ module.exports = {
   getLatestSignals, getPortfolioState, getRecentTrades, getEquityCurve, getStatus,
   adjustOpenPositionsForActions,
   initUserPortfolio, resetUserPortfolio,
-  addSymbol, removeSymbol, getPriceHistory,
-  on, off, SEED_PRICES,
+  addSymbol, removeSymbol, getPriceHistory, ensureHistory, getUnavailable,
+  on, off,
 };

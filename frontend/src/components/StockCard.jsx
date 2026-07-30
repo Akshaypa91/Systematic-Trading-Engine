@@ -94,8 +94,17 @@ export default function StockCard({ data, loading, onRefresh }) {
   const zScore    = data.zScore;
   const source    = data.source;
   const fetchedAt = data.fetchedAt ?? data.timestamp;
-  // Any non-simulated source counts as a live feed (UPSTOX, LIVE_NSE, API, …).
-  const isLiveSource = source != null && !['SIM', 'SIMULATION'].includes(String(source).toUpperCase());
+  // A real-time feed (UPSTOX, LIVE_NSE, API, …) vs a real-but-delayed price
+  // (LAST_CLOSE, STALE). SIM should no longer reach here at all — the backend
+  // only emits it when ALLOW_SIM_PRICES is explicitly on — but if it ever does,
+  // it must be labelled loudly rather than passed off as a quote.
+  const src = String(source ?? '').toUpperCase();
+  const isLiveSource = source != null && !['SIM', 'SIMULATION', 'LAST_CLOSE', 'STALE', 'UNAVAILABLE'].includes(src);
+  const srcLabel = isLiveSource ? '● LIVE'
+    : src === 'LAST_CLOSE'  ? '◌ LAST CLOSE'
+    : src === 'STALE'       ? '◌ STALE'
+    : src === 'UNAVAILABLE' ? '○ NO DATA'
+    : '⚠ SIMULATED';
 
   return (
     <div className="card fade-up" style={{
@@ -122,7 +131,7 @@ export default function StockCard({ data, loading, onRefresh }) {
                 border: `1px solid ${isLiveSource ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'color-mix(in srgb, var(--amber) 25%, transparent)'}`,
                 color: isLiveSource ? 'var(--green)' : 'var(--amber)',
               }}>
-                {isLiveSource ? '● LIVE' : '◌ SIM'}
+                {srcLabel}
               </span>
             )}
           </div>

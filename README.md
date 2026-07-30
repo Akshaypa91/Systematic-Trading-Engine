@@ -62,15 +62,26 @@ Live demo (frontend): `systematic-trading-engine.vercel.app` · Backend: Render 
 
 ## Market data — provider priority
 
-When a broker session is live, **simulated prices are never shown**. Resolution order per symbol:
+**Prices are never fabricated.** Resolution order per symbol:
 
 1. **Upstox WebSocket cache** (primary, when the WS is streaming)
 2. **Upstox REST poller** (`upstoxRestFeed`) — batch `market-quote/quotes` every ~1.5s (the reliable primary in practice)
 3. **Upstox REST snapshot** — on-demand `market-quote/ltp`
 4. **NSE** direct
 5. **TwelveData / Finnhub** (if API keys set)
-6. **Cached** last-known real value
-7. **SIM** — *only* when no broker session exists (paper / logged-out demo)
+6. **Cached** last-known real value, flagged `stale`
+7. **`UNAVAILABLE`** — the chain ends here. No synthetic price is produced.
+
+Every price carries a source, and the UI renders it: `LIVE` (real-time quote), `STALE` (real but the feed has stopped updating), `LAST_CLOSE` (computed on the last stored close — no broker connected), or `NO DATA`. `POST /api/signal/:symbol` returns **503 `NO_MARKET_DATA`** rather than a signal when fewer than 60 real bars exist, and symbols with no stored history are excluded from the signal loop and listed under **Data Gaps** in `/diagnostics`.
+
+<details>
+<summary><b>Why this is worth calling out</b></summary>
+
+An earlier build had three independent fallbacks that generated prices — a random walk in `marketDataService`, a 250-bar generated history per symbol in `simulationEngine`, and a `SIM_FALLBACK` branch in the signal controller that returned a complete indicator set computed over that walk. With Upstox disconnected the dashboard showed RELIANCE at ₹2,845.25, RSI 100.0, and a Bollinger band of ₹516–₹2,379, while the stock actually traded near ₹1,293. Each number was correctly computed and entirely fictional, and the only marker was a small `SIM` badge.
+
+The failure mode is that a system which always produces an answer cannot tell you when it doesn't have one. Fabricated data also propagates: the auto-trader marked positions against it, the equity curve moved on it, and P&L was computed from it. The fix was to make "I don't know" a first-class return value throughout — `{ price: null, source: 'UNAVAILABLE' }` — and let every consumer handle it explicitly. `ALLOW_SIM_PRICES=true` re-enables generation for offline UI work only; it is off by default and `scripts/test-no-fake-prices.js` pins the behaviour in CI.
+
+</details>
 
 A **full NSE instrument master** (`instrumentMaster.js`) is loaded at boot so any NSE equity symbol resolves to its Upstox `instrument_key`, not just a hardcoded shortlist.
 
@@ -239,4 +250,4 @@ frontend/src/
 **Akshay Pagare** — creator of SYSTRA and the ADP Way swing strategy.
 
 - GitHub: [github.com/Akshaypa91](https://github.com/Akshaypa91)
-- LinkedIn: [linkedin.com/in/akshaypagare](https://www.linkedin.com/in/akshaypagare)
+- LinkedIn: [linkedin.com/in/akshaypagare](https://www.linkedin.com/in/akshaypagare91)

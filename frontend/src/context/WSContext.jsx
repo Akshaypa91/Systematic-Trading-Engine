@@ -36,7 +36,9 @@ function normalisePortfolio(raw) {
     openPositionCount:n(raw.openPositionCount ?? (raw.openPositions ? Object.keys(raw.openPositions).length : 0)),
     openPositions:    raw.openPositions ?? raw.positions ?? {},
     initialized:      raw.initialized !== false,
-    source:           raw.source ?? 'SIM',
+    // Default to UNKNOWN, not SIM. Defaulting to a named mode meant a payload
+    // with no source field silently acquired one.
+    source:           raw.source ?? 'UNKNOWN',
   };
 }
 

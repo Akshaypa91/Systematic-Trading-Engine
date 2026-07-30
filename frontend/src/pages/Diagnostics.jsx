@@ -6,13 +6,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import AppShell from '../components/AppShell';
 import { liveAPI } from '../services/api';
 import { useWS } from '../context/WSContext';
-import { Activity, Radio, Gauge, RefreshCw, Wifi, WifiOff, Info } from 'lucide-react';
+import { Activity, Radio, Gauge, RefreshCw, Wifi, WifiOff, Info, AlertTriangle } from 'lucide-react';
 
 const PROVIDER_LABEL = {
   UPSTOX_WS: 'Upstox WebSocket (streaming)',
   UPSTOX_REST: 'Upstox REST poller (live)',
   'UPSTOX/FALLBACK': 'Upstox (on-demand REST)',
-  SIM: 'Simulated (no broker)',
+  NONE: 'No live feed — delayed closes only',
+  SIM: 'Simulated (ALLOW_SIM_PRICES is on)',
 };
 
 function fmtUptime(s) {
@@ -52,7 +53,7 @@ export default function Diagnostics() {
   const ws   = diag?.websocket || {};
   const rest = diag?.restFeed  || {};
   const connected = !!ws.connected;
-  const provider = diag?.provider || (diag?.brokerAuthenticated ? 'UPSTOX/FALLBACK' : 'SIM');
+  const provider = diag?.provider || (diag?.brokerAuthenticated ? 'UPSTOX/FALLBACK' : 'NONE');
   const isFallback = provider === 'UPSTOX/FALLBACK';
   // The WS ships disabled by default (UPSTOX_WS_ENABLED) — "DOWN" would imply a
   // fault, so distinguish an intentional off state from an actual failure.
@@ -68,6 +69,7 @@ export default function Diagnostics() {
     ? (rest.subscribed || [])
     : (diag?.feed?.watchedSymbols?.length ? diag.feed.watchedSymbols : (ws.subscribedKeys || []));
   const missingSymbols = restActive ? (rest.missingSymbols || []) : [];
+  const dataGaps = diag?.dataGaps || [];
 
   return (
     <AppShell>
@@ -220,6 +222,31 @@ export default function Diagnostics() {
                 )}
               </div>
             </div>
+
+            {/* Symbols with no usable stored history. These used to be silently
+                filled in with a generated price series, so a data gap looked
+                identical to working market data. */}
+            {dataGaps.length > 0 && (
+              <div className="card" style={{ padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <AlertTriangle size={13} style={{ color: 'var(--amber)' }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>Data Gaps</span>
+                </div>
+                <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
+                  Excluded from signals — no placeholder prices are generated for these.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {dataGaps.map(g => (
+                    <div key={g.symbol} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                      <span style={{ color: 'var(--amber)', fontWeight: 600 }}>{g.symbol}</span>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'right' }}>
+                        {g.reason === 'INSUFFICIENT_HISTORY' ? `${g.bars ?? 0} bars` : (g.reason || '—').toLowerCase().replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

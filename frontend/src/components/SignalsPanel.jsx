@@ -32,12 +32,22 @@ export default function SignalsPanel({ signals: propSignals }) {
         const next = prev.filter(s => s.symbol !== d.symbol);
         return [{ ...d, timestamp: new Date().toISOString() }, ...next].slice(0, 20);
       });
-    } catch (e) { setError(e.response?.data?.error || 'Failed'); }
+    } catch (e) {
+      // The backend returns 503 NO_MARKET_DATA rather than inventing a signal.
+      // Show its explanation, which tells the user what to actually do about it.
+      const d = e.response?.data;
+      setError(d?.message || d?.error || 'Failed');
+    }
     setLoading(false);
   }
 
   const filters = ['ALL','BUY','SELL','HOLD'];
   const fColors = { ALL:'var(--cyan)', BUY:'var(--green)', SELL:'var(--red)', HOLD:'var(--amber)' };
+
+  // If nothing on screen is a real-time quote, say so once at the top rather
+  // than relying on the user to read the badge on every card.
+  const anyLive = merged.some(s => String(s.source || '').toUpperCase() === 'LIVE');
+  const showDelayedNote = merged.length > 0 && !anyLive;
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
@@ -91,6 +101,13 @@ export default function SignalsPanel({ signals: propSignals }) {
         </>
       )}
 
+      {showDelayedNote && (
+        <div className="flex items-center gap-2 font-mono" style={{ padding:'7px 11px', borderRadius:7, background:'color-mix(in srgb, var(--amber) 7%, transparent)', border:'1px solid color-mix(in srgb, var(--amber) 20%, transparent)', color:'var(--amber)', fontSize:10.5, marginBottom:8, lineHeight:1.45 }}>
+          <AlertCircle size={11} style={{ flexShrink:0 }} />
+          <span>Delayed prices — computed on the last stored close. Connect Upstox for real-time signals.</span>
+        </div>
+      )}
+
       {error && (
         <div className="flex items-center gap-2 font-mono" style={{ padding:'8px 12px', borderRadius:7, background:'color-mix(in srgb, var(--red) 8%, transparent)', border:'1px solid color-mix(in srgb, var(--red) 20%, transparent)', color:'var(--red)', fontSize:11, marginBottom:8 }}>
           <AlertCircle size={11} />{error}
@@ -104,7 +121,7 @@ export default function SignalsPanel({ signals: propSignals }) {
           <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, opacity:0.5 }}>
             <AlertCircle size={22} style={{ color:'var(--text-muted)' }} />
             <p className="font-mono" style={{ fontSize:11, color:'var(--text-muted)' }}>
-              {merged.length === 0 ? 'Click a symbol to fetch signals' : `No ${filter} signals`}
+              {merged.length === 0 ? 'No market data — click a symbol to fetch' : `No ${filter} signals`}
             </p>
           </div>
         ) : (

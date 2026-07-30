@@ -182,7 +182,9 @@ export default function Signals() {
           currentPrice: d.currentPrice, rsi: d.rsiValue,
           sma20: d.maFast, sma50: d.maSlow,
           bbUpper: null, bbLower: null,
-          source: d.simMode ? 'SIM' : 'LIVE',
+          // The backend no longer has a simMode; it reports the real freshness
+          // of the price it used (LIVE / STALE / LAST_CLOSE) or fails outright.
+          source: d.source || d.dataSource || 'LAST_CLOSE',
           components: d.components || {},
           timestamp: new Date().toISOString(),
         }));
