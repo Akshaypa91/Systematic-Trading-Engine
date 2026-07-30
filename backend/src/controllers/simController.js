@@ -11,6 +11,32 @@ const logger        = require('../config/logger');
 const marketDataSvc = require('../services/marketDataService');
 const pnlCalc       = require('../utils/pnlCalculator');
 
+// ── Equity curve sampled from the DB portfolio ────────────────────────────────
+// The page's metrics come from portfolioState (DB) but the chart used to read
+// simulationEngine's in-memory curve — two different portfolios, so the line
+// disagreed with the numbers above it. We now sample totalValue on each
+// /sim/portfolio read, which is what the user is actually looking at.
+const _EQUITY = new Map();          // userId|'anon' → [{ t, equity }]
+const EQ_MAX  = 500;
+const EQ_MIN_GAP_MS = 5000;         // don't record more than one point / 5s
+
+function _equityCurve(userId) { return _EQUITY.get(userId ?? 'anon') || []; }
+
+function _recordEquity(userId, totalValue) {
+  const v = Number(totalValue);
+  if (!Number.isFinite(v) || v <= 0) return;
+  const key = userId ?? 'anon';
+  const arr = _EQUITY.get(key) || [];
+  const last = arr[arr.length - 1];
+  if (last && Date.now() - last.t < EQ_MIN_GAP_MS) { last.equity = v; return; }
+  arr.push({ t: Date.now(), equity: parseFloat(v.toFixed(2)) });
+  while (arr.length > EQ_MAX) arr.shift();
+  _EQUITY.set(key, arr);
+}
+
+// Wipe samples on reset so a fresh portfolio starts with a clean chart.
+function _resetEquity(userId) { _EQUITY.delete(userId ?? 'anon'); }
+
 // ── POST /api/sim/auto-trade ───────────────────────────────────────────────────
 // Run ONE automatic paper-trading pass immediately (entries + exits) on the
 // DB-backed portfolio the UI shows. Lets you verify auto-trading without waiting
@@ -153,6 +179,9 @@ async function getPortfolio(req, res) {
       normalizedTrades
     );
 
+    // Sample the equity curve from what the user is actually shown.
+    _recordEquity(userId, summary.totalValue);
+
     res.json({
       success: true,
       data: {
@@ -190,8 +219,15 @@ function getTrades(req, res) {
 // ── GET /api/sim/equity ───────────────────────────────────────────────────────
 function getEquityCurve(req, res) {
   const userId = req.user?.userId ?? req.user?.id ?? null;
-  const curve = sim.getEquityCurve(userId);
-  res.json({ success: true, count: curve.length, data: curve });
+  // Serve the curve recorded from the DB portfolio (see _recordEquity). The old
+  // source was simulationEngine's in-memory book, which is a DIFFERENT portfolio
+  // — so the chart showed a falling line while the metrics read ₹10,00,000 flat
+  // at +0.00%. Same in-memory-vs-DB split that hid auto-trades.
+  const curve = _equityCurve(userId);
+  if (curve.length) return res.json({ success: true, count: curve.length, data: curve });
+  // No samples yet (fresh boot/reset) — fall back so the chart isn't empty.
+  const legacy = sim.getEquityCurve(userId) || [];
+  res.json({ success: true, count: legacy.length, data: legacy });
 }
 
 // ── GET /api/sim/status ───────────────────────────────────────────────────────
@@ -308,6 +344,7 @@ async function resetPortfolio(req, res) {
 
     await portfolio.resetToInitial(userId);
     sim.resetUserPortfolio(userId);
+    _resetEquity(userId);          // clear chart samples — a fresh book gets a fresh curve
 
     logger.info(`[SimCtrl] Portfolio reset to ₹${state.initialCapital.toLocaleString('en-IN')}`);
 
