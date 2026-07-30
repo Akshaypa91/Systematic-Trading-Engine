@@ -35,6 +35,7 @@ export default function Dashboard() {
     initialCapital: 1000000, stopLossPct: 0.02, takeProfitPct: 0.04, riskPerTrade: 0.02,
   });
   const [btResult,   setBtResult]   = useState(null);
+  const [btLabel,    setBtLabel]    = useState(null);
   const [trades,     setTrades]     = useState([]);
   const [btLoading,  setBtLoading]  = useState(false);
   const [portfolio,  setPortfolio]  = useState(null);
@@ -44,10 +45,52 @@ export default function Dashboard() {
 
   const showToast = useCallback((msg, type = 'info') => setToast({ msg, type }), []);
 
+  // Hydrate the dashboard from a SAVED run: the runs table stores the full
+  // summary, and an equity curve is reconstructed from the trades' cumulative
+  // P&L (trade-resolution, which is what those trades actually contain).
+  const applyRun = useCallback(async (run, { toast: say = false } = {}) => {
+    try {
+      const summary = {
+        totalReturnPct: +run.total_return_pct,
+        finalCapital:   +run.final_capital,
+        winRatePct:     +run.win_rate_pct,
+        winningTrades:  run.winning_trades,
+        losingTrades:   run.losing_trades,
+        totalTrades:    run.total_trades,
+        sharpeRatio:    +run.sharpe_ratio,
+        maxDrawdownPct: +run.max_drawdown_pct,
+        profitFactor:   +run.profit_factor,
+      };
+      let curve = [];
+      let t = [];
+      try {
+        const r = await backtestAPI.getTrades(run.id);
+        t = r.data.data || [];
+        const initial = +run.initial_capital || 1000000;
+        let eq = initial;
+        curve = [initial, ...[...t]
+          .sort((a, b) => String(a.exit_date || a.entry_date).localeCompare(String(b.exit_date || b.entry_date)))
+          .map(tr => (eq += +tr.pnl || 0))];
+      } catch (_) { /* summary alone is still worth showing */ }
+      setBtResult({ summary, equityCurve: curve.length > 1 ? curve : [] });
+      setTrades(t);
+      setBtLabel(`${run.symbol} · ${run.strategy} · saved ${new Date(run.created_at).toLocaleDateString('en-IN')}`);
+      if (say) showToast(`Loaded run #${run.id}`, 'info');
+    } catch (_) {
+      if (say) showToast('Could not load this run', 'error');
+    }
+  }, [showToast]);
+
   useEffect(() => {
     tradeAPI.getPortfolio().then(r => setPortfolio(r.data.data)).catch(() => {});
-    backtestAPI.getRuns(undefined, 5).then(r => setRecentRuns(r.data.data || [])).catch(() => {});
-  }, []);
+    backtestAPI.getRuns(undefined, 5).then(r => {
+      const runs = r.data.data || [];
+      setRecentRuns(runs);
+      // A returning user's dashboard should open with their last result on
+      // screen, not two empty boxes asking them to do work first.
+      if (runs.length > 0) applyRun(runs[0]);
+    }).catch(() => {});
+  }, [applyRun]);
 
   // Use live portfolio from WS if available
   const displayPort = livePortfolio || portfolio;
@@ -59,6 +102,7 @@ export default function Dashboard() {
       const res = await backtestAPI.run(btForm);
       const { summary, trades: t, equityCurveSample } = res.data;
       setBtResult({ summary, equityCurve: equityCurveSample });
+      setBtLabel(`${btForm.symbol} · ${btForm.strategy} · ₹${Number(btForm.initialCapital).toLocaleString('en-IN')} initial`);
       setTrades(t || []);
       setShowForm(false);
       showToast(`Backtest complete — ${t?.length || 0} trades`, 'success');
@@ -198,12 +242,26 @@ export default function Dashboard() {
           <Card className="fade-up stagger-1">
             <CardHeader
               title="Equity Curve"
-              sub={s ? `${btForm.symbol} · ${btForm.strategy} · ₹${Number(btForm.initialCapital).toLocaleString('en-IN')} initial` : 'Run a backtest to visualize'}
-              action={s && btResult?.equityCurve && (
+              sub={s ? (btLabel || 'Latest backtest') : 'Your first backtest will appear here'}
+              action={s && btResult?.equityCurve?.length > 0 && (
                 <Badge>{btResult.equityCurve.length} pts</Badge>
               )}
             />
-            <EquityChart data={btResult?.equityCurve || []} initialCapital={btForm.initialCapital} height={272} />
+            {btResult?.equityCurve?.length > 0 ? (
+              <EquityChart data={btResult.equityCurve} initialCapital={btResult.equityCurve[0] ?? btForm.initialCapital} height={272} />
+            ) : (
+              /* Compact CTA, not a 270px void — only genuinely first-time
+                 users ever see this (returning users get their last run). */
+              <div style={{ height: 272, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <LineChart size={26} style={{ color: 'var(--text-dim)' }} />
+                <p className="font-mono" style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                  Backtest a strategy to see its equity curve here
+                </p>
+                <Button variant="primary" icon={Play} onClick={() => setShowForm(true)}>
+                  Run your first backtest
+                </Button>
+              </div>
+            )}
           </Card>
 
           <Card className="fade-up stagger-2" style={{ minHeight: 400 }}>
@@ -265,15 +323,9 @@ export default function Dashboard() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {recentRuns.map((run, i) => {
-                  const loadRun = async () => {
-                    try {
-                      const r = await backtestAPI.getTrades(run.id);
-                      setTrades(r.data.data || []);
-                      showToast(`Loaded run #${run.id}`, 'info');
-                    } catch (_err) {
-                      showToast('Could not load trades for this run', 'error');
-                    }
-                  };
+                  // Loads the WHOLE run (KPIs + curve + trades), not just the
+                  // trade list — clicking a run should show that run.
+                  const loadRun = () => applyRun(run, { toast: true });
                   return (
                   <div key={run.id || i} className="mini-tile" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4, cursor: 'pointer' }}
                     role="button" tabIndex={0}
