@@ -11,6 +11,26 @@ const logger        = require('../config/logger');
 const marketDataSvc = require('../services/marketDataService');
 const pnlCalc       = require('../utils/pnlCalculator');
 
+// ── POST /api/sim/auto-trade ───────────────────────────────────────────────────
+// Run ONE automatic paper-trading pass immediately (entries + exits) on the
+// DB-backed portfolio the UI shows. Lets you verify auto-trading without waiting
+// for the scheduler. Paper only — never touches the broker.
+async function runAutoTrade(req, res) {
+  const userId = req.user?.userId ?? req.user?.id ?? null;
+  try {
+    const autoPaper = require('../engine/autoPaperTrader');
+    const C = require('../config/constants');
+    const symbols = Array.isArray(req.body?.symbols) && req.body.symbols.length
+      ? req.body.symbols
+      : (C.NIFTY50_SYMBOLS || []).slice(0, 20);
+    const result = await autoPaper.runOnce(userId, symbols);
+    return res.json({ success: true, ...result, config: autoPaper.getConfig() });
+  } catch (err) {
+    logger.error(`[SimCtrl] runAutoTrade: ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 // ── GET /api/sim/signals ──────────────────────────────────────────────────────
 function getLiveSignals(req, res) {
   const symbols = req.query.symbols
@@ -404,6 +424,7 @@ async function exitAll(req, res) {
 module.exports = {
   getLiveSignals,
   getPortfolio,
+  runAutoTrade,
   getTrades,
   getEquityCurve,
   getStatus,

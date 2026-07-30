@@ -22,6 +22,7 @@ router.post('/watchlist/remove', requireAuth, ctrl.removeFromWatchlist);
 router.get('/portfolio', requireAuth, ctrl.getPortfolio);
 router.post('/start',    requireAuth, ctrl.startWithCapital);
 router.post('/reset',    requireAuth, ctrl.resetPortfolio);
+router.post('/auto-trade', requireAuth, ctrl.runAutoTrade);   // fire one auto-paper pass now
 router.post('/exit-all', requireAuth, ctrl.exitAll);
 router.post('/exit-one', requireAuth, ctrl.exitOne);
 

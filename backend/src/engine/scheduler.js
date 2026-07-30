@@ -20,6 +20,7 @@ const liveSignalEngine = require('./liveSignalEngine');
 const execEngine      = require('./executionEngine');
 const corpActionLoader = require('../data/corpActionLoader');
 const liveExecution   = require('./liveExecutionEngine');
+const autoPaper       = require('./autoPaperTrader');
 const db              = require('../config/database');
 const C               = require('../config/constants');
 const logger          = require('../config/logger');
@@ -247,6 +248,19 @@ async function liveExecutionJob() {
   if (res.ran) logger.info(`[Scheduler] Live OMS tick: ${res.reconcile?.transitions ?? 0} transition(s)`);
 }
 
+// NEW: Automatic PAPER trading on the DB-backed portfolio the UI displays.
+// simulationEngine's own auto-trading wrote to an in-memory portfolio nobody
+// could see, so the engine looked idle while only manual trades showed up.
+async function autoPaperJob() {
+  const uid = process.env.AUTO_PAPER_USER_ID || process.env.LIVE_EXECUTION_USER_ID;
+  if (!uid) return;                       // no paper-trading user configured
+  const symbols = (C.NIFTY50_SYMBOLS || []).slice(0, 20);
+  const res = await autoPaper.runOnce(Number(uid), symbols);
+  if (res.entries || res.exits) {
+    logger.info(`[Scheduler] Auto-paper: ${res.entries} entry(s), ${res.exits} exit(s)`);
+  }
+}
+
 // ── Initialise all jobs ───────────────────────────────────────────────────────
 
 function start() {
@@ -259,6 +273,7 @@ function start() {
   registerJob('DATA_SYNC',         dataSyncJob,         24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('CORP_ACTIONS_SYNC', corpActionsSyncJob,   7 * 24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('LIVE_EXECUTION',    liveExecutionJob,     30 * 1000,               { marketHoursOnly: true,  runOnStart: false });
+  registerJob('AUTO_PAPER',        autoPaperJob,          2 * 60 * 1000,           { marketHoursOnly: true,  runOnStart: false });
 
   // One-shot backfill ~90s after boot so a fresh deploy (or free-tier cold
   // start that never reaches the weekly timer) still refreshes corp actions.
