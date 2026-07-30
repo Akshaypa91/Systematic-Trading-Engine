@@ -98,6 +98,44 @@ function _generateSignal(symbol, prices) {
   return { ...result, regime };
 }
 
+// ── Corporate-action adjustment for OPEN positions ────────────────────────────
+// corporateActions.js back-adjusts CANDLES, but an open paper position keeps the
+// entry price it was opened at. After a split/bonus the live price halves while
+// the stored entry price does not — producing a phantom ~50% "loss" (observed:
+// RELIANCE entry ₹2,606 vs post-bonus price ₹1,281 = −50.86% that never
+// happened; the shares doubled instead).
+//
+// Correct treatment for a price factor f (1:1 bonus → f = 0.5):
+//   entryPrice × f   (and stop/target with it),   qty ÷ f
+// Position VALUE is unchanged — only the share count and per-share basis move.
+async function adjustOpenPositionsForActions(userId = null) {
+  let corp;
+  try { corp = require('../data/corporateActions'); } catch { return { adjusted: 0 }; }
+  const p = _getPort(userId);
+  let adjusted = 0;
+  for (const [symbol, pos] of Object.entries(p.openPositions || {})) {
+    if (!pos?.entryTime || !(pos.entryPrice > 0)) continue;
+    let actions = [];
+    try { actions = await corp.getActions(symbol); } catch { continue; }
+    // Only actions whose ex-date falls AFTER we opened the position.
+    const openedOn = String(pos.entryTime).slice(0, 10);
+    const pending = actions.filter(a => a.ex_date > openedOn && !(pos.adjustedFor || []).includes(a.ex_date));
+    if (!pending.length) continue;
+    const factor = pending.reduce((f, a) => f * Number(a.factor), 1);
+    if (!(factor > 0) || factor === 1) continue;
+
+    const oldQty = pos.qty, oldEntry = pos.entryPrice;
+    pos.entryPrice = parseFloat((oldEntry * factor).toFixed(4));
+    pos.qty        = Math.round(oldQty / factor);
+    if (pos.stopLoss)   pos.stopLoss   = parseFloat((pos.stopLoss * factor).toFixed(2));
+    if (pos.takeProfit) pos.takeProfit = parseFloat((pos.takeProfit * factor).toFixed(2));
+    pos.adjustedFor = [...(pos.adjustedFor || []), ...pending.map(a => a.ex_date)];
+    adjusted++;
+    console.log(`[SimEngine] Corp-action adjust ${symbol}: ${oldQty}@₹${oldEntry} → ${pos.qty}@₹${pos.entryPrice} (factor ${factor})`);
+  }
+  return { adjusted };
+}
+
 // ── Per-user trade execution ──────────────────────────────────────────────────
 function _placeBuy(userId, symbol, price) {
   const p = _getPort(userId);
@@ -342,6 +380,7 @@ const off = (event, cb) => _emitter.off(event, cb);
 module.exports = {
   start, stop,
   getLatestSignals, getPortfolioState, getRecentTrades, getEquityCurve, getStatus,
+  adjustOpenPositionsForActions,
   initUserPortfolio, resetUserPortfolio,
   addSymbol, removeSymbol, getPriceHistory,
   on, off, SEED_PRICES,

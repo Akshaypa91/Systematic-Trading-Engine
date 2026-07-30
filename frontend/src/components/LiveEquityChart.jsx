@@ -34,8 +34,14 @@ export default function LiveEquityChart({ data = [], initialCapital = 1000000, h
   const values   = data.map(d => d.equity);
   const isProfit = values[values.length - 1] >= (initialCapital / 1000);
   const stroke   = isProfit ? 'var(--green)' : 'var(--red)';
-  const min      = Math.min(...values) * 0.998;
-  const max      = Math.max(...values) * 1.002;
+  // Round the axis bounds. Raw floats (e.g. 1021.93314) made recharts emit ticks
+  // with absurd precision, and a 52px axis then CLIPPED the leading digits
+  // ("₹1042.26036K" rendered as "42.26036K"), which looked like the labels were
+  // out of order. Pad by at least ₹1K so a flat curve still gets a sane range.
+  const lo = Math.min(...values), hi = Math.max(...values);
+  const padding = Math.max(1, (hi - lo) * 0.15);
+  const min = Math.floor(lo - padding);
+  const max = Math.ceil(hi + padding);
 
   return (
     <div style={{ position:'relative' }}>
@@ -59,7 +65,7 @@ export default function LiveEquityChart({ data = [], initialCapital = 1000000, h
           <YAxis domain={[min, max]}
             tick={{ fill:'var(--text-muted)', fontSize:9, fontFamily:'var(--font-mono)' }}
             axisLine={false} tickLine={false}
-            tickFormatter={v => `₹${v}K`} width={52} />
+            tickFormatter={v => `₹${Math.round(v)}K`} width={64} />
           <Tooltip content={<Tip />} />
           <ReferenceLine y={initialCapital / 1000} stroke="var(--border-bright)" strokeDasharray="4 4" />
           <Area type="monotone" dataKey="equity" stroke={stroke} strokeWidth={1.8}

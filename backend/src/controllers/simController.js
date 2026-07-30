@@ -41,6 +41,10 @@ function getLiveSignals(req, res) {
 async function getPortfolio(req, res) {
   const userId = req.user?.userId ?? req.user?.id ?? null;
   try {
+    // Re-base open positions for any split/bonus that happened after entry,
+    // otherwise a post-bonus price against a pre-bonus entry shows a phantom
+    // ~50% loss. Idempotent (each ex-date is applied once per position).
+    try { await sim.adjustOpenPositionsForActions?.(userId); } catch (_) {}
     const state = await portfolio.getState(userId);
 
     // If not initialized yet return empty safe structure — don't 500
