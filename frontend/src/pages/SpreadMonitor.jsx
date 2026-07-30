@@ -38,10 +38,12 @@ export default function SpreadMonitor() {
     <AppShell>
       <main className="page-content">
         <div style={{ maxWidth: 1180 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <ArrowLeftRight size={18} style={{ color: 'var(--cyan)' }} />
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>NSE ↔ BSE Spread</h1>
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Title and controls wrap onto separate rows on narrow screens —
+              side-by-side squeezed the heading into three lines on mobile. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
+            <ArrowLeftRight size={18} style={{ color: 'var(--cyan)', flexShrink: 0 }} />
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>NSE ↔ BSE Spread</h1>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               {syncedAt && (
                 <span className="font-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: 'var(--text-muted)' }}>
                   <Clock size={10} /> {syncedAt.toLocaleTimeString('en-IN', { hour12: false })}
@@ -93,7 +95,9 @@ export default function SpreadMonitor() {
                 ['Capturable after costs', data.summary.capturableAfterCosts],
                 ['Qty modelled', data.qty ?? qty],
               ].map(([label, val], i) => (
-                <div key={label} className="card" style={{ flex: 1, minWidth: 150, padding: 14 }}>
+                // minWidth 110 lets all three tiles sit on one row on a phone
+                // instead of 2 + 1 orphan.
+                <div key={label} className="card" style={{ flex: 1, minWidth: 110, padding: 14 }}>
                   <div style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 5 }}>{label}</div>
                   <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-mono)',
                     color: i === 1 ? (val > 0 ? 'var(--green)' : 'var(--text-secondary)') : 'var(--text-primary)' }}>{val}</div>
@@ -113,7 +117,45 @@ export default function SpreadMonitor() {
               <span className="font-mono" style={{ fontSize: 10.5 }}>Needs a broker session and both NSE + BSE listings.</span>
             </div>
           ) : (
-            <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+            <>
+            {/* MOBILE: cards. A 780px-wide table clipped exactly the columns
+                that matter (cost, net, verdict) behind a horizontal scroll. */}
+            <div className="nb-md-down-only" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {rows.map(r => (
+                <div key={r.symbol} className="card" style={{ padding: 13 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{r.symbol}</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 99,
+                      background: r.capturable ? 'color-mix(in srgb, var(--green) 13%, transparent)' : 'color-mix(in srgb, var(--red) 11%, transparent)',
+                      color: r.capturable ? 'var(--green)' : 'var(--red)' }}>
+                      {r.capturable ? 'CLEARS COSTS' : 'NOT VIABLE'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px 12px', fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>
+                    {[
+                      ['NSE', inr(r.nse), r.cheaper === 'NSE' ? 'var(--green)' : 'var(--text-secondary)'],
+                      ['BSE', inr(r.bse), r.cheaper === 'BSE' ? 'var(--green)' : 'var(--text-secondary)'],
+                      ['Spread', `${inr(r.spreadAbs)} · ${bps(r.spreadBps)}`, 'var(--cyan)'],
+                      ['Cost', bps(r.costBps), 'var(--amber)'],
+                      ['Net', `${r.netBps > 0 ? '+' : ''}${bps(r.netBps)}`, r.netBps > 0 ? 'var(--green)' : 'var(--red)'],
+                    ].map(([k, v, c]) => (
+                      <div key={k}>
+                        <div style={{ fontSize: 8.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>{k}</div>
+                        <div style={{ color: c, fontWeight: k === 'Net' ? 700 : 500 }}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {data?.skipped?.length > 0 && (
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                  No BSE quote for: {data.skipped.join(', ')}
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP: full table */}
+            <div className="card nb-md-up" style={{ padding: 0, overflow: 'auto' }}>
               <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-elevated)', textAlign: 'left' }}>
@@ -152,6 +194,7 @@ export default function SpreadMonitor() {
                 </div>
               )}
             </div>
+            </>
           )}
         </div>
       </main>

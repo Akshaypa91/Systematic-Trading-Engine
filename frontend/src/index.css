@@ -1426,6 +1426,9 @@ body.nav-open { overflow:hidden; }
 @media (max-width: 1023px) { .nb-lg-up { display: none !important; } }
 @media (min-width: 1024px) { .nb-lg-down { display: none !important; } }
 @media (max-width: 767px)  { .nb-md-up { display: none !important; } }
+/* Inverse of .nb-md-up — mobile-only blocks (e.g. card layouts that replace a
+   wide table which would otherwise clip its most important columns). */
+@media (min-width: 768px)  { .nb-md-down-only { display: none !important; } }
 @media (max-width: 639px)  { .nb-sm-up { display: none !important; } }
 @media (min-width: 640px)  { .nb-sm-down { display: none !important; } }
 
