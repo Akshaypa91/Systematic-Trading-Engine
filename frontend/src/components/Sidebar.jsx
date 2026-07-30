@@ -29,6 +29,7 @@ const GROUPS = [
       { to: '/backtest',  icon: TrendingUp, label: 'Backtest',  kbd: 'G B' },
       { to: '/analytics', icon: BarChart2,  label: 'Analytics', kbd: 'G A' },
       { to: '/swing',     icon: Rocket,     label: 'Swing Setup', kbd: 'G W' },
+      { to: '/spread',    icon: ArrowLeftRight, label: 'NSE-BSE Spread', kbd: 'G R' },
     ],
   },
   {

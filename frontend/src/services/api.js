@@ -116,6 +116,7 @@ export const marketAPI = {
   getCandles: (symbol, params) => api.get(`/data/candles/${symbol}`, { params }),
   getHealth: ()       => api.get('/data/health'),
   getMarketStatus: () => api.get('/data/market-status'),
+  spreads:   (params) => api.get('/data/spread', { params }),
 };
 
 export const swingAPI = {

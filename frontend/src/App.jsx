@@ -17,6 +17,7 @@ const LiveOrders = lazy(() => import('./pages/LiveOrders'));
 const LivePortfolio = lazy(() => import('./pages/LivePortfolio'));
 const Diagnostics = lazy(() => import('./pages/Diagnostics'));
 const ExecutionQuality = lazy(() => import('./pages/ExecutionQuality'));
+const SpreadMonitor = lazy(() => import('./pages/SpreadMonitor'));
 const Trade = lazy(() => import('./pages/Trade'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -89,6 +90,7 @@ export default function App() {
                 <Route path="/positions" element={<ProtectedRoute><LivePortfolio /></ProtectedRoute>} />
                 <Route path="/diagnostics" element={<ProtectedRoute><Diagnostics /></ProtectedRoute>} />
                 <Route path="/execution" element={<ProtectedRoute><ExecutionQuality /></ProtectedRoute>} />
+                <Route path="/spread" element={<ProtectedRoute><SpreadMonitor /></ProtectedRoute>} />
                 <Route path="/screener" element={<ProtectedRoute><Screener /></ProtectedRoute>} />
                 <Route path="/backtest" element={<ProtectedRoute><Backtest /></ProtectedRoute>} />
                 <Route path="/signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />

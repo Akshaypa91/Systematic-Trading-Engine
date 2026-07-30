@@ -17,6 +17,7 @@ export const SHORTCUT_ROUTES = [
   { keys: 'g b', path: '/backtest',    label: 'Backtest' },
   { keys: 'g a', path: '/analytics',   label: 'Analytics' },
   { keys: 'g w', path: '/swing',       label: 'Swing Setup' },
+  { keys: 'g r', path: '/spread',      label: 'NSE-BSE Spread' },
   { keys: 'g j', path: '/journal',     label: 'Journal' },
   { keys: 'g e', path: '/execution',   label: 'Execution Quality' },
   { keys: 'g x', path: '/diagnostics', label: 'Diagnostics' },
