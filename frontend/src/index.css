@@ -869,6 +869,10 @@ html:not([data-theme="light"]) .mnav-badge { border-color: #0D1320; }
   .mobile-nav-wrap { display: none; }
 }
 
+/* Two navigations on screen at once is one too many. With the drawer open the
+   bar added nothing and sat on top of the drawer's own footer. */
+body.nav-drawer-open .mobile-nav-wrap { display: none; }
+
 /* ═══════════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM v3.1 — primitive layer tokens (additive)
    Consumed by src/components/ui/*. Extends the existing token set above;
@@ -1268,6 +1272,9 @@ html:not([data-theme="light"]) .mnav-badge { border-color: #0D1320; }
   :root[data-sidebar="collapsed"] .sb-item { justify-content: flex-start; padding: 0 10px; }
   .sb-collapse { display: none; }
   .sidebar { width: 220px; }
+  /* Home-indicator clearance so the last footer row isn't half off-screen on
+     notched phones. */
+  .sb-footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 
 /* ── Navbar v4: terminal chips ─────────────────────────────────────────────── */

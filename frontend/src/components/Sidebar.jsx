@@ -86,9 +86,18 @@ export default function Sidebar({ open, onClose }) {
   }, [collapsed]);
 
   useEffect(() => { if (onClose) onClose(); }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  // While the drawer is open it IS the navigation, so the fixed bottom bar is
+  // both redundant and harmful: it renders above the drawer and covered its
+  // footer (market status and the Feedback link were unreachable). A body class
+  // lets CSS hide it — the bar lives in a different subtree, so it can't be
+  // toggled by passing props down.
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.classList.toggle('nav-drawer-open', !!open);
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('nav-drawer-open');
+    };
   }, [open]);
 
   return (
