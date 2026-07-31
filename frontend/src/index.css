@@ -491,8 +491,11 @@ body.nav-open { overflow:hidden; }
 }
 
 @media (max-width: 1023px) {
+  /* Clearance for the fixed bottom bar. The bar is ~60px plus the home
+     indicator, so this is measured rather than guessed — content that ends
+     flush with the viewport must still be fully readable above it. */
   .page-content {
-    padding-bottom: 88px !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -766,29 +769,35 @@ body.nav-open { overflow:hidden; }
 /* ═══════════════════════════════════════════════════════════════════════════
    MOBILE BOTTOM NAV — floating glass pill, mobile only (<1024px)
    ═══════════════════════════════════════════════════════════════════════════ */
+/* Bottom navigation — solid, full-width, anchored to the bottom edge.
+ *
+ * This was a floating translucent pill. Two problems with that, both visible on
+ * any content-heavy page: prices and headings read straight THROUGH the bar
+ * (₹1,303.99 showing between "Signals" and "Trade"), and the rounded pill left
+ * live content visible in the gutters either side, so nothing separated "app
+ * chrome" from "page". Raising the alpha only treats the symptom.
+ *
+ * Every Indian broker app — Groww, Upstox, Zerodha — uses a solid bar welded to
+ * the bottom edge with a hairline top border. It is opaque by construction, so
+ * bleed-through cannot happen, and it reads as part of the app rather than a
+ * widget floating over it. */
 .mobile-nav-wrap {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
   display: flex; justify-content: center;
-  padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
-  pointer-events: none;
+  padding: 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  /* Home-indicator clearance on notched phones, without floating the bar. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 12px rgba(15,23,42,0.06);
 }
 .mobile-nav {
   pointer-events: auto;
   display: flex; align-items: center; gap: 2px;
-  width: 100%; max-width: 440px;
-  padding: 6px; border-radius: 20px;
-  /* Was 0.72/0.78 alpha: page text read straight through the bar, so headings
-     underneath collided with the nav labels. Opaque enough to separate the two
-     layers, still translucent enough to feel like a floating pill. */
-  background: rgba(17,24,39,0.94);
-  backdrop-filter: blur(22px) saturate(1.4);
-  -webkit-backdrop-filter: blur(22px) saturate(1.4);
-  border: 1px solid var(--border-bright);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-}
-[data-theme="light"] .mobile-nav {
-  background: rgba(255,255,255,0.96);
-  box-shadow: 0 6px 24px rgba(15,23,42,0.16);
+  width: 100%; max-width: 560px;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
 }
 
 .mobile-nav-item {
@@ -825,9 +834,10 @@ body.nav-open { overflow:hidden; }
   min-width: 14px; height: 14px; padding: 0 3px; border-radius: 99px;
   background: var(--red); color: #fff; font-size: 8.5px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  border: 1.5px solid rgba(17,24,39,0.72);
+  /* Halo matches the bar surface so the badge reads as cut out of it. */
+  border: 1.5px solid var(--bg-surface);
 }
-[data-theme="light"] .mnav-badge { border-color: rgba(255,255,255,0.78); }
+html:not([data-theme="light"]) .mnav-badge { border-color: #0D1320; }
 
 @media (min-width: 1024px) {
   .mobile-nav-wrap { display: none; }
@@ -2059,9 +2069,14 @@ html:not([data-theme="light"]) .sb-item.active {
               0 0 18px -6px color-mix(in srgb, var(--cyan) 35%, transparent);
 }
 html:not([data-theme="light"]) .nb-root::after { opacity: 0.9; }
-html:not([data-theme="light"]) .mobile-nav {
-  background: rgba(13,19,32,0.78);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px rgba(0,0,0,0.5);
+/* Dark theme tints the BAR, not the inner row. This rule previously set a
+   0.78-alpha background on .mobile-nav and, sitting ~1300 lines below the base
+   rule, silently undid every opacity fix made up there. Styling the wrapper
+   keeps one owner for the bar's surface. */
+html:not([data-theme="light"]) .mobile-nav-wrap {
+  background: #0D1320;
+  border-top-color: rgba(255,255,255,0.07);
+  box-shadow: 0 -2px 14px rgba(0,0,0,0.45);
 }
 
 /* Tables: tinted header band + accent row hover */
