@@ -848,6 +848,12 @@ body.nav-open { overflow:hidden; }
 .mobile-nav-item span.mnav-label {
   font-size: 9.5px; font-family: var(--font-mono); letter-spacing: 0.03em;
   transition: font-weight 0.15s;
+  /* "Portfolio" is the longest label; on a 360px screen each slot is ~68px, so
+     keep it on one line rather than letting it wrap and shove the bar taller. */
+  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 359px) {
+  .mobile-nav-item span.mnav-label { font-size: 8.5px; letter-spacing: 0; }
 }
 .mobile-nav-item.active span.mnav-label { font-weight: 700; }
 .mnav-active-dot {
