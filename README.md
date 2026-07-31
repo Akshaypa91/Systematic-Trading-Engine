@@ -140,7 +140,9 @@ Two decisions here matter more than the code:
 
 **Same-bar ambiguity resolves against us.** When a single daily bar's high reaches the target *and* its low reaches the stop, daily data cannot prove which came first. Those are always scored as **stops**. Assuming the target is exactly how a backtest manufactures an edge that dies in production.
 
-Signals still inside the 30-session window are counted separately and **excluded from win rate** — neither banked as wins nor written off as losses. Below 30 resolved trades the UI states plainly that the sample is too small to conclude anything, rather than printing a percentage to one decimal place.
+**The holding window is one trading week** (`SWING_HORIZON_BARS=5`). A fresh-breakout setup is a momentum bet: if the move has not started within days, the reason for the entry is gone. A longer window flatters the strategy by letting stale positions wander into their targets weeks later — returns nobody following the rules would have captured.
+
+Signals still inside that window are counted separately and **excluded from win rate** — neither banked as wins nor written off as losses. Below 30 resolved trades the UI states plainly that the sample is too small to conclude anything, rather than printing a percentage to one decimal place. Changing the horizon invalidates previously recorded outcomes, so the **Re-score** button rebuilds the whole table rather than topping up undecided rows.
 
 ---
 

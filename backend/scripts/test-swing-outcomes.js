@@ -45,15 +45,24 @@ console.log('\nsame-bar ambiguity resolves pessimistically');
 
 console.log('\nopen vs expired');
 {
-  const o = resolveOutcome(SIG, [bar('2026-01-02', 98, 108), bar('2026-01-03', 99, 110)]);
+  // Horizon is passed explicitly throughout: the default is configurable
+  // (SWING_HORIZON_BARS, one trading week) and these assertions are about the
+  // rule, not about whatever the current default happens to be.
+  const o = resolveOutcome(SIG, [bar('2026-01-02', 98, 108), bar('2026-01-03', 99, 110)], 5);
   ok('neither level touched, short history → OPEN', o.outcome === 'OPEN', o.outcome);
   ok('an OPEN trade has no R-multiple', o.rMultiple === null, String(o.rMultiple));
 
-  // 30 quiet bars: the breakout failed to do anything. That is a result.
-  const quiet = Array.from({ length: 30 }, (_, i) => bar(`2026-02-${String(i + 1).padStart(2, '0')}`, 97, 108, 103));
-  const e = resolveOutcome(SIG, quiet);
+  // A full week of nothing: the breakout failed to go. That is a result.
+  const quiet = Array.from({ length: 5 }, (_, i) => bar(`2026-02-0${i + 1}`, 97, 108, 103));
+  const e = resolveOutcome(SIG, quiet, 5);
   ok('horizon exceeded → EXPIRED', e.outcome === 'EXPIRED', e.outcome);
   ok('marked to the last close (+0.3R)', Math.abs(e.rMultiple - 0.3) < 0.001, String(e.rMultiple));
+
+  // A longer horizon would have turned this loser into a winner — which is
+  // exactly the flattery a generous window buys, so the horizon must bite.
+  const late = [...quiet, bar('2026-02-09', 105, 125)];
+  ok('week horizon expires before a late target', resolveOutcome(SIG, late, 5).outcome === 'EXPIRED');
+  ok('a 30-session horizon would have counted it a win', resolveOutcome(SIG, late, 30).outcome === 'TARGET');
 }
 
 console.log('\nmalformed signals are refused, not guessed');

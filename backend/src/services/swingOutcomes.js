@@ -25,9 +25,15 @@ const axios  = require('axios');
 const db     = require('../config/database');
 const logger = require('../config/logger');
 
-// Swing trades are not investments — a breakout that has done nothing in six
-// weeks has failed, whatever the price is doing.
-const HORIZON_BARS = 30;
+// How long a breakout gets to work before it is called a failure.
+//
+// One trading week. A fresh-breakout setup is a momentum bet: if the move has
+// not started within days, the reason for the entry has gone, and holding on
+// past that is a different trade from the one the scanner signalled. A longer
+// horizon flatters the strategy by letting stale positions wander into their
+// targets weeks later — returns you could not have captured by following the
+// rules as written.
+const HORIZON_BARS = Math.max(1, parseInt(process.env.SWING_HORIZON_BARS || '5', 10) || 5);
 
 // ── Outcome resolution (pure — no I/O, fully unit-testable) ──────────────────
 
@@ -268,12 +274,17 @@ async function ensureColumns() {
  * Score every signal that is unresolved or still open. Re-checking OPEN rows is
  * the point: yesterday's undecided trade becomes today's win or loss.
  */
-async function evaluatePending({ limit = 200 } = {}) {
+async function evaluatePending({ limit = 200, force = false } = {}) {
   await ensureColumns();
+  // `force` re-scores everything, including already-decided rows. Needed when
+  // HORIZON_BARS changes: an outcome recorded under a 30-session window is not
+  // comparable with one recorded under a 5-session window, and leaving the two
+  // mixed in the same table would produce a win rate for a strategy nobody ran.
+  const where = force ? '' : `WHERE outcome IS NULL OR outcome = 'OPEN'`;
   const [rows] = await db.query(
     `SELECT id, signal_date, symbol, entry, sl, t1
        FROM swing_signals
-      WHERE outcome IS NULL OR outcome = 'OPEN'
+      ${where}
       ORDER BY signal_date DESC
       LIMIT ?`, [Math.min(Number(limit) || 200, 500)]
   );

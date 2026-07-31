@@ -33,7 +33,11 @@ router.get('/history', requireAuth, async (req, res) => {
 router.get('/performance', requireAuth, async (req, res) => {
   try {
     const outcomes = require('../services/swingOutcomes');
-    if (req.query.refresh === '1') await outcomes.evaluatePending({ limit: 200 });
+    // refresh=1 → score pending/open only. refresh=all → re-score everything,
+    // which is what you want after changing the horizon.
+    if (req.query.refresh === '1' || req.query.refresh === 'all') {
+      await outcomes.evaluatePending({ limit: 200, force: req.query.refresh === 'all' });
+    }
     res.json({ success: true, ...(await outcomes.getPerformance()) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

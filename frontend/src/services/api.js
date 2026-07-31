@@ -130,7 +130,8 @@ export const swingAPI = {
   state:   () => api.get('/swing/scan'),
   run:     () => api.post('/swing/scan/run'),
   history: (limit) => api.get('/swing/history', { params: { limit } }),
-  performance: (refresh) => api.get('/swing/performance', { params: refresh ? { refresh: 1 } : {} }),
+  // refresh: false | true (pending only) | 'all' (re-score everything)
+  performance: (refresh) => api.get('/swing/performance', { params: refresh ? { refresh: refresh === 'all' ? 'all' : 1 } : {} }),
 };
 
 export const manualTradeAPI = {

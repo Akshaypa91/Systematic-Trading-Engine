@@ -29,7 +29,10 @@ export default function SwingPerformance() {
   const load = useCallback(async (refresh = false) => {
     refresh ? setScoring(true) : setLoading(true);
     try {
-      const r = await swingAPI.performance(refresh);
+      // 'all' on an explicit re-score: outcomes recorded under a different
+      // holding window aren't comparable, so a manual re-score rebuilds the
+      // whole table rather than topping up the undecided rows.
+      const r = await swingAPI.performance(refresh ? 'all' : false);
       setData(r.data);
     } catch { /* leave last good */ }
     setLoading(false); setScoring(false);
@@ -63,8 +66,8 @@ export default function SwingPerformance() {
         </button>
       </div>
       <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
-        Each signal scored against real daily bars over {data.horizonBars} sessions.
-        A bar touching both target and stop counts as a stop — daily data can't prove which came first.
+        Each signal is given {data.horizonBars} trading session{data.horizonBars === 1 ? '' : 's'} to reach its target,
+        scored against real daily bars. A bar touching both target and stop counts as a stop — daily data can't prove which came first.
       </p>
 
       {/* Headline row */}
