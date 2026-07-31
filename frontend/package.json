@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run check:nav && vite build",
+    "check:nav": "node scripts/check-nav.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

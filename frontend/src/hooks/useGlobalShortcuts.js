@@ -6,21 +6,27 @@ import { useEffect, useRef } from 'react';
 
 // Must stay in sync with the `kbd` hints in components/Sidebar.jsx — a hint with
 // no entry here is a dead shortcut the UI still advertises.
+// Order and labels mirror components/Sidebar.jsx so the help modal reads like
+// the sidebar rather than a second, differently-sorted list.
 export const SHORTCUT_ROUTES = [
+  // Trading
   { keys: 'g d', path: '/',            label: 'Dashboard' },
   { keys: 'g t', path: '/trade',       label: 'Trade' },
-  { keys: 'g l', path: '/live',        label: 'Paper Engine' },
-  { keys: 'g o', path: '/orders',      label: 'Live Orders' },
   { keys: 'g p', path: '/positions',   label: 'Portfolio' },
+  { keys: 'g o', path: '/orders',      label: 'Live Orders' },
+  { keys: 'g l', path: '/live',        label: 'Paper Engine' },
+  // Research
   { keys: 'g s', path: '/signals',     label: 'Signals' },
   { keys: 'g c', path: '/screener',    label: 'Screener' },
   { keys: 'g b', path: '/backtest',    label: 'Backtest' },
   { keys: 'g a', path: '/analytics',   label: 'Analytics' },
+  // Strategies
   { keys: 'g w', path: '/swing',       label: 'Swing Setup' },
-  { keys: 'g r', path: '/spread',      label: 'NSE-BSE Spread' },
   { keys: 'g i', path: '/intraday',    label: 'Intraday Scalper' },
+  { keys: 'g r', path: '/spread',      label: 'NSE-BSE Spread' },
+  // Review
   { keys: 'g j', path: '/journal',     label: 'Journal' },
-  { keys: 'g e', path: '/execution',   label: 'Execution Quality' },
+  { keys: 'g e', path: '/execution',   label: 'Fill Quality' },
   { keys: 'g x', path: '/diagnostics', label: 'Diagnostics' },
 ];
 

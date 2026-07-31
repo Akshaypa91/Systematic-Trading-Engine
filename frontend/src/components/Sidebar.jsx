@@ -2,44 +2,61 @@
 // Grouped navigation with active-edge indicator, desktop collapse-to-rail
 // (persisted, icon tooltips) and a live NSE market chip in the footer.
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Zap, Search, TrendingUp, Radio, ArrowLeftRight,
-  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Play, Rocket, ScrollText, Wallet, Activity, Gauge,
+  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Rocket, ScrollText, Wallet, Activity, Gauge,
 } from 'lucide-react';
 
+// Grouped by the loop a systematic trader actually runs:
+//   research an idea → pick the strategy → execute it → review what happened.
+//
+// The previous grouping mixed those stages. "Signals" sat under Trading though
+// it produces ideas, not orders. The three actual strategies (Swing, Scalper,
+// Spread) were buried among the generic research tools. "Execution" sat in
+// Workspace two groups away from "Live Orders" despite being the report card
+// for those same fills — and its bare label read as a place to send orders.
+//
+// Quick Actions ("New backtest", "Quick order") was also removed: both entries
+// navigated to routes already listed a few rows above, so it cost two rows of a
+// scrolling sidebar to duplicate links the user could already see.
 const GROUPS = [
   {
     label: 'Trading',
     items: [
-      { to: '/',       icon: LayoutDashboard, label: 'Dashboard',    kbd: 'G D', end: true },
-      { to: '/trade',  icon: ArrowLeftRight,  label: 'Trade',        kbd: 'G T' },
+      { to: '/',          icon: LayoutDashboard, label: 'Dashboard',   kbd: 'G D', end: true },
+      { to: '/trade',     icon: ArrowLeftRight,  label: 'Trade',       kbd: 'G T' },
+      { to: '/positions', icon: Wallet,          label: 'Portfolio',   kbd: 'G P' },
+      { to: '/orders',    icon: ScrollText,      label: 'Live Orders', kbd: 'G O' },
       // NOT real money — this is the simulated auto-trading engine. Calling it
       // "Live Trading" next to a real-money LIVE mode was genuinely dangerous.
-      { to: '/live',   icon: Zap,             label: 'Paper Engine', kbd: 'G L' },
-      { to: '/orders', icon: ScrollText,      label: 'Live Orders',  kbd: 'G O' },
-      { to: '/positions', icon: Wallet,       label: 'Portfolio',    kbd: 'G P' },
-      { to: '/signals', icon: Radio,          label: 'Signals',      kbd: 'G S' },
+      { to: '/live',      icon: Zap,             label: 'Paper Engine', kbd: 'G L' },
     ],
   },
   {
     label: 'Research',
     items: [
+      { to: '/signals',   icon: Radio,      label: 'Signals',   kbd: 'G S' },
       { to: '/screener',  icon: Search,     label: 'Screener',  kbd: 'G C' },
       { to: '/backtest',  icon: TrendingUp, label: 'Backtest',  kbd: 'G B' },
       { to: '/analytics', icon: BarChart2,  label: 'Analytics', kbd: 'G A' },
-      { to: '/swing',     icon: Rocket,     label: 'Swing Setup', kbd: 'G W' },
-      { to: '/spread',    icon: ArrowLeftRight, label: 'NSE-BSE Spread', kbd: 'G R' },
-      { to: '/intraday',  icon: Zap,        label: 'Intraday Scalper', kbd: 'G I' },
     ],
   },
   {
-    label: 'Workspace',
+    label: 'Strategies',
     items: [
-      { to: '/journal',  icon: BookOpen,      label: 'Journal',  kbd: 'G J' },
-      { to: '/execution', icon: Gauge,        label: 'Execution', kbd: 'G E' },
-      { to: '/diagnostics', icon: Activity,   label: 'Diagnostics', kbd: 'G X' },
-      { to: '/feedback', icon: MessageSquare, label: 'Feedback' },
+      { to: '/swing',    icon: Rocket,         label: 'Swing Setup',      kbd: 'G W' },
+      { to: '/intraday', icon: Zap,            label: 'Intraday Scalper', kbd: 'G I' },
+      { to: '/spread',   icon: ArrowLeftRight, label: 'NSE-BSE Spread',   kbd: 'G R' },
+    ],
+  },
+  {
+    label: 'Review',
+    items: [
+      { to: '/journal',     icon: BookOpen, label: 'Journal',       kbd: 'G J' },
+      // "Execution" alone read like an action. This page scores fills.
+      { to: '/execution',   icon: Gauge,    label: 'Fill Quality',  kbd: 'G E' },
+      { to: '/diagnostics', icon: Activity, label: 'Diagnostics',   kbd: 'G X' },
     ],
   },
 ];
@@ -56,7 +73,6 @@ const COLLAPSE_KEY = 'systra.sidebar.collapsed';
 
 export default function Sidebar({ open, onClose }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const marketOpen = isMarketOpen();
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(COLLAPSE_KEY) === '1'
@@ -117,21 +133,18 @@ export default function Sidebar({ open, onClose }) {
             </div>
           ))}
 
-          {/* Quick actions */}
-          <div className="sb-group-label" style={{ marginTop: 6 }}>Quick actions</div>
-          <button className="sb-item" onClick={() => navigate('/backtest')}>
-            <Play size={15} strokeWidth={1.75} aria-hidden="true" />
-            <span className="sb-label">New backtest</span>
-            <span className="sb-tip" role="tooltip">New backtest</span>
-          </button>
-          <button className="sb-item" onClick={() => navigate('/trade')}>
-            <Zap size={15} strokeWidth={1.75} aria-hidden="true" />
-            <span className="sb-label">Quick order</span>
-            <span className="sb-tip" role="tooltip">Quick order</span>
-          </button>
         </nav>
 
         <div className="sb-footer">
+          {/* Feedback is app meta, not a workspace tool — it belongs with the
+              other chrome at the bottom rather than taking a slot in a
+              navigation group. */}
+          <NavLink to="/feedback" className={({ isActive }) => `sb-item${isActive ? ' active' : ''}`}>
+            <MessageSquare size={15} strokeWidth={1.75} aria-hidden="true" />
+            <span className="sb-label">Feedback</span>
+            <span className="sb-tip" role="tooltip">Feedback</span>
+          </NavLink>
+
           {/* Market status */}
           <div className="sb-market">
             <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 7 }}>
