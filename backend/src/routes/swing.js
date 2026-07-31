@@ -28,4 +28,16 @@ router.get('/history', requireAuth, async (req, res) => {
   }
 });
 
+// Monthly win rate + expectancy over the recorded signals, scored against real
+// prices. `?refresh=1` re-checks pending/open signals first (slower).
+router.get('/performance', requireAuth, async (req, res) => {
+  try {
+    const outcomes = require('../services/swingOutcomes');
+    if (req.query.refresh === '1') await outcomes.evaluatePending({ limit: 200 });
+    res.json({ success: true, ...(await outcomes.getPerformance()) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

@@ -9,6 +9,7 @@ import PriceChart from '../components/PriceChart';
 import SearchBar from '../components/SearchBar';
 import Toast from '../components/Toast';
 import CreatorLinks from '../components/CreatorLinks';
+import SwingPerformance from '../components/SwingPerformance';
 import { marketAPI, swingAPI } from '../services/api';
 import { evaluateSwing } from '../utils/swingStrategy';
 import {
@@ -407,6 +408,10 @@ export default function SwingStrategy() {
             </div>
           )}
         </Card>
+
+        {/* ── Did it work? Monthly scorecard sits between the signals and the
+            history, so the numbers are read before the next trade is taken. ── */}
+        <SwingPerformance />
 
         {/* ── Signal history (persisted server-side, deduped per day) ── */}
         {history.length > 0 && (

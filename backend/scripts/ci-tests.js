@@ -55,6 +55,7 @@ const SUITES = [
   'scripts/test-intraday-scalper.js',
   'scripts/test-no-fake-prices.js',
   'scripts/test-broker-ownership.js',
+  'scripts/test-swing-outcomes.js',
 ];
 for (const s of SUITES) {
   const p = path.join(ROOT, s);

@@ -263,6 +263,12 @@ async function autoPaperJob() {
 
 // ── Initialise all jobs ───────────────────────────────────────────────────────
 
+// Resolve swing signals whose outcome is still unknown (or still open).
+async function swingOutcomesJob() {
+  const r = await require('../services/swingOutcomes').evaluatePending({ limit: 200 });
+  logger.info(`[Scheduler] Swing outcomes: checked=${r.checked} resolved=${r.resolved}`);
+}
+
 function start() {
   // NEW jobs
   registerJob('LIVE_SIGNALS',      liveSignalsJob,      5  * 60 * 1000, { marketHoursOnly: true,  runOnStart: false });
@@ -274,6 +280,10 @@ function start() {
   registerJob('CORP_ACTIONS_SYNC', corpActionsSyncJob,   7 * 24 * 60 * 60 * 1000, { marketHoursOnly: false, runOnStart: false });
   registerJob('LIVE_EXECUTION',    liveExecutionJob,     30 * 1000,               { marketHoursOnly: true,  runOnStart: false });
   registerJob('AUTO_PAPER',        autoPaperJob,          2 * 60 * 1000,           { marketHoursOnly: true,  runOnStart: false });
+  // Score yesterday's swing signals against real prices. Daily is enough — the
+  // signals are daily-resolution — and it runs outside market hours because it
+  // reads settled closes, not live ticks.
+  registerJob('SWING_OUTCOMES',    swingOutcomesJob,     12 * 60 * 60 * 1000,      { marketHoursOnly: false, runOnStart: false });
 
   // One-shot backfill ~90s after boot so a fresh deploy (or free-tier cold
   // start that never reaches the weekly timer) still refreshes corp actions.
