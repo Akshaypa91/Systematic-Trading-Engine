@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const sidebar   = readFileSync(join(root, 'src/components/Sidebar.jsx'), 'utf8');
 const shortcuts = readFileSync(join(root, 'src/hooks/useGlobalShortcuts.js'), 'utf8');
+const bottomNav = readFileSync(join(root, 'src/components/BottomNav.jsx'), 'utf8');
 
 let fail = 0;
 const bad = (m) => { fail++; console.log(`  ❌ ${m}`); };
@@ -57,5 +58,31 @@ for (const r of routes) {
 }
 if (seen.size === routes.length) ok('no duplicate key bindings');
 
-console.log(fail === 0 ? '\n✅ nav and shortcuts are in sync\n' : `\n❌ ${fail} problem(s)\n`);
+// 4. Every icon must be unique. Collapsed rail mode hides the labels, so two
+//    items sharing an icon become genuinely indistinguishable — which is how
+//    Zap ended up meaning both "Paper Engine" and "Intraday Scalper".
+const icons = [...sidebar.matchAll(/\{\s*to:\s*'([^']+)'[^}]*?icon:\s*(\w+)/g)]
+  .map(([, path, icon]) => ({ path, icon }));
+const byIcon = new Map();
+for (const { path, icon } of icons) {
+  if (byIcon.has(icon)) bad(`icon ${icon} is used by both ${byIcon.get(icon)} and ${path}`);
+  else byIcon.set(icon, path);
+}
+if (byIcon.size === icons.length) ok(`all ${icons.length} sidebar icons are distinct`);
+
+// 5. A destination present in both navigations must use the same icon —
+//    otherwise the same page wears two faces depending on how you got there.
+const bottomIcons = [...bottomNav.matchAll(/\{\s*to:\s*'([^']+)',\s*icon:\s*(\w+)/g)]
+  .map(([, path, icon]) => ({ path, icon }));
+let mismatch = 0;
+for (const b of bottomIcons) {
+  const side = icons.find(i => i.path === b.path);
+  if (side && side.icon !== b.icon) {
+    bad(`${b.path} is ${side.icon} in the sidebar but ${b.icon} in the bottom bar`);
+    mismatch++;
+  }
+}
+if (bottomIcons.length && !mismatch) ok('bottom bar icons match the sidebar');
+
+console.log(fail === 0 ? '\n✅ nav, shortcuts and icons are in sync\n' : `\n❌ ${fail} problem(s)\n`);
 process.exit(fail === 0 ? 0 : 1);

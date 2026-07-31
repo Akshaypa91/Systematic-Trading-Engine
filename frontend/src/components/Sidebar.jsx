@@ -4,8 +4,10 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Zap, Search, TrendingUp, Radio, ArrowLeftRight,
-  X, MessageSquare, BarChart2, BookOpen, PanelLeftClose, PanelLeftOpen, Rocket, ScrollText, Wallet, Activity, Gauge,
+  LayoutDashboard, ArrowLeftRight, Briefcase, Receipt, Bot, Radio,
+  Filter, History, BarChart2, CandlestickChart, Zap, GitCompareArrows,
+  BookOpen, Gauge, Activity, MessageSquare,
+  X, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 
 // Grouped by the loop a systematic trader actually runs:
@@ -20,34 +22,49 @@ import {
 // Quick Actions ("New backtest", "Quick order") was also removed: both entries
 // navigated to routes already listed a few rows above, so it cost two rows of a
 // scrolling sidebar to duplicate links the user could already see.
+// Icons carry real weight here: in collapsed rail mode they are the ONLY label,
+// so every one must be unique and mean something. Two were previously reused —
+// Zap for both Paper Engine and Intraday Scalper, ArrowLeftRight for both Trade
+// and NSE-BSE Spread — which made those pairs indistinguishable on the rail.
+// check-nav.mjs now fails the build if any icon is used twice.
 const GROUPS = [
   {
     label: 'Trading',
     items: [
       { to: '/',          icon: LayoutDashboard, label: 'Dashboard',   kbd: 'G D', end: true },
+      // The canonical buy/sell exchange glyph.
       { to: '/trade',     icon: ArrowLeftRight,  label: 'Trade',       kbd: 'G T' },
-      { to: '/positions', icon: Wallet,          label: 'Portfolio',   kbd: 'G P' },
-      { to: '/orders',    icon: ScrollText,      label: 'Live Orders', kbd: 'G O' },
+      // Briefcase, not Wallet: this is holdings, not cash. Funds live elsewhere.
+      { to: '/positions', icon: Briefcase,       label: 'Portfolio',   kbd: 'G P' },
+      // Receipt reads as contract notes / order book.
+      { to: '/orders',    icon: Receipt,         label: 'Live Orders', kbd: 'G O' },
       // NOT real money — this is the simulated auto-trading engine. Calling it
       // "Live Trading" next to a real-money LIVE mode was genuinely dangerous.
-      { to: '/live',      icon: Zap,             label: 'Paper Engine', kbd: 'G L' },
+      // Bot says "runs itself" and frees Zap for the scalper.
+      { to: '/live',      icon: Bot,             label: 'Paper Engine', kbd: 'G L' },
     ],
   },
   {
     label: 'Research',
     items: [
-      { to: '/signals',   icon: Radio,      label: 'Signals',   kbd: 'G S' },
-      { to: '/screener',  icon: Search,     label: 'Screener',  kbd: 'G C' },
-      { to: '/backtest',  icon: TrendingUp, label: 'Backtest',  kbd: 'G B' },
-      { to: '/analytics', icon: BarChart2,  label: 'Analytics', kbd: 'G A' },
+      { to: '/signals',   icon: Radio,     label: 'Signals',   kbd: 'G S' },
+      // Filter, not Search: a screener narrows a universe. Search is already
+      // the navbar's symbol lookup, so reusing it blurred two different jobs.
+      { to: '/screener',  icon: Filter,    label: 'Screener',  kbd: 'G C' },
+      // History: a backtest replays the past. TrendingUp implied a result.
+      { to: '/backtest',  icon: History,   label: 'Backtest',  kbd: 'G B' },
+      { to: '/analytics', icon: BarChart2, label: 'Analytics', kbd: 'G A' },
     ],
   },
   {
     label: 'Strategies',
     items: [
-      { to: '/swing',    icon: Rocket,         label: 'Swing Setup',      kbd: 'G W' },
-      { to: '/intraday', icon: Zap,            label: 'Intraday Scalper', kbd: 'G I' },
-      { to: '/spread',   icon: ArrowLeftRight, label: 'NSE-BSE Spread',   kbd: 'G R' },
+      // A rocket is startup iconography, not finance. Candlesticks are the
+      // universal language of a swing setup.
+      { to: '/swing',    icon: CandlestickChart, label: 'Swing Setup',      kbd: 'G W' },
+      { to: '/intraday', icon: Zap,              label: 'Intraday Scalper', kbd: 'G I' },
+      // Two venues being compared — the whole point of the page.
+      { to: '/spread',   icon: GitCompareArrows, label: 'NSE-BSE Spread',   kbd: 'G R' },
     ],
   },
   {

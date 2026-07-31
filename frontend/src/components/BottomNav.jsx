@@ -15,15 +15,17 @@
 // Everything else stays one tap away in the drawer, which is where occasional
 // destinations belong.
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, Radio, Wallet, Rocket } from 'lucide-react';
+// Icons mirror the sidebar exactly — the same destination must not wear two
+// different faces depending on which navigation you reached it from.
+import { LayoutDashboard, ArrowLeftRight, Radio, Briefcase, CandlestickChart } from 'lucide-react';
 import { useWS } from '../context/WSContext';
 
 const NAV = [
   { to: '/',          icon: LayoutDashboard, label: 'Home',   end: true },
   { to: '/signals',   icon: Radio,           label: 'Signals' },
   { to: '/trade',     icon: ArrowLeftRight,  label: 'Trade' },
-  { to: '/positions', icon: Wallet,          label: 'Portfolio' },
-  { to: '/swing',     icon: Rocket,          label: 'Swing' },
+  { to: '/positions', icon: Briefcase,       label: 'Portfolio' },
+  { to: '/swing',     icon: CandlestickChart, label: 'Swing' },
 ];
 
 export default function BottomNav() {
