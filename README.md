@@ -20,7 +20,8 @@ Live demo (frontend): `systematic-trading-engine.vercel.app` · Backend: Render 
 | Database | TiDB Cloud (MySQL-compatible) via `mysql2` |
 | Auth | Google login + JWT |
 | Broker | Upstox v2 (OAuth, orders, funds, positions, holdings) |
-| Market data | Upstox REST poller → Upstox REST snapshot → NSE → TwelveData/Finnhub → SIM |
+| Market data | Upstox REST poller → Upstox REST snapshot → NSE → TwelveData/Finnhub → `UNAVAILABLE` |
+| Tests | 25 offline suites, 358 assertions, gated in CI (`npm run test:unit`) |
 
 ---
 
@@ -28,8 +29,9 @@ Live demo (frontend): `systematic-trading-engine.vercel.app` · Backend: Render 
 
 ```
                          React SPA (Vite / Vercel)
-   Dashboard · Trade · Live Trading · Live Orders · Portfolio · Signals
-   Screener · Backtest · Analytics · Journal · Diagnostics
+   Dashboard · Trade · Paper Engine · Live Orders · Portfolio · Signals
+   Screener · Backtest · Analytics · Swing · Spread · Scalper
+   Journal · Execution · Diagnostics
                     │  REST (axios)          │  WebSocket  /ws
         ┌───────────▼────────────────────────▼───────────┐
         │              Express API (Render)               │
@@ -48,9 +50,10 @@ Live demo (frontend): `systematic-trading-engine.vercel.app` · Backend: Render 
                 │
    ┌────────────▼──────────────────────────────────────────────┐
    │                     Execution Layer                        │
-   │  Paper: simulationEngine + virtual portfolio               │
-   │  Live:  brokerAdapter (Upstox) + liveTradingService        │
-   │  riskManager · riskLimits · auditLog · scheduler · alerts  │
+   │  Paper: autoPaperTrader on the DB portfolio                │
+   │  Live:  brokerAdapter (Upstox) + liveExecutionEngine       │
+   │  orderLifecycle (state machine) · positionSizing           │
+   │  requireBrokerOwner · riskLimits · auditLog · scheduler    │
    └────────────┬──────────────────────────────────────────────┘
                 │
         ┌───────▼────────┐
@@ -89,9 +92,32 @@ A **full NSE instrument master** (`instrumentMaster.js`) is loaded at boot so an
 
 ---
 
+## Security — the broker session has an owner
+
+Every route that touches the **linked broker account** — funds, holdings, positions, order book, order placement, exits, cancels — is gated behind `requireBrokerOwner`, which checks that the caller *is the user who linked that account*. Authentication and authorisation are separate questions, and only the second one protects money.
+
+- The Upstox OAuth flow carries an **HMAC-signed `state`** (10-minute TTL) binding the link to the user who started it. Tampering with the encoded user id or replaying an old `state` both fail verification.
+- The access token is persisted **with its owner** (AES-256-GCM, in `system_flags`).
+- **Fail-closed by construction:** no token → `409`; a token with no recorded owner (env-injected, or persisted before ownership tracking existed) → `403` for *everyone*; a mismatched user → `403`. The refusal body contains neither the token nor the owner's id.
+- `GET /live/broker/status` reports `connected: false` to non-owners plus a `linkedByOther` flag, so the UI can say "someone else has linked a broker here" without leaking whose or what is in it.
+- Market-data routes are deliberately **not** gated — a price is not account data, and background jobs have no request context.
+
+<details>
+<summary><b>The bug this closes</b></summary>
+
+The Upstox token was a single process-wide value with no recorded owner, and the `/api/live` routes only applied `requireAuth` — i.e. *"is somebody logged in"*, never *"is this their account"*. Two different logins therefore rendered the same client ID, the same account-holder name and the same ₹ balance, and `POST /api/live/order` would have placed a **real order on whoever linked Upstox last**.
+
+The root cause was in the UI, not the API: "Connect Upstox" was a plain `<a href=".../upstox/login">`. An anchor sends no `Authorization` header, so the server never knew who was linking, and the resulting session belonged to nobody. Raising checks inside the controllers would not have fixed that — the identity had to be established at the start of the OAuth flow, which is why the connect button now goes through an authenticated request that returns a signed authorize URL.
+
+`scripts/test-broker-ownership.js` pins the behaviour with 42 assertions, including that a non-owner is blocked at the route boundary and that the 403 leaks nothing. One of those tests caught a bug in the fix itself: `Number(null)` is `0` and `Number.isFinite(0)` is `true`, so a naive coercion quietly turned "no owner" into "user 0".
+
+</details>
+
+---
+
 ## Live trading (Upstox)
 
-- **Broker connection** — OAuth login, encrypted token persistence (AES-256-GCM in `system_flags`) so a restart keeps the session; Broker Status Card with client ID, account, segment, funds, token expiry.
+- **Broker connection** — OAuth login with signed, user-bound `state`; encrypted token persistence (AES-256-GCM in `system_flags`) so a restart keeps the session; Broker Status Card with client ID, account, segment, funds, token expiry.
 - **Mode selector** — global PAPER (blue) / LIVE (green); LIVE is disabled unless the broker is connected.
 - **Order entry** — Market / Limit / SL / SL-M, product (CNC/MIS/NRML), validity (DAY/IOC/AMO), trigger + disclosed qty, with a **charges confirmation modal** (brokerage, exchange, GST, STT, SEBI, stamp duty, approx total, margin).
 - **Order book** — pending / completed / partial / cancelled / rejected with avg price, filled qty, broker order id, and cancel.
@@ -101,6 +127,20 @@ A **full NSE instrument master** (`instrumentMaster.js`) is loaded at boot so an
 - **Audit** — every order request/response, exit, cancel, risk change, and kill-switch toggle is recorded.
 
 **Paper trading is fully isolated** — it uses the simulation engine and virtual portfolio, and is never touched by the live path.
+
+---
+
+## Strategy scoring — does the scanner actually work?
+
+The swing scanner records every breakout it finds (entry / SL / T1 / T2, deduped per day). `swingOutcomes.js` then walks the **real daily bars that came after** each signal and scores it, so the strategy can be measured instead of admired. `GET /api/swing/performance` returns monthly win rate, expectancy and open counts; a scheduler job re-checks unresolved signals every 12h.
+
+Two decisions here matter more than the code:
+
+**Win rate is never shown alone.** These signals run a reward:risk below 1 (roughly 0.87:1), which needs a **53.6% win rate just to break even**. A "60% win rate" headline would be actively misleading, so every view pairs win rate with the breakeven rate implied by the actual payoff, and with **expectancy in R** — the number that decides whether the strategy makes money.
+
+**Same-bar ambiguity resolves against us.** When a single daily bar's high reaches the target *and* its low reaches the stop, daily data cannot prove which came first. Those are always scored as **stops**. Assuming the target is exactly how a backtest manufactures an edge that dies in production.
+
+Signals still inside the 30-session window are counted separately and **excluded from win rate** — neither banked as wins nor written off as losses. Below 30 resolved trades the UI states plainly that the sample is too small to conclude anything, rather than printing a percentage to one decimal place.
 
 ---
 
@@ -115,6 +155,7 @@ npm install
 cp .env.example .env          # fill DB + Upstox vars (see below)
 node scripts/migrate.js       # base schema
 node scripts/run-sql.js scripts/migrate-live-orders-phase2.sql   # live-orders columns
+node scripts/backfill-history.js   # REAL 5y daily OHLCV (Yahoo, no broker needed)
 npm run dev                   # http://localhost:3000  (WS: /ws)
 
 # Frontend (separate terminal)
@@ -123,31 +164,44 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
+**Run the backfill.** Signals, backtests and the paper trader all compute on stored closes, so with an empty `daily_prices` the app correctly reports `NO_MARKET_DATA` and shows empty states — it will not invent numbers to fill the screen. `backfill-history.js` is idempotent (upsert on `symbol, exchange, date`), so re-running it refreshes rather than duplicates.
+
+> `scripts/reseed-prices.js` is retired and refuses to run. It used to seed a generated random walk, which was survivable when stored prices were demo dressing and is poison now that they are treated as ground truth.
+
+### Tests
+
+```bash
+cd backend && npm run test:unit    # 25 suites · 358 assertions · no network, no DB
+```
+
+Every money-path guard is covered: order lifecycle transitions, position sizing, live-order risk checks, the arm interlock, broker ownership, price fabrication, and swing scoring. They run offline so CI never depends on a broker session or market hours.
+
 ---
 
 ## Selected API (all under `/api`)
 
-**Auth / broker:** `GET /auth/upstox/login`, `GET /auth/upstox/callback`, `POST /auth/upstox/logout`
+**Auth / broker:** `GET /auth/upstox/link` *(authenticated — returns a signed authorize URL)*, `GET /auth/upstox/callback`, `POST /auth/upstox/logout`
 
-**Market data:** `GET /data/quote/:symbol`, `/data/historical/:symbol`, `/data/nifty50`, `/data/market-status`, `/data/health`
+**Market data:** `GET /data/quote/:symbol`, `/data/historical/:symbol`, `/data/indices` *(NIFTY/SENSEX/BANKNIFTY)*, `/data/last-closes?symbols=` *(watchlist from stored closes + day change)*, `/data/nifty50`, `/data/market-status`, `/data/health`
 
-**Signals / research:** `GET /signal/:symbol?strategy=AGGREGATED`, `POST /backtest`, `GET /screener`, `POST /analytics/optimize`
+**Signals / research:** `GET /signal/:symbol?strategy=AGGREGATED` *(503 `NO_MARKET_DATA` below 60 real bars)*, `POST /backtest`, `GET /screener`, `POST /analytics/optimize`, `GET /swing/performance?refresh=1` *(monthly win rate + expectancy)*
 
 **Paper trading:** `POST /trade/order`, `GET /trade/portfolio`, `GET /sim/signals`, `GET /sim/portfolio`
 
-**Live trading:**
+**Live trading** — 🔒 marks routes that additionally require `requireBrokerOwner`; being logged in is not enough.
+
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/live/broker/status` | Broker card (profile, funds, WS, token) |
-| POST | `/live/broker/reconnect` \| `/disconnect` \| `/refresh` | Connection mgmt |
-| POST | `/live/order` | Place order (real / sandbox) |
-| POST | `/live/charges` | Brokerage/tax preview |
-| GET | `/live/orders` | Normalized order book |
-| GET | `/live/positions` · `POST /live/positions/exit` | Positions + square-off one |
-| GET | `/live/funds/normalized` · `/live/holdings` | Funds + holdings |
-| GET/PUT | `/live/risk` | Risk limits |
-| POST | `/live/kill-switch` · `/live/emergency/{stop,square-off,cancel-all}` | Safety controls |
-| GET | `/live/diagnostics` | Real-time market-data diagnostics |
+| GET | `/live/broker/status` | Broker card; reports `connected:false` + `linkedByOther` to non-owners |
+| POST | 🔒 `/live/broker/reconnect` \| `/disconnect` \| `/refresh` | Connection mgmt |
+| POST | 🔒 `/live/order` | Place order (real / sandbox) |
+| POST | `/live/charges` | Brokerage/tax preview (pure calculator, no account data) |
+| GET | 🔒 `/live/orders` | Normalized order book |
+| GET | 🔒 `/live/positions` · `POST 🔒 /live/positions/exit` | Positions + square-off one |
+| GET | 🔒 `/live/funds/normalized` · 🔒 `/live/holdings` | Funds + holdings |
+| GET/PUT | `/live/risk` | Risk limits (deployment-wide; tightening can only reduce risk) |
+| POST | `/live/kill-switch` · 🔒 `/live/emergency/{square-off,cancel-all}` | Safety controls |
+| GET | `/live/diagnostics` | Market-data diagnostics, latency budget, **Data Gaps** |
 
 **WebSocket** `ws://host/ws` — subscribe `{ "action":"SUBSCRIBE", "symbols":["RELIANCE"] }`; server pushes `PRICE`, `SIM_TICK`, `SIM_TRADE`, `LIVE_SIGNAL`, `ALERT`.
 
@@ -164,6 +218,18 @@ npm run dev                   # http://localhost:5173
 **Position sizing** — Fixed-fractional `qty = ⌊(capital·riskPct)/(entry·slPct)⌋`; half-Kelly optional.
 
 **Backtest metrics** — CAGR, Sharpe, Sortino, Calmar, Max Drawdown, Profit Factor. Walk-forward optimisation (IS/OOS windows) guards against curve-fitting.
+
+**Costs are modelled, not waved away** — brokerage, STT, exchange charges, GST 18%, stamp duty, and 20% STCG on intraday. Backtests report **gross → cost drag → net**, because a strategy that only works before frictions does not work.
+
+---
+
+## Research findings
+
+The point of building this was to find out whether the strategies work. Two results are worth stating plainly, because both are negative and both changed what got built:
+
+**Walk-forward validation: buy & hold won 3 of 3 out-of-sample folds.** None of the tested strategies — mean reversion, MA crossover, RSI, trend following, cross-sectional momentum — beat holding the index once tested on data they were not fitted on. Test enough strategies and one will look profitable by chance; rolling out-of-sample folds are how you tell the difference. The finding is reported rather than tuned away (`scripts/walk-forward.js`).
+
+**Measured reaction latency: ~4.9 seconds.** Feed staleness + signal compute + order round-trip, instrumented end to end (`utils/latencyMonitor`, surfaced on `/diagnostics`). That is roughly five orders of magnitude off real HFT, which is why the "microsecond execution" idea was formally ruled out instead of half-built. The NSE–BSE spread monitor that came out of that work is read-only: it measures the gap and the round-trip cost required to capture it, and places no orders.
 
 ---
 
@@ -187,7 +253,13 @@ UPSTOX_API_SECRET=...
 UPSTOX_REDIRECT_URI=https://<backend>/api/auth/upstox/callback
 UPSTOX_SANDBOX=true                 # keep true until sandbox-verified
 UPSTOX_SANDBOX_TOKEN=               # optional dedicated sandbox token
-UPSTOX_TOKEN_SECRET=<random>        # encrypts the persisted token (falls back to JWT_SECRET)
+UPSTOX_TOKEN_SECRET=<random>        # encrypts the persisted token + signs OAuth state (falls back to JWT_SECRET)
+
+# ── Data integrity ──
+ALLOW_SIM_PRICES=false              # leave false. true generates synthetic prices
+                                    # that are visually indistinguishable from quotes;
+                                    # for offline UI work only.
+CORP_ACTION_ADJUST=true             # back-adjust bonuses/splits at the data layer
 
 # ── Live risk limits (defaults; overridable in the UI) ──
 LIVE_MAX_QTY=500
@@ -211,7 +283,17 @@ Optional market-data keys: `TWELVEDATA_API_KEY`, `FINNHUB_API_KEY`.
 - **Frontend → Vercel:** set `VITE_API_URL` / `VITE_WS_URL`; auto-deploys from `main`.
 - **Backend → Render:** set all server + Upstox + DB env vars; auto-deploys from `main`. Run the `live_orders` migration once (`scripts/run-sql.js`).
 - **Database → TiDB Cloud.**
-- Upstox tokens expire ~03:30 IST; re-run `/api/auth/upstox/login` each trading day (the encrypted token then persists across restarts). Flip `UPSTOX_SANDBOX=false` only after sandbox sign-off.
+- Upstox tokens expire ~03:30 IST; reconnect from the app each trading day using the **Connect Upstox** button (the encrypted token then persists across restarts). Do not bookmark the raw `/auth/upstox/login` URL — it carries no user identity and is refused. Flip `UPSTOX_SANDBOX=false` only after sandbox sign-off.
+- Run `node scripts/backfill-history.js` against the deployed database once, or signals and backtests will correctly report no data.
+
+---
+
+## Known limitations
+
+- **One broker session per deployment.** The token is a single owned value, not a per-user table. A second user cannot see or use the first user's account (that is enforced), but they cannot link their own alongside it either — they must wait for the session to be cleared. Per-user `broker_accounts` rows are the next step; the table already exists.
+- **SEBI's retail algo framework** (mandatory from 1 April 2026) requires exchange-issued Algo IDs, broker registration and static IP whitelisting. This build satisfies none of those, so LIVE mode is for personal sandbox/manual use, not distribution.
+- **Free-tier hosting sleeps.** Render cold starts reset in-memory tick counters and pause the execution loop; `/diagnostics` surfaces process uptime so a restart is visible rather than inferred.
+- **No strategy here has a demonstrated edge.** See Research findings. Paper trading is the intended use.
 
 ---
 
@@ -224,18 +306,28 @@ backend/src/
   data/           liveDataFeed (WS), upstoxRestFeed, instrumentMaster,
                   nseFetcher, dataStore
   services/       marketDataService, brokerAdapter, liveTradingService,
-                  upstoxAuth (encrypted token persistence)
-  engine/         simulationEngine, signalEngine, backtester, ...
-  risk/           riskManager, riskLimits
-  ws/             upstoxWS (v2 scaffold)
-  controllers/ routes/ middleware/   REST layer + auth + rate limiting
-  scripts/        schema.sql, migrate.js, run-sql.js, migrate-live-orders-phase2.sql
+                  upstoxAuth (encrypted token + ownership + signed OAuth state),
+                  swingScanService, swingOutcomes (strategy scoring),
+                  crossExchangeSpread, executionQuality
+  engine/         strategyCore (one evaluation path for backtest/paper/live),
+                  simulationEngine, signalEngine, backtester,
+                  liveExecutionEngine, orderLifecycle, autoPaperTrader,
+                  intradayBacktester, portfolioBacktester, scheduler
+  risk/           riskManager, riskLimits, positionSizing, positionTargets
+  ws/             upstoxWS (v2 + protobuf decode)
+  middleware/     authMiddleware, brokerOwner (account authorisation), rbac,
+                  rateLimiter
+  controllers/ routes/            REST layer
+  scripts/        migrate.js, run-sql.js, backfill-history.js,
+                  walk-forward.js, ci-tests.js + 25 offline test suites
 frontend/src/
   pages/          Dashboard, Trade, LiveTrading, LiveOrders, LivePortfolio,
-                  Signals, Screener, Backtest, Analytics, Diagnostics, ...
-  components/     BrokerStatusCard, LiveOrderPanel/Modal, RiskEmergencyPanel,
-                  TradingModeToggle, Sidebar, StatusBar, ...
-  context/        AuthContext, WSContext, TradingModeContext
+                  Signals, Screener, Backtest, Analytics, SwingStrategy,
+                  SpreadMonitor, IntradayScalper, TradeJournal, Diagnostics
+  components/     BrokerStatusCard, ConnectUpstoxButton, LiveOrderPanel/Modal,
+                  RiskEmergencyPanel, IndicesStrip, MarketWatch,
+                  SwingPerformance, SignalsPanel, Sidebar, StatusBar, ...
+  context/        AuthContext, WSContext, TradingModeContext, ThemeContext
   services/api.js hooks/  utils/
 ```
 
