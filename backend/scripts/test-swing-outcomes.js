@@ -87,6 +87,7 @@ console.log('\nmonthly aggregation');
   ok('breakeven win rate from real R:R', jul.breakevenWinRatePct === 33.3, String(jul.breakevenWinRatePct));
 
   ok('overall decided count', overall.decided === 4, String(overall.decided));
+  ok('scored rows are not counted as unscored', overall.unscored === 0, String(overall.unscored));
   ok('overall win rate', overall.winRatePct === 50, String(overall.winRatePct));
   ok('overall total R', overall.totalR === 2, String(overall.totalR));
   ok('flags a small sample as unreliable', overall.reliable === false);
@@ -107,6 +108,41 @@ console.log('\na high win rate with poor payoff is still called out');
   ok('but expectancy is negative', overall.avgR < 0, String(overall.avgR));
   ok('breakeven is above the win rate', overall.breakevenWinRatePct > overall.winRatePct,
      `${overall.breakevenWinRatePct} vs ${overall.winRatePct}`);
+}
+
+console.log('\ndate handling — mysql2 returns DATE columns as Date objects');
+{
+  // The original code did String(signal_date).slice(0,7), which on a Date gives
+  // "Thu Jul" and surfaced in the UI as "Invalid Date". Fixtures used ISO
+  // strings, so the tests passed while production was broken — pin the real
+  // driver shape here.
+  const rows = [
+    { signal_date: new Date(2026, 6, 30), entry: 100, sl: 90, t1: 120, outcome: 'TARGET', r_multiple: 2 },
+    { signal_date: new Date(2026, 5, 9),  entry: 100, sl: 90, t1: 120, outcome: 'STOPPED', r_multiple: -1 },
+  ];
+  const { months } = summarise(rows);
+  ok('Date objects yield YYYY-MM', months.map(m => m.month).join(',') === '2026-07,2026-06',
+     months.map(m => m.month).join(','));
+  ok('no month parses as Invalid Date', months.every(m => !isNaN(new Date(`${m.month}-01`))));
+
+  // A late-evening IST date must not slip into the previous month via UTC.
+  const edge = summarise([{ signal_date: new Date(2026, 7, 1, 0, 30), entry: 100, sl: 90, t1: 120, outcome: 'OPEN' }]);
+  ok('midnight IST stays in its own month', edge.months[0].month === '2026-08', edge.months[0].month);
+}
+
+console.log('\nunscored is not the same as open');
+{
+  const rows = [
+    { signal_date: '2026-07-05', entry: 100, sl: 90, t1: 120, outcome: null },        // never checked
+    { signal_date: '2026-07-06', entry: 100, sl: 90, t1: 120, outcome: 'OPEN' },      // checked, undecided
+  ];
+  const { overall } = summarise(rows);
+  ok('counts unscored separately', overall.unscored === 1, String(overall.unscored));
+  ok('counts open separately',     overall.open === 1, String(overall.open));
+  ok('verdict tells the user to re-score', /Re-score/i.test(overall.verdict), overall.verdict);
+
+  const openOnly = summarise([{ signal_date: '2026-07-06', entry: 100, sl: 90, t1: 120, outcome: 'OPEN' }]);
+  ok('all-open verdict mentions the window', /window/i.test(openOnly.overall.verdict), openOnly.overall.verdict);
 }
 
 console.log('\nno data');

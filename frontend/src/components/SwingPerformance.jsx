@@ -10,9 +10,11 @@ import { swingAPI } from '../services/api';
 import { RefreshCw, Trophy, AlertTriangle } from 'lucide-react';
 
 const MONTH_LABEL = (m) => {
-  const [y, mo] = m.split('-');
-  return new Date(Number(y), Number(mo) - 1, 1)
-    .toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+  const [y, mo] = String(m || '').split('-');
+  const d = new Date(Number(y), Number(mo) - 1, 1);
+  // Never render "Invalid Date" at the user — if the bucket key is unparseable,
+  // show the raw key so the problem is visible and debuggable instead of noise.
+  return isNaN(d) ? (m || '—') : d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 };
 
 function Cell({ children, style }) {
@@ -95,7 +97,9 @@ export default function SwingPerformance() {
           <span className="mono" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
             {o.decided}<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/{o.signals}</span>
           </span>
-          <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>{o.open} still open</span>
+          <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>
+            {o.unscored > 0 ? `${o.unscored} not scored` : `${o.open} still open`}
+          </span>
         </div>
       </div>
 
@@ -109,12 +113,49 @@ export default function SwingPerformance() {
         <span style={{ fontSize: 11, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{o.verdict}</span>
       </div>
 
-      {/* Monthly breakdown */}
-      <div style={{ overflowX: 'auto' }}>
+      {/* Monthly breakdown — cards on phones. A 7-column table there pushed
+          Breakeven and Total R off-screen behind a scrollbar, i.e. hid exactly
+          the two columns that make the win rate interpretable. */}
+      <div className="nb-md-down-only" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.months.map(m => {
+          const beats = m.winRatePct != null && m.breakevenWinRatePct != null && m.winRatePct >= m.breakevenWinRatePct;
+          return (
+            <div key={m.month} style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)' }}>{MONTH_LABEL(m.month)}</span>
+                <span className="mono" style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>{m.signals} signals</span>
+                <span className="mono" style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 700, color: m.winRatePct == null ? 'var(--text-muted)' : beats ? 'var(--green)' : 'var(--red)' }}>
+                  {m.winRatePct != null ? `${m.winRatePct}%` : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: 'var(--text-muted)' }}>W / L</span>
+                <span style={{ textAlign: 'right' }}>
+                  <span style={{ color: 'var(--green)' }}>{m.wins}</span>
+                  <span style={{ color: 'var(--text-muted)' }}> / </span>
+                  <span style={{ color: 'var(--red)' }}>{m.losses}</span>
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>Breakeven</span>
+                <span style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>
+                  {m.breakevenWinRatePct != null ? `${m.breakevenWinRatePct}%` : '—'}
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>Total R</span>
+                <span style={{ textAlign: 'right', fontWeight: 600, color: m.totalR > 0 ? 'var(--green)' : m.totalR < 0 ? 'var(--red)' : 'var(--text-muted)' }}>
+                  {m.decided > 0 ? `${m.totalR > 0 ? '+' : ''}${m.totalR}R` : '—'}
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>{m.unscored > 0 ? 'Not scored' : 'Open'}</span>
+                <span style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{m.unscored > 0 ? m.unscored : (m.open || '—')}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="nb-md-up" style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 460 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Month', 'Signals', 'W / L', 'Win %', 'Breakeven', 'Total R', 'Open'].map((h, i) => (
+              {['Month', 'Signals', 'W / L', 'Win %', 'Breakeven', 'Total R', 'Pending'].map((h, i) => (
                 <th key={h} style={{
                   padding: '7px 10px', fontSize: 9.5, letterSpacing: '0.07em', textTransform: 'uppercase',
                   color: 'var(--text-muted)', textAlign: i === 0 ? 'left' : 'right', fontWeight: 600,
@@ -143,7 +184,9 @@ export default function SwingPerformance() {
                   <Cell style={{ textAlign: 'right', fontWeight: 600, color: m.totalR > 0 ? 'var(--green)' : m.totalR < 0 ? 'var(--red)' : 'var(--text-muted)' }}>
                     {m.decided > 0 ? `${m.totalR > 0 ? '+' : ''}${m.totalR}R` : '—'}
                   </Cell>
-                  <Cell style={{ textAlign: 'right', color: 'var(--text-muted)' }}>{m.open || '—'}</Cell>
+                  <Cell style={{ textAlign: 'right', color: 'var(--text-muted)' }}>
+                    {m.unscored > 0 ? `${m.unscored} unscored` : (m.open || '—')}
+                  </Cell>
                 </tr>
               );
             })}

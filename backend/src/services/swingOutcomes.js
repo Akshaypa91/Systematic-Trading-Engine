@@ -91,18 +91,47 @@ function resolveOutcome(sig, bars, horizon = HORIZON_BARS) {
  * Aggregate resolved outcomes into monthly and overall performance.
  * Open trades are counted and reported, but never scored.
  */
+/**
+ * YYYY-MM from a value that may be a JS Date or a string.
+ *
+ * mysql2 hydrates DATE columns into Date objects, so String(row.signal_date)
+ * gives "Thu Jul 30 2026 …" and slicing 7 chars off that yields "Thu Jul" —
+ * which reached the UI as "Invalid Date". Normalise explicitly instead of
+ * assuming the driver hands back an ISO string.
+ */
+function _monthOf(v) {
+  if (v instanceof Date && !isNaN(v)) {
+    // Local parts, not toISOString(): a date-only value at IST midnight shifts
+    // to the previous day in UTC, which would misfile month boundaries.
+    return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const s = String(v ?? '');
+  const m = s.match(/^(\d{4})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}`;
+  const d = new Date(s);
+  return isNaN(d) ? 'unknown' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** YYYY-MM-DD from a Date or string — same driver caveat as _monthOf. */
+function _dayOf(v) {
+  if (v instanceof Date && !isNaN(v)) {
+    return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
+  }
+  return String(v ?? '').slice(0, 10);
+}
+
 function summarise(rows) {
   const byMonth = new Map();
 
   const blank = (month) => ({
-    month, signals: 0, open: 0, decided: 0,
+    month, signals: 0, open: 0, unscored: 0, decided: 0,
     wins: 0, losses: 0, expired: 0,
     winRatePct: null, avgR: null, totalR: 0,
     breakevenWinRatePct: null, _rrSum: 0, _rrN: 0,
   });
 
   for (const r of rows) {
-    const month = String(r.signal_date).slice(0, 7);   // YYYY-MM
+    const month = _monthOf(r.signal_date);
     if (!byMonth.has(month)) byMonth.set(month, blank(month));
     const m = byMonth.get(month);
     m.signals++;
@@ -114,7 +143,11 @@ function summarise(rows) {
       m._rrN++;
     }
 
-    if (!r.outcome || r.outcome === 'OPEN') { m.open++; continue; }
+    // "Never scored" and "scored, still undecided" are different states. Lumping
+    // them together showed 17 signals as though 17 trades were running, when in
+    // fact none had been checked against prices yet.
+    if (!r.outcome)           { m.unscored++; continue; }
+    if (r.outcome === 'OPEN') { m.open++;     continue; }
     m.decided++;
     m.totalR += Number(r.r_multiple) || 0;
     if (r.outcome === 'TARGET')       m.wins++;
@@ -140,11 +173,11 @@ function summarise(rows) {
 
   // Overall = sum of parts, recomputed (never averaged from monthly averages).
   const all = months.reduce((a, m) => {
-    a.signals += m.signals; a.open += m.open; a.decided += m.decided;
+    a.signals += m.signals; a.open += m.open; a.unscored += m.unscored; a.decided += m.decided;
     a.wins += m.wins; a.losses += m.losses; a.expired += m.expired;
     a.totalR += m.totalR || 0;
     return a;
-  }, { signals: 0, open: 0, decided: 0, wins: 0, losses: 0, expired: 0, totalR: 0 });
+  }, { signals: 0, open: 0, unscored: 0, decided: 0, wins: 0, losses: 0, expired: 0, totalR: 0 });
 
   all.totalR = +all.totalR.toFixed(2);
   if (all.decided > 0) {
@@ -163,8 +196,12 @@ function summarise(rows) {
   // Sample-size honesty. Below ~30 decided trades a win rate is noise, and
   // saying so is more useful than printing it with a decimal point.
   all.reliable = all.decided >= 30;
-  all.verdict = all.decided === 0
-    ? 'No signal has resolved yet — nothing to score.'
+  all.verdict = all.signals === 0
+    ? 'No signals recorded yet — nothing to score.'
+    : all.decided === 0
+    ? (all.unscored > 0
+        ? `${all.unscored} signal${all.unscored === 1 ? '' : 's'} not scored yet — run Re-score to check them against real prices.`
+        : `${all.open} signal${all.open === 1 ? '' : 's'} still within the ${HORIZON_BARS}-session window — no outcome to report yet.`)
     : !all.reliable
       ? `Only ${all.decided} resolved trades — too few to conclude anything. Treat this as a sanity check, not a result.`
       : all.avgR > 0
@@ -245,7 +282,7 @@ async function evaluatePending({ limit = 200 } = {}) {
   for (const r of rows) {
     try {
       const bars  = await fetchDailyBars(r.symbol);
-      const after = bars.filter(b => b.date > String(r.signal_date).slice(0, 10));
+      const after = bars.filter(b => b.date > _dayOf(r.signal_date));
       const out   = resolveOutcome(r, after);
       await db.query(
         `UPDATE swing_signals
