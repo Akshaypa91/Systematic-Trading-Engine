@@ -9,6 +9,7 @@ import { PlugZap, Link2, Unplug, Loader2, AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTradingMode } from '../context/TradingModeContext';
 import { authAPI } from '../services/api';
+import ConnectUpstoxButton from './ConnectUpstoxButton';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
@@ -99,12 +100,9 @@ export default function BrokerConnectBanner({ style }) {
       <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
         Connect your Upstox account to enable live market data and real-money trading.
       </span>
-      <a href={`${API_BASE}/api/auth/upstox/login`}
-        style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 14px', borderRadius: 8,
-          background: 'color-mix(in srgb, var(--green) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--green) 38%, transparent)',
-          color: 'var(--green)', fontWeight: 700, fontSize: 12.5, textDecoration: 'none' }}>
-        <PlugZap size={13} /> Connect Upstox
-      </a>
+      <div style={{ marginLeft: 'auto' }}>
+        <ConnectUpstoxButton />
+      </div>
     </div>
   );
 }

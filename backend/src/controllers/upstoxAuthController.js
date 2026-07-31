@@ -11,15 +11,39 @@ const logger     = require('../config/logger');
 // "use the first URL" instead of producing an invalid Location header.
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',')[0].trim();
 
+const userIdOf = (req) => req.user?.userId ?? req.user?.id ?? null;
+
+// ── GET /api/auth/upstox/link (authenticated) ────────────────────────────────
+// Returns the Upstox authorize URL with a signed `state` binding the flow to
+// the calling user. The frontend then redirects the browser itself.
+//
+// Why not a plain <a href> to /login: an anchor sends no Authorization header,
+// so the backend could not know who was linking. That is exactly how the broker
+// session ended up unowned and shared across accounts.
+function linkUrl(req, res) {
+  try {
+    if (!process.env.UPSTOX_API_KEY)      return res.status(500).json({ success: false, error: 'UPSTOX_API_KEY not set' });
+    if (!process.env.UPSTOX_REDIRECT_URI) return res.status(500).json({ success: false, error: 'UPSTOX_REDIRECT_URI not set' });
+    const userId = userIdOf(req);
+    if (userId == null) return res.status(401).json({ success: false, error: 'Not authenticated' });
+    const url = upstoxAuth.getAuthorizationUrl(upstoxAuth.signState(userId));
+    return res.json({ success: true, url });
+  } catch (err) {
+    logger.error(`[UpstoxCtrl] linkUrl error: ${err.message}`);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 // ── GET /api/auth/upstox/login ────────────────────────────────────────────────
+// Legacy entry point kept so old bookmarks don't 404. It cannot identify the
+// user, so it refuses rather than creating another unowned session.
 function login(req, res) {
   logger.info('[UpstoxCtrl] login hit');
   try {
     if (!process.env.UPSTOX_API_KEY)      return res.status(500).json({ success: false, error: 'UPSTOX_API_KEY not set' });
     if (!process.env.UPSTOX_REDIRECT_URI) return res.status(500).json({ success: false, error: 'UPSTOX_REDIRECT_URI not set' });
-    const url = upstoxAuth.getAuthorizationUrl();
-    logger.info(`[UpstoxCtrl] Redirecting → ${url}`);
-    return res.redirect(302, url);
+    logger.warn('[UpstoxCtrl] /upstox/login used — no user context; redirecting to app');
+    return res.redirect(302, `${FRONTEND_URL.replace(/\/$/, '')}/trade?upstox=use_app_button`);
   } catch (err) {
     logger.error(`[UpstoxCtrl] login error: ${err.message}`);
     return res.status(500).json({ success: false, error: err.message });
@@ -31,7 +55,7 @@ async function callback(req, res) {
   logger.info(`[UpstoxCtrl] callback hit — method=${req.method} url=${req.originalUrl}`);
   logger.info(`[UpstoxCtrl] query: ${JSON.stringify(req.query)}`);
 
-  const { code, error, error_description } = req.query;
+  const { code, error, error_description, state } = req.query;
 
   if (error) {
     const reason = error_description || error;
@@ -45,9 +69,18 @@ async function callback(req, res) {
   }
 
   try {
-    logger.info(`[UpstoxCtrl] Exchanging code len=${code.length}`);
-    await upstoxAuth.exchangeCodeForToken(code);
-    logger.info('[UpstoxCtrl] Token exchange OK');
+    // Who started this link? Signed state, verified — not trusted as given.
+    // Without a valid owner the session would be claimable by anyone, which is
+    // the bug this whole flow exists to close.
+    const ownerUserId = upstoxAuth.verifyState(state);
+    if (ownerUserId == null) {
+      logger.warn('[UpstoxCtrl] callback with missing/invalid state — refusing to link');
+      return res.redirect(`${FRONTEND_URL}?upstox=error&reason=${encodeURIComponent('link expired — start again from the app')}`);
+    }
+
+    logger.info(`[UpstoxCtrl] Exchanging code len=${code.length} for user ${ownerUserId}`);
+    await upstoxAuth.exchangeCodeForToken(code, ownerUserId);
+    logger.info(`[UpstoxCtrl] Token exchange OK — owner=${ownerUserId}`);
 
     try {
       const s = upstoxWS.getStatus();
@@ -77,11 +110,16 @@ async function callback(req, res) {
 
 // ── GET /api/auth/upstox/status ───────────────────────────────────────────────
 function status(req, res) {
+  // "authenticated" must mean "authenticated FOR YOU". Reporting the raw
+  // process token here is what made another user's account render as though it
+  // were the caller's own.
+  const isOwner = upstoxAuth.isOwnedBy(userIdOf(req));
   return res.json({
     success: true,
     upstox: {
-      authenticated: upstoxAuth.isAuthenticated(),
-      token:         upstoxAuth.getTokenStatus(),
+      authenticated: isOwner,
+      linkedByOther: upstoxAuth.isAuthenticated() && !isOwner,
+      token:         isOwner ? upstoxAuth.getTokenStatus() : { hasToken: false },
       websocket:     upstoxWS.getStatus(),
     },
   });
@@ -89,6 +127,11 @@ function status(req, res) {
 
 // ── POST /api/auth/upstox/logout ──────────────────────────────────────────────
 function logout(req, res) {
+  // Only the owner may end the session — otherwise any user could disconnect
+  // someone else's live broker link mid-session.
+  if (upstoxAuth.isAuthenticated() && !upstoxAuth.isOwnedBy(userIdOf(req))) {
+    return res.status(403).json({ success: false, error: 'This broker session belongs to another user' });
+  }
   upstoxAuth.clearToken();
   upstoxWS.disconnect();
   return res.json({ success: true, message: 'Upstox session cleared' });
@@ -98,9 +141,16 @@ function logout(req, res) {
 function setToken(req, res) {
   const { token } = req.body;
   if (!token) return res.status(400).json({ success: false, error: 'token required' });
-  upstoxAuth.setAccessToken(token);
+  const userId = userIdOf(req);
+  if (userId == null) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  if (upstoxAuth.isAuthenticated() && !upstoxAuth.isOwnedBy(userId)) {
+    return res.status(403).json({ success: false, error: 'Another user has an active broker session' });
+  }
+  // The injector becomes the owner — a manually pasted token is still a real
+  // trading credential and needs the same ownership rules as the OAuth path.
+  upstoxAuth.setAccessToken(token, null, userId);
   upstoxWS.connect().catch(e => logger.warn(`[UpstoxCtrl] WS: ${e.message}`));
   return res.json({ success: true, message: 'Token set, WS connecting' });
 }
 
-module.exports = { login, callback, status, logout, setToken };
+module.exports = { login, linkUrl, callback, status, logout, setToken };

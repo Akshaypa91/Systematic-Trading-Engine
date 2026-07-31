@@ -45,6 +45,11 @@ const REDIRECT_URI = process.env.UPSTOX_REDIRECT_URI || '';
 // secret so a DB dump never leaks a usable trading token.
 const FLAG_TOKEN   = 'upstox.token_enc';
 const FLAG_EXPIRES = 'upstox.token_expires';
+// WHO connected this broker account. Without it the token is an unowned
+// process global: any logged-in user inherited whoever linked Upstox last —
+// seeing their real funds and holdings, and able to place real orders on their
+// account. Every account-scoped route now checks ownership against this.
+const FLAG_OWNER   = 'upstox.token_owner';
 const _encKey = crypto.createHash('sha256')
   .update(process.env.UPSTOX_TOKEN_SECRET || process.env.JWT_SECRET || 'systra-dev-token-key')
   .digest();
@@ -66,7 +71,7 @@ function _decrypt(blob) {
 }
 
 // Fire-and-forget upsert into system_flags.
-function _persist(token, expiresAt) {
+function _persist(token, expiresAt, ownerUserId) {
   const d = db(); if (!d) return;
   const up = (k, v) => d.query(
     `INSERT INTO system_flags (flag_key, flag_value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
@@ -74,10 +79,11 @@ function _persist(token, expiresAt) {
   ).catch(e => logger.warn(`[UpstoxAuth] persist ${k}: ${e.message}`));
   up(FLAG_TOKEN, _encrypt(token));
   up(FLAG_EXPIRES, String(expiresAt || ''));
+  up(FLAG_OWNER, ownerUserId == null ? '' : String(ownerUserId));
 }
 function _clearPersisted() {
   const d = db(); if (!d) return;
-  d.query(`DELETE FROM system_flags WHERE flag_key IN (?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES])
+  d.query(`DELETE FROM system_flags WHERE flag_key IN (?, ?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES, FLAG_OWNER])
     .catch(e => logger.warn(`[UpstoxAuth] clear persisted: ${e.message}`));
 }
 
@@ -88,15 +94,19 @@ function _clearPersisted() {
 async function loadPersistedToken() {
   const d = db(); if (!d) return false;
   try {
-    const [rows] = await d.query(`SELECT flag_key, flag_value FROM system_flags WHERE flag_key IN (?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES]);
+    const [rows] = await d.query(`SELECT flag_key, flag_value FROM system_flags WHERE flag_key IN (?, ?, ?)`, [FLAG_TOKEN, FLAG_EXPIRES, FLAG_OWNER]);
     const map = Object.fromEntries(rows.map(r => [r.flag_key, r.flag_value]));
     const enc = map[FLAG_TOKEN];
     if (!enc) return false;
     const token = _decrypt(enc);
     const expiresAt = Number(map[FLAG_EXPIRES]) || _endOfDayIST();
     if (!token || Date.now() > expiresAt) { _clearPersisted(); return false; }
-    _token = { accessToken: token, tokenType: 'Bearer', expiresAt, grantedAt: Date.now() };
-    logger.info(`[UpstoxAuth] Restored persisted token (expires ${new Date(expiresAt).toISOString()})`);
+    // A token persisted before ownership tracking existed has no owner. It stays
+    // usable for market data but no user can claim it for account access —
+    // failing closed is correct when we cannot prove who it belongs to.
+    _token = { accessToken: token, tokenType: 'Bearer', expiresAt, grantedAt: Date.now(),
+               ownerUserId: _coerceUserId(map[FLAG_OWNER]) };
+    logger.info(`[UpstoxAuth] Restored persisted token (expires ${new Date(expiresAt).toISOString()}, owner=${_token.ownerUserId ?? 'unknown'})`);
     return true;
   } catch (err) {
     logger.warn(`[UpstoxAuth] loadPersistedToken failed: ${err.message}`);
@@ -104,8 +114,12 @@ async function loadPersistedToken() {
   }
 }
 
-// ── In-memory token store (single-user mode) ──────────────────────────────────
-// For multi-user: store in DB keyed by user_id instead
+// ── In-memory token store ─────────────────────────────────────────────────────
+// One broker session per deployment, but it now carries an OWNER. The token
+// itself stays shared because market data (prices, candles, indices) is not
+// user-specific and background jobs have no request context — but anything that
+// touches the linked account (funds, holdings, positions, orders) is gated on
+// `ownerUserId` by requireBrokerOwner.
 
 let _token = {
   accessToken:  process.env.UPSTOX_ACCESS_TOKEN || null,
@@ -115,6 +129,9 @@ let _token = {
   // left in the env var reads as "valid forever" and 401s every request.
   expiresAt:    process.env.UPSTOX_ACCESS_TOKEN ? _endOfDayIST() : null,
   grantedAt:    null,
+  // null = nobody has claimed this session (env-injected or pre-upgrade token).
+  // Deliberately not "everybody": unowned means no user gets account access.
+  ownerUserId:  null,
 };
 
 // ── Public token API ──────────────────────────────────────────────────────────
@@ -139,23 +156,78 @@ function getAccessToken() {
  * @param {string} accessToken
  * @param {number} [expiresInSeconds]
  */
-function setAccessToken(accessToken, expiresInSeconds) {
+function setAccessToken(accessToken, expiresInSeconds, ownerUserId = null) {
   _token.accessToken = accessToken;
   _token.grantedAt   = Date.now();
+  // Careful: Number(null) and Number('') are both 0, and Number.isFinite(0) is
+  // true — a naive coercion turns "no owner" into "user 0" and hands an unowned
+  // token a valid-looking owner. Reject the empty cases explicitly first.
+  _token.ownerUserId = _coerceUserId(ownerUserId);
   _token.expiresAt   = expiresInSeconds
     ? Date.now() + expiresInSeconds * 1000
     : _endOfDayIST();   // Upstox tokens expire at midnight IST
-  _persist(_token.accessToken, _token.expiresAt);   // survive restarts
-  logger.info(`[UpstoxAuth] Access token set — expires at ${new Date(_token.expiresAt).toISOString()}`);
+  _persist(_token.accessToken, _token.expiresAt, _token.ownerUserId);   // survive restarts
+  logger.info(`[UpstoxAuth] Access token set — expires at ${new Date(_token.expiresAt).toISOString()}, owner=${_token.ownerUserId ?? 'unknown'}`);
 }
 
 /**
  * Clear the stored token (logout / manual revoke).
  */
 function clearToken() {
-  _token = { accessToken: null, tokenType: 'Bearer', expiresAt: null, grantedAt: null };
+  _token = { accessToken: null, tokenType: 'Bearer', expiresAt: null, grantedAt: null, ownerUserId: null };
   _clearPersisted();
   logger.info('[UpstoxAuth] Token cleared');
+}
+
+// ── OAuth `state` signing ─────────────────────────────────────────────────────
+// HMAC over "userId.issuedAtMs" with a 10-minute window. Enough to bind the
+// callback to the user who began the flow and to stop replay.
+const STATE_TTL_MS = 10 * 60 * 1000;
+
+function signState(userId) {
+  if (userId == null) return null;
+  const payload = `${userId}.${Date.now()}`;
+  const mac = crypto.createHmac('sha256', _encKey).update(payload).digest('hex').slice(0, 32);
+  return Buffer.from(`${payload}.${mac}`).toString('base64url');
+}
+
+/** @returns {number|null} the user id encoded in `state`, or null if invalid/expired. */
+function verifyState(state) {
+  try {
+    if (!state) return null;
+    const raw = Buffer.from(String(state), 'base64url').toString('utf8');
+    const [uid, ts, mac] = raw.split('.');
+    if (!uid || !ts || !mac) return null;
+    const expected = crypto.createHmac('sha256', _encKey).update(`${uid}.${ts}`).digest('hex').slice(0, 32);
+    // timingSafeEqual needs equal lengths; the slice above guarantees that.
+    if (!crypto.timingSafeEqual(Buffer.from(mac), Buffer.from(expected))) return null;
+    if (Date.now() - Number(ts) > STATE_TTL_MS) return null;
+    const n = Number(uid);
+    return Number.isFinite(n) ? n : null;
+  } catch { return null; }
+}
+
+/** Normalise a user id to a positive integer, or null. Never 0. */
+function _coerceUserId(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** The user id that linked this broker session, or null if unknown. */
+function getOwnerUserId() {
+  return _token.accessToken ? (_token.ownerUserId ?? null) : null;
+}
+
+/**
+ * Is `userId` allowed to act on the linked broker account?
+ * Fail-closed: no token, or a token with no recorded owner, means no.
+ */
+function isOwnedBy(userId) {
+  const owner = getOwnerUserId();
+  const asked = _coerceUserId(userId);
+  if (owner == null || asked == null) return false;
+  return owner === asked;
 }
 
 /**
@@ -175,6 +247,7 @@ function getTokenStatus() {
     grantedAt:   _token.grantedAt ? new Date(_token.grantedAt).toISOString() : null,
     expiresAt:   _token.expiresAt  ? new Date(_token.expiresAt).toISOString()  : null,
     isExpired:   _token.expiresAt  ? Date.now() > _token.expiresAt  : false,
+    ownerUserId: _token.ownerUserId ?? null,
   };
 }
 
@@ -187,7 +260,7 @@ function getTokenStatus() {
  * @returns {string}  Full authorization URL
  * @throws  {Error}   If API_KEY or REDIRECT_URI not configured
  */
-function getAuthorizationUrl() {
+function getAuthorizationUrl(state = null) {
   if (!API_KEY)      throw new Error('UPSTOX_API_KEY not configured');
   if (!REDIRECT_URI) throw new Error('UPSTOX_REDIRECT_URI not configured');
 
@@ -196,6 +269,11 @@ function getAuthorizationUrl() {
     client_id:     API_KEY,
     redirect_uri:  REDIRECT_URI,
   });
+  // `state` carries a signed record of WHICH user started this link, because
+  // Upstox calls the callback from the user's browser with no auth header of
+  // ours. Signed (not a raw user id) so the callback can't be forged into
+  // assigning someone else's broker session.
+  if (state) params.set('state', state);
 
   const url = `${UPSTOX_AUTH_URL}?${params.toString()}`;
   logger.info(`[UpstoxAuth] Authorization URL built: ${url}`);
@@ -210,7 +288,7 @@ function getAuthorizationUrl() {
  * @returns {Promise<{ accessToken, expiresIn }>}
  * @throws on network error or Upstox API error
  */
-async function exchangeCodeForToken(code) {
+async function exchangeCodeForToken(code, ownerUserId = null) {
   if (!API_KEY)      throw new Error('UPSTOX_API_KEY not configured');
   if (!API_SECRET)   throw new Error('UPSTOX_API_SECRET not configured');
   if (!REDIRECT_URI) throw new Error('UPSTOX_REDIRECT_URI not configured');
@@ -246,7 +324,7 @@ async function exchangeCodeForToken(code) {
   const accessToken  = data.access_token;
   const expiresIn    = data.expires_in ?? null;
 
-  setAccessToken(accessToken, expiresIn);
+  setAccessToken(accessToken, expiresIn, ownerUserId);
 
   logger.info('[UpstoxAuth] ✅ Token exchange successful');
   return { accessToken, expiresIn };
@@ -269,6 +347,10 @@ module.exports = {
   setAccessToken,
   clearToken,
   isAuthenticated,
+  getOwnerUserId,
+  isOwnedBy,
+  signState,
+  verifyState,
   getTokenStatus,
   getAuthorizationUrl,
   exchangeCodeForToken,

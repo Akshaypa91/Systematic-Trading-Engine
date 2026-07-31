@@ -23,13 +23,19 @@ const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; 
 // `connected` reflecting the token/WS reality.
 async function getBrokerStatus(req, res) {
   const userId    = uid(req);
-  const tokenInfo = upstoxAuth.getTokenStatus();
   const wsStatus  = upstoxWS.getStatus();
-  const connected = upstoxAuth.isAuthenticated();
+  // "Connected" means connected FOR THIS USER. Reporting the raw process token
+  // is what rendered another trader's client ID, name and ₹ balance inside a
+  // different user's session — this card is exactly where the leak showed up.
+  const connected = upstoxAuth.isOwnedBy(userId);
+  const tokenInfo = connected ? upstoxAuth.getTokenStatus() : { hasToken: false };
 
   const out = {
     success:   true,
     connected,
+    // Lets the UI say "someone else has linked a broker here" without exposing
+    // one byte of whose, or what is in it.
+    linkedByOther: upstoxAuth.isAuthenticated() && !connected,
     broker:    'Upstox',
     sandbox:   broker.isSandbox?.() || false,
     websocket: wsStatus,

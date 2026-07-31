@@ -14,8 +14,7 @@ import {
 } from 'lucide-react';
 import { liveAPI } from '../services/api';
 import { inr, colorOf } from '../utils/format';
-
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import ConnectUpstoxButton from './ConnectUpstoxButton';
 
 function fmtTime(iso) {
   if (!iso) return '—';
@@ -129,17 +128,11 @@ export default function BrokerStatusCard({ onStatusChange }) {
         {!connected && !loading ? (
           <div style={{ textAlign: 'center', padding: '18px 8px' }}>
             <p style={{ fontSize: 12, color: data?.tokenRejected ? 'var(--amber)' : 'var(--text-secondary)', marginBottom: 14 }}>
-              {data?.reason || 'No active Upstox session. Connect to enable live market data and LIVE trading.'}
+              {data?.linkedByOther
+                ? 'Another account has linked a broker on this deployment. Connect your own Upstox account to trade — you cannot see or use theirs.'
+                : (data?.reason || 'No active Upstox session. Connect to enable live market data and LIVE trading.')}
             </p>
-            <a href={`${API_BASE}/api/auth/upstox/login`}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 8,
-                background: 'color-mix(in srgb, var(--green) 14%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--green) 34%, transparent)',
-                color: 'var(--green)', fontWeight: 700, fontSize: 12.5, textDecoration: 'none',
-              }}>
-              <PlugZap size={14} /> Connect Upstox
-            </a>
+            <ConnectUpstoxButton size={14} style={{ padding: '8px 16px' }} />
           </div>
         ) : (
           <>

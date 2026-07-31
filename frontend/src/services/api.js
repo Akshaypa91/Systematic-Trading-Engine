@@ -46,6 +46,10 @@ export const authAPI = {
   login:      (email, password) => api.post('/auth/login',  { email, password }),
   signup:     (email, password) => api.post('/auth/signup', { email, password }),
   upstoxStatus: ()              => api.get('/auth/upstox/status'),
+  // Authenticated: returns an authorize URL whose signed `state` binds the
+  // resulting broker session to THIS user. A plain <a href> can't do that — it
+  // sends no Authorization header, which is how the session became unowned.
+  upstoxLinkUrl: ()             => api.get('/auth/upstox/link'),
   upstoxLogout: ()              => api.post('/auth/upstox/logout'),
   googleAuth:      (credential)       => api.post('/auth/google', { credential }),
   forgotPassword:  (email)             => api.post('/auth/forgot-password', { email }),

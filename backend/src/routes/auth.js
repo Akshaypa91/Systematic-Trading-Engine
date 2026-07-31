@@ -24,7 +24,8 @@ router.post('/reset-password',  ctrl.resetPassword);
 router.post('/google', googleCtrl.googleAuth);
 
 // ── Upstox OAuth ──────────────────────────────────────────────────────────────
-router.get ('/upstox/login',    upstoxCtrl.login);
+router.get ('/upstox/link',     requireAuth, upstoxCtrl.linkUrl);  // signed, user-bound authorize URL
+router.get ('/upstox/login',    upstoxCtrl.login);                  // legacy — cannot identify the user
 router.get ('/upstox/callback', upstoxCtrl.callback);   // NO requireAuth — Upstox calls this
 router.get ('/upstox/status',   requireAuth, upstoxCtrl.status);
 router.post('/upstox/logout',   requireAuth, upstoxCtrl.logout);
