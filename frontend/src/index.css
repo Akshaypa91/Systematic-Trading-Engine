@@ -514,7 +514,9 @@ body.nav-open { overflow:hidden; }
   color:var(--red); font-size:12px;
 }
 .journal-stats {
-  display:grid; grid-template-columns:repeat(4, minmax(0, 1fr));
+  /* auto-fit rather than a fixed 4 columns: four 22px numbers crushed side by
+     side on a phone were unreadable. Wraps to 2×2, then 1-up. */
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
   gap:12px; margin-bottom:16px;
 }
 .journal-stat { padding:16px; display:flex; flex-direction:column; gap:5px; }
@@ -527,6 +529,23 @@ body.nav-open { overflow:hidden; }
 .journal-layout {
   display:grid; grid-template-columns:minmax(320px, 420px) minmax(0, 1fr);
   gap:16px; align-items:start;
+}
+
+/* Mobile: one column, and the WORKLIST comes first. The journal is driven by
+   picking a real trade, not by staring at an empty form — leading with eight
+   blank fields on a phone is how a journal stays empty. Tapping a trade
+   scrolls to the form, so the order reads: choose → write. */
+@media (max-width: 900px) {
+  .journal-layout { grid-template-columns:1fr; }
+  .journal-list { order:1; }
+  .journal-form { order:2; }
+}
+@media (max-width: 560px) {
+  /* Symbol/Side and Confidence/Tags stack rather than squeezing a 120px
+     column next to a full-width input. */
+  .journal-form-grid { grid-template-columns:1fr; }
+  .journal-form { padding:14px; }
+  .journal-todo-row { gap:8px; padding:9px 10px; }
 }
 .journal-form { padding:18px; display:flex; flex-direction:column; gap:12px; }
 .journal-form h2 { font-size:15px; font-weight:700; color:var(--text-primary); }
@@ -573,12 +592,19 @@ body.nav-open { overflow:hidden; }
   transition:border-color .15s, background .15s;
 }
 .journal-todo-row:hover { border-color:var(--border-accent); background:var(--bg-hover); }
+.journal-todo-row .jt-main { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.journal-todo-row .jt-top  { display:flex; align-items:center; gap:7px; }
 .journal-todo-row .jt-sym {
   font-family:var(--font-mono); font-size:12.5px; font-weight:700;
-  color:var(--text-primary); min-width:82px;
+  color:var(--text-primary);
 }
-.journal-todo-row .jt-price { font-size:11.5px; color:var(--text-secondary); margin-left:auto; }
-.journal-todo-row .jt-pnl   { font-size:11.5px; font-weight:600; min-width:76px; text-align:right; }
+.journal-todo-row .jt-when { font-size:10px; color:var(--text-muted); font-family:var(--font-mono); }
+.journal-todo-row .jt-nums {
+  display:flex; flex-direction:column; gap:2px;
+  margin-left:auto; text-align:right; flex-shrink:0;
+}
+.journal-todo-row .jt-price { font-size:11.5px; color:var(--text-secondary); }
+.journal-todo-row .jt-pnl   { font-size:11px; font-weight:600; }
 .journal-todo-row .jt-icon  { color:var(--text-muted); flex-shrink:0; }
 .journal-todo-row:hover .jt-icon { color:var(--cyan); }
 

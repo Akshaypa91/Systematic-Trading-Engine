@@ -126,12 +126,15 @@ export default function Feedback() {
           {/* Type selector */}
           <div className="card" style={{ padding:20, marginBottom:16 }}>
             <label className="section-label" style={{ display:'block', marginBottom:12 }}>Category</label>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(175px, 1fr))', gap:8 }}>
+            {/* auto-fit at 140px keeps two tiles per row on a phone; at 175px
+                the five categories collapsed to a single tall column. */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:8 }}>
               {TYPES.map(t => (
                 <button key={t.value} type="button"
                   onClick={() => set('type', t.value)}
                   style={{
-                    padding:'10px 14px', borderRadius:10, textAlign:'left', cursor:'pointer',
+                    padding:'10px 12px', borderRadius:10, textAlign:'left', cursor:'pointer',
+                    minHeight:56,
                     border: `1px solid ${form.type === t.value ? 'color-mix(in srgb, var(--cyan) 40%, transparent)' : 'var(--border)'}`,
                     background: form.type === t.value ? 'color-mix(in srgb, var(--cyan) 8%, transparent)' : 'var(--bg-elevated)',
                     transition:'all 0.12s',
@@ -146,15 +149,17 @@ export default function Feedback() {
             </div>
           </div>
 
-          {/* Rating */}
+          {/* Message + rating share a card. A five-star row alone in a 100px
+              card left the page mostly empty space, which reads as unfinished —
+              the rating belongs with the thing it rates. */}
           <div className="card" style={{ padding:20, marginBottom:16 }}>
-            <label className="section-label" style={{ display:'block', marginBottom:12 }}>Overall Rating (optional)</label>
-            <StarRating value={form.rating} onChange={v => set('rating', v)} />
-          </div>
-
-          {/* Message */}
-          <div className="card" style={{ padding:20, marginBottom:16 }}>
-            <label className="section-label" style={{ display:'block', marginBottom:8 }}>Your Feedback *</label>
+            <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap', marginBottom:10 }}>
+              <label className="section-label" style={{ display:'block' }}>Your Feedback *</label>
+              <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8 }}>
+                <span className="font-mono" style={{ fontSize:10, color:'var(--text-muted)' }}>RATING</span>
+                <StarRating value={form.rating} onChange={v => set('rating', v)} />
+              </div>
+            </div>
             <textarea
               value={form.message}
               onChange={e => set('message', e.target.value)}

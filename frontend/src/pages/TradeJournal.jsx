@@ -73,13 +73,18 @@ export default function TradeJournal() {
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
+  // sim_trades stores the direction in `action`, not `side`. Reading t.side gave
+  // undefined, so the badge rendered as an empty pill and every prefill said BUY
+  // — including on sells. Kept tolerant of both spellings.
+  const sideOf = (t) => String(t.action ?? t.side ?? '').toUpperCase() === 'SELL' ? 'SELL' : 'BUY';
+
   // Prefill from a real trade so the user only writes the part a machine can't:
   // why they took it and what they learned.
   function journalTrade(t) {
     setForm({
       ...emptyForm,
       symbol: t.symbol,
-      side: t.side === 'SELL' ? 'SELL' : 'BUY',
+      side: sideOf(t),
       tradeId: t.id,
     });
     document.getElementById('journal-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -222,19 +227,37 @@ export default function TradeJournal() {
               <div className="card journal-todo">
                 <span className="section-label">Trades awaiting a note</span>
                 <div className="journal-todo-list">
-                  {unjournaled.map(t => (
-                    <button key={t.id} type="button" onClick={() => journalTrade(t)} className="journal-todo-row">
-                      <span className="jt-sym">{t.symbol}</span>
-                      <span className={`badge ${t.side === 'SELL' ? 'badge-sell' : 'badge-buy'}`}>{t.side}</span>
-                      <span className="jt-price font-mono">₹{fmt(t.price)}</span>
-                      {t.pnl != null && (
-                        <span className="jt-pnl font-mono" style={{ color: t.pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                          {t.pnl >= 0 ? '+' : ''}₹{fmt(t.pnl)}
+                  {unjournaled.map(t => {
+                    const side = sideOf(t);
+                    // Two fills of the same symbol at the same price are
+                    // indistinguishable without qty and time — which is exactly
+                    // what the first version showed. Both are here now.
+                    const when = t.executedAt
+                      ? new Date(t.executedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
+                      : null;
+                    return (
+                      <button key={t.id} type="button" onClick={() => journalTrade(t)} className="journal-todo-row">
+                        <span className="jt-main">
+                          <span className="jt-top">
+                            <span className="jt-sym">{t.symbol}</span>
+                            <span className={`badge ${side === 'SELL' ? 'badge-sell' : 'badge-buy'}`}>{side}</span>
+                          </span>
+                          {when && <span className="jt-when font-mono">{when}</span>}
                         </span>
-                      )}
-                      <PenLine size={12} className="jt-icon" />
-                    </button>
-                  ))}
+                        <span className="jt-nums">
+                          <span className="jt-price font-mono">
+                            {t.qty ? `${t.qty} × ` : ''}₹{fmt(t.price)}
+                          </span>
+                          {t.pnl != null && (
+                            <span className="jt-pnl font-mono" style={{ color: t.pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                              {t.pnl >= 0 ? '+' : ''}₹{fmt(t.pnl)}
+                            </span>
+                          )}
+                        </span>
+                        <PenLine size={12} className="jt-icon" />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
