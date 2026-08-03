@@ -59,6 +59,45 @@ function _headers(token) {
   return { Authorization: `Bearer ${token}`, 'Api-Version': '2.0', Accept: 'application/json' };
 }
 
+/**
+ * Turn an axios failure against Upstox into an error that says WHOSE fault it is.
+ *
+ * Every broker call previously bubbled a bare axios error, which the controllers
+ * caught and returned as a blanket `500 Internal Server Error` with only
+ * `err.message`. That is wrong twice over: 500 claims our server broke when the
+ * upstream actually refused, and it discards Upstox's own explanation — so a
+ * dead token, a rate limit and a genuine bug were indistinguishable from the
+ * browser. This attaches the upstream status, Upstox's error code and message.
+ *
+ * @param {Error} err   axios error
+ * @param {string} what short label for the call, e.g. 'positions'
+ */
+function _brokerError(err, what) {
+  const status  = err.response?.status;
+  const body    = err.response?.data;
+  // Upstox nests errors as { errors: [{ errorCode, message }] } or { message }.
+  const first   = Array.isArray(body?.errors) ? body.errors[0] : null;
+  const upMsg   = first?.message || body?.message || err.message;
+  const upCode  = first?.errorCode || body?.error_code || null;
+
+  // 401/403 from the broker means the token is dead or lacks permission — that
+  // is actionable by the user (reconnect), not an internal fault.
+  const statusCode = status === 401 || status === 403 ? 401
+                   : status === 429                   ? 429
+                   : status                           ? 502   // upstream refused
+                   : 504;                                     // network/timeout, no response
+
+  const e = Object.assign(new Error(`Upstox ${what}: ${upMsg}`), {
+    code:          status === 401 || status === 403 ? 'BROKER_AUTH' : 'BROKER_ERROR',
+    statusCode,
+    upstreamStatus: status || null,
+    upstreamCode:   upCode,
+    upstreamMessage: upMsg,
+  });
+  logger.warn(`[Broker] ${what} failed — upstream ${status || 'no-response'} ${upCode || ''} ${upMsg}`);
+  return e;
+}
+
 // ── Get token for user (DB first, then global) ────────────────────────────────
 async function _getToken(userId) {
   if (userId) {
@@ -130,14 +169,18 @@ async function cancelOrder(userId, brokerOrderId) {
 // ── getOrderBook ──────────────────────────────────────────────────────────────
 async function getOrderBook(userId) {
   const token = await _orderToken(userId);
-  const res   = await axios.get(`${ORDER_BASE}/order/retrieve-all`, { headers: _headers(token), timeout: TIMEOUT });
+  let res;
+  try { res = await axios.get(`${ORDER_BASE}/order/retrieve-all`, { headers: _headers(token), timeout: TIMEOUT }); }
+  catch (e) { throw _brokerError(e, 'order book'); }
   return res.data?.data || [];
 }
 
 // ── getPositions ──────────────────────────────────────────────────────────────
 async function getPositions(userId) {
   const token = await _orderToken(userId);
-  const res   = await axios.get(`${ORDER_BASE}/portfolio/short-term-positions`, { headers: _headers(token), timeout: TIMEOUT });
+  let res;
+  try { res = await axios.get(`${ORDER_BASE}/portfolio/short-term-positions`, { headers: _headers(token), timeout: TIMEOUT }); }
+  catch (e) { throw _brokerError(e, 'positions'); }
   return res.data?.data || [];
 }
 
@@ -217,7 +260,9 @@ async function getFunds(userId) {
 // GET /v2/portfolio/long-term-holdings → delivery holdings for the portfolio view.
 async function getHoldings(userId) {
   const token = await _orderToken(userId);
-  const res   = await axios.get(`${ORDER_BASE}/portfolio/long-term-holdings`, { headers: _headers(token), timeout: TIMEOUT });
+  let res;
+  try { res = await axios.get(`${ORDER_BASE}/portfolio/long-term-holdings`, { headers: _headers(token), timeout: TIMEOUT }); }
+  catch (e) { throw _brokerError(e, 'holdings'); }
   return res.data?.data || [];
 }
 

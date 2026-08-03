@@ -17,6 +17,22 @@ function uid(req) { return req.user?.userId ?? req.user?.id ?? null; }
 // Safe number coercion for broker payloads (Upstox returns strings sometimes).
 const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 
+// Broker failures carry their own status, code and upstream message (see
+// brokerAdapter._brokerError). Returning a blanket 500 for all of them told the
+// client "our server broke" when Upstox had actually refused, and threw away the
+// only useful part — the broker's explanation. 500 is reserved for genuinely
+// unexpected faults.
+function _sendErr(res, err) {
+  const status = err.statusCode || 500;
+  return res.status(status).json({
+    success: false,
+    error:   err.code || 'INTERNAL',
+    message: err.message,
+    ...(err.upstreamStatus  ? { upstreamStatus: err.upstreamStatus }   : {}),
+    ...(err.upstreamCode    ? { upstreamCode: err.upstreamCode }       : {}),
+  });
+}
+
 // ── GET /api/live/broker/status ───────────────────────────────────────────────
 // Rich status for the Broker Status Card. Never throws — every remote call is
 // isolated so a single failing Upstox endpoint still returns partial data with
@@ -268,7 +284,7 @@ async function getPositions(req, res) {
     const data = await lts.getPositions(uid(req));
     return res.json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return _sendErr(res, err);
   }
 }
 
@@ -278,7 +294,7 @@ async function getOrders(req, res) {
     const data = await lts.getOrders(uid(req));
     return res.json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return _sendErr(res, err);
   }
 }
 
@@ -325,7 +341,7 @@ async function getFunds(req, res) {
     const data = await lts.getFunds(uid(req));
     return res.json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return _sendErr(res, err);
   }
 }
 
@@ -345,7 +361,7 @@ async function getFundsNormalized(req, res) {
     const data = await lts.getFundsNormalized(uid(req));
     return res.json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return _sendErr(res, err);
   }
 }
 
@@ -355,7 +371,7 @@ async function getHoldings(req, res) {
     const data = await lts.getHoldings(uid(req));
     return res.json({ success: true, ...data });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return _sendErr(res, err);
   }
 }
 

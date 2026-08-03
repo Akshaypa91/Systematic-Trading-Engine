@@ -1,7 +1,7 @@
 // src/pages/LivePortfolio.jsx — Phase 3
 // Live positions (with exit), funds, holdings/allocation, and the risk +
 // emergency controls. Read-only sync from Upstox via /api/live/*.
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AppShell from '../components/AppShell';
 import Toast from '../components/Toast';
 import RiskEmergencyPanel from '../components/RiskEmergencyPanel';
@@ -50,6 +50,8 @@ export default function LivePortfolio() {
   const [exiting,   setExiting]   = useState(null);
   const [toast,     setToast]     = useState(null);
   const [syncedAt,  setSyncedAt]  = useState(null);
+  const [syncError, setSyncError] = useState(null);   // all three calls failing
+  const failCount = useRef(0);                        // drives the backoff
   const onToast = (msg, type = 'info') => setToast({ msg, type });
 
   const load = useCallback(async () => {
@@ -59,12 +61,42 @@ export default function LivePortfolio() {
     if (h.status === 'fulfilled') setHoldings(h.value.data || null);
     setSyncedAt(new Date());
     setLoading(false);
+
+    // Every call failing means the broker leg is down, not that there is
+    // nothing to show. Surface it and back off — a fixed 5s retry against a
+    // failing upstream is a self-inflicted denial of service: it filled the
+    // console, burned Render's free tier and risked an Upstox rate limit,
+    // all while the user saw an empty page with no explanation.
+    const failures = [p, f, h].filter(r => r.status === 'rejected');
+    if (failures.length === 3) {
+      const d = failures[0].reason?.response?.data || {};
+      setSyncError({
+        code:    d.error || 'UNREACHABLE',
+        message: d.message || failures[0].reason?.message || 'Could not reach the broker',
+        upstream: d.upstreamStatus || failures[0].reason?.response?.status || null,
+      });
+      failCount.current += 1;
+    } else {
+      setSyncError(null);
+      failCount.current = 0;
+    }
   }, []);
 
+  // Exponential backoff: 5s → 10s → 20s → 40s, capped at 60s. Resets on the
+  // first success, so a transient blip costs one extra wait and a genuine
+  // outage settles into one poll a minute instead of twelve.
   useEffect(() => {
-    load();
-    const id = setInterval(load, 5000);
-    return () => clearInterval(id);
+    let cancelled = false;
+    let timer;
+    const tick = async () => {
+      if (cancelled) return;
+      await load();
+      if (cancelled) return;
+      const delay = Math.min(5000 * 2 ** failCount.current, 60000);
+      timer = setTimeout(tick, delay);
+    };
+    tick();
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [load]);
 
   async function exit(symbol) {
@@ -116,6 +148,27 @@ export default function LivePortfolio() {
                 value={positions.length ? signed(dayPnl) : '—'} sub="Open positions" />
               <SummaryTile label="Overall P&L" Icon={TrendingUp} color={pnlColor(overallPnl)}
                 value={positions.length ? signed(overallPnl) : '—'} sub={`${positions.length} position${positions.length === 1 ? '' : 's'}`} />
+            </div>
+          )}
+
+          {/* Broker reachable but refusing. Without this the page showed an
+              empty portfolio, which reads as "you own nothing" rather than
+              "we couldn't ask". Those are very different statements. */}
+          {brokerLinked && syncError && (
+            <div role="alert" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 16px', borderRadius: 10, marginBottom: 16, background: 'color-mix(in srgb, var(--red) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 26%, transparent)' }}>
+              <ShieldOff size={15} style={{ color: 'var(--red)', flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--red)', marginBottom: 3 }}>
+                  Broker sync failing{syncError.upstream ? ` — Upstox returned ${syncError.upstream}` : ''}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                  {syncError.message}
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 4 }}>
+                  Positions and funds below may be stale. Retrying with backoff — this page is not hammering the broker.
+                  {syncError.code === 'BROKER_AUTH' && ' Your session was rejected; reconnect Upstox.'}
+                </div>
+              </div>
             </div>
           )}
 
