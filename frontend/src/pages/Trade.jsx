@@ -11,7 +11,7 @@ import CapitalSetup from '../components/CapitalSetup';
 import PriceChart from '../components/PriceChart';
 import { marketAPI, manualTradeAPI, signalAPI, simAPI, liveAPI } from '../services/api';
 import { Activity, Info, Layers, Loader2 } from 'lucide-react';
-import LiveOrderModal    from '../components/LiveOrderModal';
+import LiveOrderModal, { REJECTION_HELP } from '../components/LiveOrderModal';
 import LiveOrderPanel    from '../components/LiveOrderPanel';
 import RealMoneyArmModal from '../components/RealMoneyArmModal';
 import BrokerStatusCard  from '../components/BrokerStatusCard';
@@ -37,6 +37,7 @@ export default function Trade() {
   const { mode: tradingMode, brokerLinked, reportBroker, realMoneyArmed, armRealMoney } = useTradingMode();
   const [liveModal,     setLiveModal]     = useState(null);   // pending order
   const [liveLoading,   setLiveLoading]   = useState(false);
+  const [liveError,     setLiveError]     = useState(null);   // rejection shown in-modal
   const [armOpen,       setArmOpen]       = useState(false);  // real-money interlock modal
 
   // ── Live price feed ─────────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ export default function Trade() {
   async function confirmLiveOrder() {
     if (!liveModal) return;
     setLiveLoading(true);
+    setLiveError(null);
     try {
       const res = await liveAPI.placeOrder({ ...liveModal, confirmed: true });
       const sbx = res.data?.sandbox ? ' (SANDBOX)' : '';
@@ -55,7 +57,16 @@ export default function Trade() {
       setLiveModal(null);
       setPortfolioRefresh(n => n + 1);
     } catch (err) {
-      setToast({ msg: err.response?.data?.error || err.message, type: 'error' });
+      // Keep the modal open and show why. A rejected real-money order in a
+      // toast that fades after 3 seconds is how a 503 reads as "nothing
+      // happened" — which is exactly what a kill-switch rejection looked like.
+      const d = err.response?.data || {};
+      const code = d.error && /^[A-Z_]+$/.test(d.error) ? d.error : d.code;
+      setLiveError({
+        code,
+        message: d.message || (code ? undefined : d.error) || err.message,
+        help: REJECTION_HELP[code],
+      });
     } finally {
       setLiveLoading(false);
     }
@@ -272,7 +283,7 @@ export default function Trade() {
                   <LiveOrderPanel
                     symbol={data?.symbol ?? symbol}
                     currentPrice={displayData?.price}
-                    onReview={(o) => setLiveModal(o)}
+                    onReview={(o) => { setLiveError(null); setLiveModal(o); }}
                     disabled={loading || !brokerLinked}
                   />
                 ) : (
@@ -317,8 +328,9 @@ export default function Trade() {
       <LiveOrderModal
         order={liveModal}
         onConfirm={confirmLiveOrder}
-        onCancel={() => setLiveModal(null)}
+        onCancel={() => { setLiveModal(null); setLiveError(null); }}
         loading={liveLoading}
+        error={liveError}
       />
       <RealMoneyArmModal
         open={armOpen}

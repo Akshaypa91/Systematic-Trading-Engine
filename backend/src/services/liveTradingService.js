@@ -541,7 +541,21 @@ async function cancelOrder(userId, brokerOrderId) {
 }
 
 // ── Admin: kill switch ────────────────────────────────────────────────────────
-async function setKillSwitch(enabled) {
+/**
+ * Enable or disable live trading.
+ *
+ * Named for what the argument MEANS. It used to be `setKillSwitch(enabled)`,
+ * where `false` engaged the kill switch — an inversion between the function
+ * name and its parameter. Every one of the six call sites needed a trailing
+ * comment to explain it ("false = live trading DISABLED (kill engaged)"), which
+ * is the clearest possible signal that the name was wrong. On a path that
+ * decides whether real orders can be placed, a reader who assumes
+ * `setKillSwitch(true)` means "turn the kill switch on" would have enabled
+ * trading instead of halting it.
+ *
+ * @param {boolean} enabled true → live trading permitted; false → halted.
+ */
+async function setLiveTradingEnabled(enabled) {
   // flag_key is the PRIMARY KEY on system_flags, so this upserts on that
   // collision (equivalent to the old ON CONFLICT (flag_key) DO UPDATE).
   await db.query(
@@ -556,7 +570,7 @@ async function setKillSwitch(enabled) {
 
 module.exports = {
   placeOrder, getCharges, getPositions, getOrders, getFunds, getFundsNormalized,
-  getHoldings, cancelOrder, setKillSwitch, isKillSwitchEngaged,
+  getHoldings, cancelOrder, setLiveTradingEnabled, isKillSwitchEngaged,
   exitPosition, squareOffAll, cancelAllOrders,
   getRiskLimits, setRiskLimits,
   reconcileFills, getExecutionQuality,

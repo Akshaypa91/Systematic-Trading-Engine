@@ -173,7 +173,7 @@ async function _enforceDailyLossHalt(userId) {
     const positions = await lts.getPositions(userId);
     const pnl = (positions || []).reduce((a, p) => a + (Number(p.overallPnl) || 0), 0);
     if (pnl < 0 && Math.abs(pnl) >= limits.dailyLossLimit) {
-      await lts.setKillSwitch(false);   // false = live trading DISABLED (kill engaged)
+      await lts.setLiveTradingEnabled(false);
       logger.error(`[LiveExec] DAILY-LOSS HALT: P&L ₹${pnl} ≥ limit ₹${limits.dailyLossLimit} — kill switch engaged`);
       return { halted: true, pnl };
     }
@@ -318,7 +318,7 @@ async function runOnce(userId, opts = {}) {
   if (tickErrors > 0) _consecutiveErrors++; else _consecutiveErrors = 0;
   let deadman = false;
   if (_consecutiveErrors >= DEADMAN_MAX_ERRORS) {
-    try { await lts.setKillSwitch(false); deadman = true; _consecutiveErrors = 0;
+    try { await lts.setLiveTradingEnabled(false); deadman = true; _consecutiveErrors = 0;
       logger.error(`[LiveExec] DEAD-MAN SWITCH: ${DEADMAN_MAX_ERRORS} consecutive failed ticks — kill switch engaged`);
     } catch (_) {}
   }

@@ -20,7 +20,7 @@ reset();
 
 lts.getPositions      = async () => cfg.positions;
 lts.getRiskLimits     = async () => cfg.riskLimits;
-lts.setKillSwitch     = async (enabled) => { cfg.killEngaged = !enabled; };   // false => engaged
+lts.setLiveTradingEnabled = async (enabled) => { cfg.killEngaged = !enabled; };
 lts.placeOrder        = async (u, o) => { cfg.orders.push(o); return { success: true, brokerOrderId: 'X' }; };
 targets.getActiveTargets = async () => cfg.targetsList;
 targets.upsertTarget  = async (u, sym, t) => { cfg.setTargets.push({ sym, ...t }); return []; };

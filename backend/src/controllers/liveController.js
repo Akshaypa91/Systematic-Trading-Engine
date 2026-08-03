@@ -398,7 +398,7 @@ async function cancelAllOrders(req, res) {
 async function emergencyStop(req, res) {
   const userId = uid(req);
   try {
-    await lts.setKillSwitch(false);                       // disable live trading
+    await lts.setLiveTradingEnabled(false);   // halt live trading
     const cancelled = await lts.cancelAllOrders(userId).catch(e => ({ error: e.message }));
     const squared   = await lts.squareOffAll(userId).catch(e => ({ error: e.message }));
     // Force this user to PAPER so no further live orders can be sent.
@@ -433,9 +433,11 @@ async function setRisk(req, res) {
 
 // ── POST /api/live/kill-switch ── user-facing kill switch toggle ──────────────
 async function setKillSwitch(req, res) {
-  const { engaged } = req.body;   // engaged=true → disable live trading
+  // Body speaks in kill-switch terms (engaged = halted); the service speaks in
+  // trading terms. The translation happens here, once, and nowhere else.
+  const { engaged } = req.body;
   try {
-    await lts.setKillSwitch(!engaged);
+    await lts.setLiveTradingEnabled(!engaged);
     auditLog('live.kill_switch_toggle', req, { userId: uid(req), engaged: !!engaged });
     return res.json({ success: true, killSwitch: !!engaged });
   } catch (err) {
@@ -494,10 +496,22 @@ async function setMode(req, res) {
 // re-wired without it.
 async function killSwitch(req, res) {
   if (req.user?.role !== 'admin') return res.status(403).json({ success: false, error: 'Admin only' });
-  const { enabled } = req.body;
-  await lts.setKillSwitch(!!enabled);
-  auditLog('live.kill_switch', req, { userId: uid(req), enabled: !!enabled });
-  return res.json({ success: true, liveEnabled: !!enabled });
+
+  // DANGER, historically: this endpoint and POST /api/live/kill-switch share a
+  // name but took OPPOSITE booleans — `{engaged:true}` halted trading there,
+  // `{enabled:true}` resumed it here. Two "kill switch" endpoints with inverted
+  // semantics is a mistake waiting to be made under pressure.
+  //
+  // `engaged` is now the preferred key on both, matching the endpoint's name.
+  // `enabled` is still honoured so existing callers do not silently flip.
+  const body = req.body || {};
+  const halted = Object.prototype.hasOwnProperty.call(body, 'engaged')
+    ? !!body.engaged
+    : !body.enabled;
+
+  await lts.setLiveTradingEnabled(!halted);
+  auditLog('live.kill_switch', req, { userId: uid(req), engaged: halted });
+  return res.json({ success: true, killSwitch: halted, liveEnabled: !halted });
 }
 
 module.exports = {

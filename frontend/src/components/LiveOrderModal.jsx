@@ -20,7 +20,44 @@ function Row({ label, value, strong, color }) {
   );
 }
 
-export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) {
+// A rejected real-money order must say WHY, and say what to do about it. The
+// backend already returns a machine-readable `code` alongside its message; the
+// UI previously dropped both and surfaced a transient toast, so a 503 looked
+// like "nothing happened" unless you had the console open.
+//
+// Each entry adds the one thing the raw message can't: the next action.
+//
+// Keys must match the `code` values thrown by liveTradingService exactly.
+// test-kill-switch.js diffs the two lists — the first version of this map used
+// invented names (ORDER_VALUE_LIMIT, INSUFFICIENT_FUNDS) that no code path ever
+// emits, so the help silently never rendered.
+export const REJECTION_HELP = {
+  // Safety halts
+  KILL_SWITCH:           'The kill switch is engaged, so no live orders can be sent. It engages after an Emergency Stop, a daily-loss halt, or the dead-man switch. Disengage it from Risk & Emergency once you know why it fired.',
+  DAILY_LOSS_LIMIT:      'Today’s loss has reached your configured limit and new entries are halted. This resets tomorrow; raising the limit mid-drawdown is usually the wrong call.',
+  MARKET_CLOSED:         'NSE accepts orders 9:15–15:30 IST, Monday to Friday.',
+  // Authorisation
+  BROKER_NOT_CONNECTED:  'No broker is linked to your account. Connect Upstox first.',
+  BROKER_NOT_YOURS:      'This broker session belongs to a different account. Connect your own Upstox account to trade.',
+  // Risk limits — all configurable in Risk & Emergency
+  QTY_LIMIT:             'Quantity exceeds your per-order limit.',
+  VALUE_LIMIT:           'Order value exceeds your per-order limit.',
+  MAX_POSITION_SIZE:     'This would push the position beyond your maximum size for a single symbol.',
+  MAX_EXPOSURE:          'This would push total exposure beyond your portfolio limit.',
+  MAX_ORDERS:            'You have reached your maximum number of orders for today.',
+  // Request problems — these indicate a client bug, not a policy block
+  DUPLICATE:             'An identical order was placed within the last 10 seconds and was suppressed. Wait, or change the quantity if the repeat is intentional.',
+  CONFIRMATION_REQUIRED: 'The order reached the server without explicit confirmation. That is a client bug rather than a limit.',
+  BAD_QTY:               'Quantity must be greater than zero.',
+  BAD_ORDER_TYPE:        'Unrecognised order type.',
+  PRICE_REQUIRED:        'A limit order needs a limit price.',
+  TRIGGER_REQUIRED:      'A stop order needs a trigger price.',
+  // Downstream
+  BROKER_REJECTED:       'Upstox rejected the order. The broker’s own message is shown above — margin, circuit limits and instrument state are the usual causes.',
+  NO_POSITION:           'There is no open position to exit for this symbol.',
+};
+
+export default function LiveOrderModal({ order, onConfirm, onCancel, loading, error }) {
   const [charges, setCharges] = useState(null);
   const [loadingCharges, setLoadingCharges] = useState(false);
 
@@ -108,6 +145,27 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
           <Row label="Margin Required" value={inr(product === 'MIS' ? (estValue ? estValue * 0.2 : null) : estValue)} />
         </div>
 
+        {/* Rejection — stays on screen until the user acts, unlike a toast.
+            The order was NOT placed, so this must be unmissable. */}
+        {error && (
+          <div role="alert" style={{ padding: '10px 12px', borderRadius: 8, marginBottom: 12, background: 'color-mix(in srgb, var(--red) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)' }}>
+            <div className="flex items-center gap-2" style={{ marginBottom: error.help ? 5 : 0 }}>
+              <AlertTriangle size={13} style={{ color: 'var(--red)', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--red)' }}>
+                Order not placed{error.code ? ` — ${error.code.replace(/_/g, ' ').toLowerCase()}` : ''}
+              </span>
+            </div>
+            {error.message && (
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.55, marginBottom: error.help ? 4 : 0 }}>
+                {error.message}
+              </div>
+            )}
+            {error.help && (
+              <div style={{ fontSize: 10.5, color: 'var(--text-muted)', lineHeight: 1.55 }}>{error.help}</div>
+            )}
+          </div>
+        )}
+
         {/* Risk warning */}
         <div style={{ padding: '9px 12px', borderRadius: 8, marginBottom: 16, background: 'color-mix(in srgb, var(--amber) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--amber) 20%, transparent)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
           <strong style={{ color: 'var(--amber)' }}>Risk warning:</strong> this places a real order with your broker. Charges shown are an estimate and may differ from the final contract note. Orders cannot be undone once executed.
@@ -120,7 +178,7 @@ export default function LiveOrderModal({ order, onConfirm, onCancel, loading }) 
           </button>
           <button onClick={onConfirm} disabled={loading} className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
             style={{ background: isBuy ? 'color-mix(in srgb, var(--green) 15%, transparent)' : 'color-mix(in srgb, var(--red) 15%, transparent)', border: `1px solid ${isBuy ? 'color-mix(in srgb, var(--green) 40%, transparent)' : 'color-mix(in srgb, var(--red) 40%, transparent)'}`, color: isBuy ? 'var(--green)' : 'var(--red)', opacity: loading ? 0.6 : 1 }}>
-            {loading ? <><Loader2 size={13} className="animate-spin" /> Placing…</> : <><Zap size={13} /> Confirm Order</>}
+            {loading ? <><Loader2 size={13} className="animate-spin" /> Placing…</> : <><Zap size={13} /> {error ? 'Retry Order' : 'Confirm Order'}</>}
           </button>
         </div>
       </div>
