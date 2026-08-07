@@ -25,7 +25,17 @@ function Mark({ text, q }) {
   );
 }
 
-export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIANCE', disabled }) {
+/**
+ * @param {(v:string)=>void}  onChange  fires on EVERY keystroke — draft text
+ * @param {(sym:string)=>void} [onSelect] fires ONLY when the user commits a row
+ *   (click, or Enter on a highlighted item). Use this whenever a callback has a
+ *   side effect beyond updating a text field.
+ *
+ * Both used to be the same callback, which made "user is typing" and "user has
+ * chosen" indistinguishable. A caller that added a chip on change therefore
+ * added one per keystroke: typing TATASTEEL produced TAT, TATA, TATAS…
+ */
+export default function SymbolInput({ value, onChange, onSelect, placeholder = 'e.g. RELIANCE', disabled }) {
   const [open,      setOpen]      = useState(false);
   const [items,     setItems]     = useState([]);
   const [activeIdx, setActive]    = useState(-1);
@@ -68,8 +78,11 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
     }, 250);
   }, []);
 
+  // The ONLY path that means "the user chose this". Everything here came from
+  // the instrument master, so it is a real listed symbol by construction.
   function pick(sym) {
-    onChange(String(sym).toUpperCase());
+    const up = String(sym).toUpperCase();
+    if (onSelect) onSelect(up); else onChange(up);
     setOpen(false);
     setActive(-1);
   }
@@ -78,7 +91,10 @@ export default function SymbolInput({ value, onChange, placeholder = 'e.g. RELIA
     if (!open || !items.length) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive(i => (i + 1) % items.length); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(i => (i - 1 + items.length) % items.length); }
-    else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); pick(items[activeIdx].symbol); }
+    // Enter with nothing highlighted commits the top match rather than doing
+    // nothing. Typing a full symbol and pressing Enter previously felt broken,
+    // which is what pushed callers toward committing raw text on change.
+    else if (e.key === 'Enter') { e.preventDefault(); pick(items[activeIdx >= 0 ? activeIdx : 0].symbol); }
     else if (e.key === 'Escape') { setOpen(false); setActive(-1); }
   }
 

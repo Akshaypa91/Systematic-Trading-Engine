@@ -29,6 +29,8 @@ export default function IntradayScalper() {
     } finally { setLoad(false); }
   }, [symbols, costBps]);
 
+  // Only ever called from SymbolInput's onSelect, so `s` came from the
+  // instrument master and is a real listed symbol.
   const addSymbol = (s) => {
     const up = String(s || '').toUpperCase().trim();
     if (up && !symbols.includes(up) && symbols.length < 10) setSymbols([...symbols, up]);
@@ -78,7 +80,16 @@ export default function IntradayScalper() {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 5 }}>Add symbol</div>
-                <SymbolInput value={draft} onChange={(v) => { setDraft(v); if (v && v.length > 2) addSymbol(v); }} placeholder="Search…" />
+                {/* onSelect, not onChange. Adding on change fired once per
+                    keystroke, so typing TATASTEEL added TAT, TATA, TATAS… —
+                    the truncated chips were partial words, not stocks. A chip
+                    is only created when a real row is chosen. */}
+                <SymbolInput
+                  value={draft}
+                  onChange={setDraft}
+                  onSelect={addSymbol}
+                  placeholder="Search…"
+                />
               </div>
               <div style={{ minWidth: 140 }}>
                 <div style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 5 }}>Round-trip cost (bps)</div>
